@@ -10,7 +10,7 @@ Draft as of 2026-11-19. Working title: **The Ascent**. Kept in sync with the Cla
 
 **Core rule:** walking builds power; the couch tests skill.
 
-**Platform (MVP):** iPhone only.
+**Platform (MVP):** iPhone only. Played in landscape by default.
 
 **Inspirations (tone and themes only, no names or settings borrowed):**
 
