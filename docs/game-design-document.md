@@ -205,6 +205,26 @@ Still open: text only or voiced.
 
 **Not planned:** an audience or viewer mechanic.
 
+## Screens and flow (from zack's sketches)
+
+Sketches: [Home and Trials map](sketches/home-trials-map.jpg), [Combat and reward](sketches/combat-reward.jpg), [HQ, crafting and hero](sketches/hq-crafting-hero.jpg).
+
+| Screen | What's on it | Goes to |
+| --- | --- | --- |
+| Home | Hero standing in the center; Base and Trials buttons; settings top-left, currencies top-right; shop and inventory buttons at the bottom | HQ, Trials map, Shop, Hero |
+| Trials map | A winding path of Trial nodes over a background that matches the current era; two mini-boss nodes along the way and the era boss (holding the Era Key) at the end | Combat |
+| Combat | Turn-based: hero on one side, enemies on the other (for example two wolves) | Reward |
+| Reward | A glowing Cache opens to show the loot | Back to the Trials map |
+| HQ (base) | The base with tappable buildings: one trains the hero, one is crafting; back button | Crafting, hero training |
+| Crafting | Item + item = new item, with the inventory strip alongside to drag items from | Back to HQ |
+| Hero | Stats and Skills tabs at the top, the hero figure in the middle, gear slots and a Diablo-style grid inventory at the bottom | Back to Home |
+
+To confirm:
+
+- Crafting is sketched as two inputs making one item. The draft says the best gear needs walk materials + boss drops + a blueprint. Is the blueprint a third slot, or is it implied?
+- "Diablo-style" inventory: items take different-sized spaces in the grid (a sword 1x3, a ring 1x1), or a simple grid of equal squares?
+- Is "trains hero" the Barracks (permanent stat bonuses), or a separate place to spend attribute points?
+
 ## Art style
 
 **Direction (zack):** 3D, but with a comic-book 2D look.
