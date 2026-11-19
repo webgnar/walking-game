@@ -1,0 +1,62 @@
+# MVP build notes (Era 1)
+
+What the first playable build contains, and every place where the build had to fill a gap in the GDD. The GDD stays the source of truth: anything here that the design thread decides differently should change in code, not in this file.
+
+## How to run
+
+```
+npm install
+npm run dev      # local server, open the printed URL on your phone (same Wi-Fi)
+npm test         # combat balance check + a bot that plays Era 1 end to end
+npm run build    # production build in dist/ (what Vercel serves)
+```
+
+Progress is saved in the browser (localStorage). **Settings → Reset progress** starts over.
+
+## What's in the build
+
+| GDD system | Status |
+| --- | --- |
+| Cold open, tutorial wolf fight, starter grant (300 Soles, 3 Bronze boxes) | Done |
+| +100 steps button (hold to keep walking) feeding one step entry point | Done. `ingestSteps()` in `src/logic/economy.js` is the single path HealthKit will call later |
+| Soles at 10 steps per Sole, daily soft cap 30,000 (half rate above) | Done |
+| Loot box every 1,000 steps, GDD rarity table, Shrine bonus, 3-day box limit | Done |
+| Expedition report | Done: steps collect into a report you open from Home |
+| Daily goals (three a day) and weekly bonus (rest days allowed) | Done |
+| Hero: levels, 2 attribute + 1 skill point per level, training at 2 Soles per XP, era cap at level 10 | Done |
+| Five gear slots, shop, crafted and boss gear with GDD numbers | Done |
+| Base: five buildings, three tiers, GDD costs and timers, speed-up at 1 Sole a minute, first building free | Done |
+| Crafting Studio: two-item crafts, three-item after tier 2, blueprints, learn-by-experimenting | Done |
+| All 15 Era 1 Trials, mini-bosses, Great Mammoth, Era Key, first-win vs replay rewards | Done |
+| Combat: 3 AP + carry-over, intents, block, crit, dodge, stun, burn, bleed, fire fear, interrupts, veterans | Done |
+| PROCTOR lines, glitches (first after Trial 4), 19 achievements | Done |
+| Story fragments and Truth Board decoding | Done (9 Act 1 fragments) |
+| Evolve: Era Key + base tier 3 + level 10, pick 1 of 3 Boons, free respec, materials to Soles | Done. Era 2 shows an "under construction" screen |
+| 3D comic look: toon shading, ink outlines, halftone overlay; cyberpunk comic UI | Placeholder shapes, as agreed |
+| Eras 2 and 3 | Not started: waiting on their design |
+| Backend, accounts, server-side loot | Not started (MVP phase 5) |
+
+## Gaps the build filled (MVP guesses, all easy to change)
+
+All in `src/data/era1.js`, `src/data/story.js` and `src/logic/economy.js`.
+
+- **Combat tuning.** In simulation, the GDD v1 table let a level 1-2 hero beat almost every Era 1 Trial, including the Trial 6 "wall". The build defaults to enemy health ×1.25, enemy damage ×1.5 and Guard once per turn. **Settings → Combat numbers → GDD v1** switches back to the exact table. This one needs a decision in the design thread.
+- **Skills vs. Altar.** The GDD unlocks skills by level and also says the Altar unlocks new skills. The build unlocks skills by level (the v1 table) and uses Altar tiers for loadout size (4, 5, 6) and max skill rank (1, 2, 3), plus 25% cheaper training at tier 3.
+- **Materials while walking:** 1 flint or bone per 500 steps, on top of loot boxes.
+- **Loot box contents** by tier (materials, gear tier, fragment, booster, blueprint chances). Fragments only start dropping after Trial 5, where the GDD puts the first one.
+- **Trial loot boxes:** regular Trials roll the normal odds; mini-bosses give Gold, the era boss Platinum.
+- **Replays:** 1-3 materials, 20% chance of worn gear.
+- **Crafting recipes:** 8 recipes, e.g. 5 Flint + 2 Bone = Flint Club (+4 damage). Two need blueprints (from the Mammoth and rare boxes).
+- **Boosters:** Stride Brew (24h of 2 steps per Sole, as in the GDD), Lucky Knot (next 3 boxes roll a tier up), Warpaint (+3 damage next Trial).
+- **Shop:** the GDD gear plus flint and bone at 10 Soles each.
+- **Inventory slots:** 20, then 30/40/50 by tier. Full bags salvage new gear into materials.
+- **Shrine:** +10% Silver/Gold odds and +5% Platinum and up, per tier.
+- **Truth Board:** tier N decodes level N fragments; decoding costs 40-200 Soles.
+- **Daily goals:** one walking goal plus two from win, open, craft, train, build. All three give a Silver box. **Weekly:** 4,000+ steps on any 4 days gives a Gold box.
+- **Box limit "3 days":** 18 unopened boxes; extra boxes from walking are lost and the report says so.
+- **Boons:** six placeholder Boons.
+- **Steps-per-Sole upgrades (8 and 5)** are not in the shop yet; their prices are an open GDD decision.
+
+## Economy check
+
+`tests/era1.test.js` has a bot play Era 1 at 6,000 steps a day using the real game logic. It finishes Era 1 (Era Key, all buildings tier 3, level 10, evolve) in **13 days**, inside the GDD's 10-14 day target.
