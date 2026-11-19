@@ -1,6 +1,6 @@
 # The Ascent: Game Design Document
 
-Draft as of 2026-11-19. Working title: **The Ascent**. This file has the latest brainstorming decisions; the Claude Doc "Walking Game: Game Design Document" may be behind it.
+Draft as of 2026-11-19. Working title: **The Ascent**. Kept in sync with the Claude Doc "The Ascent: Game Design Document".
 
 **Rule:** no game code until this design document is approved.
 
@@ -205,19 +205,37 @@ Still open: text only or voiced.
 
 **Not planned:** an audience or viewer mechanic.
 
+## Art style
+
+**Direction (zack):** 3D, but with a comic-book 2D look.
+
+Reading of that, to confirm:
+
+- **World, hero, enemies and base:** 3D models rendered with a cel-shaded (toon) look: flat color bands, bold ink outlines, halftone shading.
+- **UI and story moments:** 2D comic-style art: PROCTOR's dialogue as speech bubbles, cutscenes and era evolutions as comic panels, Cache reveals and achievements as comic splash cards.
+- **Effect on the engine choice:** built in Three.js with toon materials and an outline pass (see Technical).
+
+**UI (zack):** cyberpunk meets comic book.
+
+- Comic-panel frames, bold ink borders and halftone fills, combined with neon accents, glitchy scanlines and holographic readouts.
+- Story fit (suggestion): the UI is PROCTOR's interface to the simulation, so it stays futuristic in every era while the world below it changes from Stone Age to post-human. Glitch effects in the UI can carry the story glitches.
+
 ## Technical
 
 **Requirement: test on real iPhones from the first build.** Step data only works on a real device. Needs a Mac with Xcode; a free Apple ID installs on your own phone but builds expire after 7 days. TestFlight (Apple Developer account, $99/year) gives longer-lived builds and lets testers install them.
 
 **Step data:** Apple HealthKit. Read step samples since the last session on open; optional background delivery for "rare find" notifications, which iOS delivers on its own schedule (often minutes late), so nothing core depends on it.
 
-**Engine (still open):** the game is now a 2D turn-based game with menus, a base view and a widget, on iPhone only.
+**Engine (decided):** Three.js (JavaScript 3D), in two builds from one codebase:
 
-| Option | Pros | Cons |
-| --- | --- | --- |
-| Native Swift (SwiftUI + SpriteKit) | Best HealthKit and widget support; no plugins; 2D turn-based doesn't need a big engine | New for the team if they mainly know Godot; iOS only (fine for MVP, a rewrite for Android later) |
-| Godot 4 (iOS export) | Team already knows it; strong 2D tools; Android later is easier | Needs a HealthKit plugin (may need to write one); the widget must be built in Swift anyway |
-| Unity | Mature HealthKit plugins; cross-platform | New engine for the team; licensing |
+| Build | Hosted / installed | Step data | Used for |
+| --- | --- | --- | --- |
+| Web build | Vercel; opened in the phone's browser | Fake steps (a debug control adds steps) | Everyday testing on the phone, instant updates on every push |
+| iPhone app | Capacitor wraps the same web code into a native app; installed from Xcode or TestFlight | Real steps from Apple HealthKit through a Capacitor HealthKit plugin | Testing the real walking loop, and the App Store release |
+
+- The comic-book 3D look uses Three.js toon materials plus an outline pass, with halftone shading as a custom shader.
+- The home-screen widget still needs a small native Swift (WidgetKit) extension inside the Capacitor app.
+- The Capacitor build still needs a Mac with Xcode (see the testing requirement above).
 
 **Backend:** accounts, cloud saves and server-side loot rolls. Vercel or a similar host works.
 
@@ -225,8 +243,8 @@ Still open: text only or voiced.
 
 ## Open decisions
 
-1. Engine: native Swift or Godot.
-2. Art style: pixel art, hand-drawn 2D or stylized low-poly.
+1. Engine: decided (Three.js + Capacitor, web build on Vercel). Next: confirm a Capacitor HealthKit plugin works for step history.
+2. Art style: confirm the 3D comic-book reading (see Art style).
 3. Hero: fixed character or customizable (name, look, gender).
 4. Flux rate: how many steps one Trial's worth of progress should cost.
 5. PROCTOR: text only or voiced.
