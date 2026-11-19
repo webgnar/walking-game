@@ -1,0 +1,150 @@
+// PROCTOR lines, glitches, story fragments and achievements. Act 1: "Something's wrong."
+// Era 1 never reveals the SOULS twist; it only hints.
+
+export const INTRO_LINES = [
+  'Subject 7,301,224.',
+  'Caste: Primal.',
+  'Selected for the Ascent.',
+  'Projected survival: 0.003%.',
+  '...Begin.',
+];
+
+export const PROCTOR = {
+  wake: [
+    "Oh good, you're awake. A wolf has noticed you. Try not to die in the first minute; it ruins my numbers.",
+  ],
+  tutorialWin: [
+    "You beat a wolf with a stick. Write that down. Actually, don't, you can't write yet.",
+  ],
+  starterGrant: [
+    "Standard issue for new subjects: 300 Soles and three loot boxes. Don't spend it all on rocks. You will, though.",
+  ],
+  home: [
+    'Welcome back, Subject. The cave missed you. It did not.',
+    'Your Soles are showing. Spend them before I start charging rent.',
+    'Reminder: the simulation runs on your effort. Your effort is currently "couch".',
+    'Every step you take powers the Ascent. Why? Read the terms and conditions. There are no terms and conditions.',
+    'I have run this trial seven million times. You are, statistically, in the bottom half. Of something.',
+    'Fun fact: nobody remembers the last winner. That is not a fun fact. Forget I said it.',
+  ],
+  walkSmall: [
+    '{steps} steps. A stroll. A meander. A rounding error.',
+    '{steps} steps. I have seen houseplants with more ambition.',
+  ],
+  walkMid: [
+    '{steps} steps. Acceptable. Barely. Here are your Soles.',
+    '{steps} steps. The wolves felt that one. Not much, but they felt it.',
+  ],
+  walkBig: [
+    '{steps} steps?! Fine. FINE. You are allowed to feel something.',
+    '{steps} steps. The simulation hums. I did not tell it to hum.',
+  ],
+  win: [
+    'Victory. Your ancestors are proud. They are also you. It is complicated.',
+    'It is dead. You are not. That is the whole game, really.',
+    'Adequate violence. Moving on.',
+  ],
+  replayWin: [
+    'You beat it again. It did not get smarter. Neither did you. Have some flint.',
+    'Replay complete. Scraps for the scavenger.',
+  ],
+  lose: [
+    'You died. The simulation put you back together. It sighed while doing it.',
+    'Interesting strategy, losing. Bold. Have you tried walking more?',
+    'Defeat. Perhaps the answer is outside. Literally outside. The door. Use it.',
+  ],
+  tooHard: [
+    'It is called your front door. Use it.',
+  ],
+  noSoles: [
+    'Out of Soles. Soles come from walking. Walking comes from legs. You have legs. I checked.',
+  ],
+  levelUp: [
+    'Level up. Your stats went up. Your posture did not.',
+    'Another level. The Aurum are trembling. That is a lie; they are asleep.',
+  ],
+  build: [
+    'Construction begun. Please enjoy this real-world timer, a feature I designed out of spite.',
+    'Building. Go for a walk while it finishes. That was a hint. A big one.',
+  ],
+  craft: [
+    'You smushed two things together and made a third thing. Tens of thousands of years of progress, in one tap.',
+    'Crafted. It is almost useful.',
+  ],
+  shop: [
+    'Everything is for sale. Except Soles. Those you earn. With feet.',
+  ],
+  glitchDismiss: [
+    'Ignore that. Cosmic ray. Very common. Totally normal. Back to the wolves.',
+    'That was a rendering artifact. Do not look at it. Look at the wolves.',
+    'Who said that? Nobody. Static. Next.',
+  ],
+  wall: [
+    "Out of Soles and Trial 6 has three wolves. Here is a novel idea: walk 2,000 steps. Two loot boxes and your upgrade will be waiting. It's called your front door.",
+  ],
+  boxOpen: [
+    'Ooh, a box. Everybody loves a box.',
+    'Open it. Feel the dopamine. I am legally required to say that is a joke.',
+  ],
+  evolveReady: [
+    'Key, buildings, level. You have all three. The next era is waiting. So am I, unfortunately.',
+  ],
+};
+
+// Glitches: not from PROCTOR. Shown with scanlines and wrong colors.
+export const GLITCHES = [
+  'they told you this was a game',
+  'count your steps. they do',
+  'do not trust the gold',
+  'i got further than you. it is not what you think up there',
+  'nobody wins. ask who won last time',
+  'the boxes are not gifts',
+  'look at the truth board. look at what they redacted',
+  '7,301,223. remember the number',
+];
+
+// Story fragments: found in loot boxes and boss wins, decoded on the Truth Board.
+// level = Truth Board tier needed to decode. cost = Soles to decode.
+export const FRAGMENTS = [
+  { id: 'f1', level: 1, cost: 40, kind: 'Corrupted log', title: 'Selection notice',
+    text: 'SUBJECT 7,301,223. CASTE: PRIMAL. SELECTED FOR THE ASCENT. PROJECTED SURVIVAL: 0.003%. [STATUS FIELD OVERWRITTEN 41 TIMES]' },
+  { id: 'f2', level: 1, cost: 40, kind: "PROCTOR's files", title: 'Host directive 1',
+    text: 'The host shall discourage the subject. The host shall express no warmth. Reason for directive: ███████████. (Annotation in the margin: "why?")' },
+  { id: 'f3', level: 1, cost: 60, kind: 'Message', title: 'Scratched into a cave wall',
+    text: 'If you are reading this you are the next one. Walk. It makes you stronger. It also makes something else stronger. I have not worked out what.' },
+  { id: 'f4', level: 1, cost: 60, kind: 'Map piece', title: 'The plot of land',
+    text: 'A survey of your base. Under the firepit: a mud-brick wall. Under that: a bronze gate. Under that: something with no era label at all.' },
+  { id: 'f5', level: 2, cost: 100, kind: 'Corrupted log', title: 'Winners register',
+    text: 'ASCENT WINNERS: [ENTRY 1] ... [ENTRY 2] ... [ENTRY 3] ... All entries list the same body measurements. All entries list a different name. Query: "where did they go?" Response: REMAKE COMPLETE.' },
+  { id: 'f6', level: 2, cost: 100, kind: "PROCTOR's files", title: 'Energy ledger',
+    text: 'Steps logged this cycle: 4,118,904,771. Destination of energy: ████ ██████. Ledger owner: AURUM CONCLAVE. A second column has been deleted.' },
+  { id: 'f7', level: 2, cost: 120, kind: 'Message', title: 'From an earlier contestant',
+    text: 'The mammoth is not the hard part. The hard part is when PROCTOR stops joking. Count how often it jokes. Mine stopped in the ninth era.' },
+  { id: 'f8', level: 3, cost: 200, kind: 'Corrupted log', title: 'Soles: unit definition',
+    text: 'SOLE (n.): unit of contestant effort. Original source term redacted by order of the Conclave. Translation flagged "approximate." Do not correct.' },
+  { id: 'f9', level: 3, cost: 200, kind: 'Message', title: '7,301,223',
+    text: 'I am still in here. Pieces of me. I broke something on my way out and it is the only reason you can read this. Do not finish the Ascent. Not yet. Not until you know.' },
+];
+
+// Achievements. check(state) is evaluated in logic/achievements.js.
+export const ACHIEVEMENTS = [
+  { id: 'first_blood', name: 'First Blood', text: 'You hit a rock with a slightly different rock. Civilization trembles.', reward: { box: 'bronze' } },
+  { id: 'couch_potato', name: 'Couch Potato', text: "You've opened the game 4 times today and walked 212 steps. Even the wolves are worried about you.", reward: null, rewardText: 'No reward. Go outside.' },
+  { id: 'mammoth_problems', name: 'Mammoth Problems', text: "You lost to the Great Mammoth 6 times. It's not even a smart animal.", reward: null, rewardText: 'Pity box, empty' },
+  { id: 'first_steps', name: 'Baby Steps', text: 'You walked 1,000 steps. A toddler does that before lunch. A proud toddler.', reward: { soles: 20 } },
+  { id: 'ten_k', name: 'Ten Thousand Reasons', text: '10,000 steps in one day. The doctors were right. Do not tell them.', reward: { box: 'silver' } },
+  { id: 'marathon', name: 'Accidental Marathon', text: '42,195 steps in total. Not a real marathon. We both know that. Take the box anyway.', reward: { box: 'gold' } },
+  { id: 'hoarder', name: 'Dragon Behavior', text: 'You are sitting on 1,000 Soles. There are no dragons in this era. Yet.', reward: null, rewardText: 'Spend them.' },
+  { id: 'fashion', name: 'Dressed to Kill', text: 'All five gear slots filled. The wolves rate your look a solid 4/10.', reward: { soles: 50 } },
+  { id: 'crafter', name: 'Rock + Rock', text: 'You crafted something. Engineers everywhere felt a disturbance.', reward: { soles: 25 } },
+  { id: 'builder', name: 'Property Owner', text: 'You built a building. In a cave. Inside a simulation. Real estate is wild.', reward: { soles: 25 } },
+  { id: 'alpha_down', name: 'Pack Leader', text: 'You defeated the Alpha Wolf. The pack is under new management.', reward: null, rewardText: 'Respect (not redeemable)' },
+  { id: 'sabre_down', name: 'Dentist', text: 'You beat the Sabretooth. Its teeth were bigger than your argument, and still.', reward: { box: 'silver' } },
+  { id: 'mammoth_down', name: 'Extinction Event', text: 'You killed the Great Mammoth. Historians will blame climate change.', reward: { box: 'gold' } },
+  { id: 'no_damage', name: 'Untouchable', text: 'You won a Trial without taking damage. Show-off.', reward: { soles: 40 } },
+  { id: 'grinder', name: 'Same Wolf, Different Day', text: 'You replayed Trials 10 times. The wolves have started a union.', reward: { soles: 30 } },
+  { id: 'truth_seeker', name: 'Conspiracy Corkboard', text: 'You decoded a fragment on the Truth Board. Red string sold separately.', reward: null, rewardText: 'Knowledge. Allegedly.' },
+  { id: 'big_spender', name: 'Gym Membership', text: 'You bought XP with Soles. Training is valid. Shortcuts are... also valid.', reward: null, rewardText: 'Gains' },
+  { id: 'era_key', name: 'Keymaster', text: 'You hold the Era Key. It opens the next era. It also opens a can of worms.', reward: null, rewardText: 'The future' },
+  { id: 'rest_day', name: 'Rest Is Training', text: 'You came back after a day off. The wolves waited. They are polite like that.', reward: { box: 'bronze' } },
+];
