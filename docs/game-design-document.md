@@ -207,6 +207,10 @@ Still open: text only or voiced.
 
 ## Screens and flow (from zack's sketches)
 
+![Screen flow mockup](sketches/screen-flow.png)
+
+Every screen branches from Home. A Trial runs map, combat, reward, then back to the map. Back buttons return Hero to Home and Crafting to HQ.
+
 Sketches: [Home and Trials map](sketches/home-trials-map.jpg), [Combat and reward](sketches/combat-reward.jpg), [HQ, crafting and hero](sketches/hq-crafting-hero.jpg).
 
 | Screen | What's on it | Goes to |
