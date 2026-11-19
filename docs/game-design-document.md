@@ -237,6 +237,8 @@ Reading of that, to confirm:
 - The home-screen widget still needs a small native Swift (WidgetKit) extension inside the Capacitor app.
 - The Capacitor build still needs a Mac with Xcode (see the testing requirement above).
 
+**Testing without step history (zack):** early builds skip Apple Health entirely. A debug **Add steps** button (for example +500, +2,000, +10,000) feeds the same code path real steps will use, so the whole loop (Flux, Caches, return report, Trials) can be tested in the browser. Apple Health and the Capacitor app come later, once the game is fun. The button is hidden in release builds.
+
 **Backend:** accounts, cloud saves and server-side loot rolls. Vercel or a similar host works.
 
 **Proposed performance targets:** 60 fps on iPhones from about 2021 onward. Install size under 150 MB. Very low battery drain, because the OS counts steps rather than the game.
