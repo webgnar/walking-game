@@ -224,6 +224,101 @@ Turn-based strategy. Unlocks at hero level 5 (the first-session tutorial fights 
 | Bronze | Sun Rites: Solar Flare, Blessing, Curse | Resources, buffs and debuffs | Armored chariots resist physical damage |
 | Later | Formations, combos, gunpowder, gadgets, hacking | | |
 
+## Era 1 combat: v1 numbers (proposed starting values)
+
+First-guess numbers so the combat prototype can be built. Expect them to change after playtesting.
+
+### Hero formulas
+
+| Stat | Formula |
+| --- | --- |
+| Health | 50 + 5 × Vitality. Full heal between Trials |
+| Physical damage | Skill power + Strength + weapon bonus |
+| Fire damage | Skill power + Intelligence |
+| Block | Absorbs damage this turn only |
+| Crit | 5% + 1% per Agility point; crits do 1.5× damage |
+| Dodge | 1% per Agility point |
+| Action Points | 3 a turn. Up to 1 unspent AP carries over, +1 more per 10 Intelligence |
+
+**Starting hero (level 1):** Strength 4, Vitality 4, Intelligence 2, Agility 2. Health 70. Each level gives 2 Attribute Points and 1 Skill Point.
+
+**XP to the next level:** 50 × current level. Level 10 (the Era 1 evolve threshold) takes 2,250 XP in total.
+
+**Training:** 2 Soles per XP at the Hero Training Altar.
+
+### Primal skills
+
+| Skill | AP | Effect | Unlocked |
+| --- | --- | --- | --- |
+| Club Strike | 1 | 6 physical damage | Start |
+| Guard | 1 | Block 6 + half Vitality this turn | Start |
+| Roar | 2 | Stun one enemy for 1 turn (it skips its intent). 3-turn cooldown | Level 2 |
+| Hurl Stone | 1 | 4 physical damage to any enemy. Interrupts a "calling backup" intent | Level 3 |
+| Firebrand | 2 | 8 fire damage, then 3 burn a turn for 2 turns. Beasts with fire fear skip their next attack | Level 5 |
+
+Skill Points upgrade a skill by +2 power (or +2 block) per rank, up to rank 3.
+
+### Era 1 enemies
+
+| Enemy | Health | Intents (shown before they act) | Notes |
+| --- | --- | --- | --- |
+| Wolf | 35 | Bite 6; Snarl (next Bite +50%) | Fire fear |
+| Boar | 50 | Gore 7; Charging (next turn Charge 16) | Stun or block the Charge |
+| Rival hunter | 45 | Spear 8; Guard (block 6); Throw 5 (ignores block) | Human, no fire fear |
+| Cave bear | 90 | Swipe 11; Hunker (block 10) | Fire fear |
+| Alpha Wolf (mini-boss) | 130 | Bite 9; Snarl; Call the pack (adds a Wolf, every 3 turns) | Hurl Stone interrupts the call |
+| Sabretooth (mini-boss) | 210 | Claw 12; Bleed (3 a turn for 3 turns); Crouching (next turn Pounce 24) | Fire fear |
+| Great Mammoth (era boss) | 420 | Stomp 12; Trumpet (block 15, Stomps +3 for the rest of the fight); Lowering tusks (next turn Charge 30) | Below half health it charges every third turn |
+
+Trials 11 to 14 use veteran versions: +25% health and damage.
+
+### The 15 Trials
+
+| Trial | Enemies | Suggested level | First-win XP |
+| --- | --- | --- | --- |
+| Tutorial (first session) | Wolf | 1 | 50 (reaches level 2, unlocks Roar) |
+| 1 | Wolf | 2 | 30 |
+| 2 | Wolf, Wolf | 2 | 30 |
+| 3 | Boar | 3 | 30 |
+| 4 | Wolf, Boar | 3 | 30 |
+| 5 | Alpha Wolf, Wolf | 4 | 80 |
+| 6 | Wolf ×3 (the first-session wall) | 5 | 50 |
+| 7 | Rival hunter | 5 | 50 |
+| 8 | Rival hunter ×2 | 6 | 50 |
+| 9 | Cave bear | 6 | 50 |
+| 10 | Sabretooth | 7 | 150 |
+| 11 | Veteran Cave bear, Wolf | 8 | 80 |
+| 12 | Veteran Rival hunter ×2, Wolf | 8 | 80 |
+| 13 | Veteran Boar ×2, Rival hunter | 9 | 80 |
+| 14 | Veteran Cave bear ×2 | 9 | 80 |
+| 15 | Great Mammoth | 10 | 300 |
+
+First wins give about 1,220 XP. The other ~1,030 XP to reach level 10 comes from training (about 2,060 Soles).
+
+### Era 1 gear (starting values)
+
+| Slot | Shop (Soles) | Crafted | Boss drop |
+| --- | --- | --- | --- |
+| Weapon | +2 damage, 150 | +4 damage | Alpha Fang: +5 damage. Mammoth Tusk Club: +8 damage |
+| Armor | +10 health, 150 | +20 health | Sabretooth Hide: +30 health |
+| Helm, offhand, trinket | +1 to one attribute, 100 | +2 to one attribute | Rare loot box drops |
+
+### Era 1 base costs
+
+| Tier | Cost per building | Upgrade timer |
+| --- | --- | --- |
+| 1 | 100 Soles + 3 materials | 10 minutes |
+| 2 | 300 Soles + 8 materials | 2 hours |
+| 3 | 800 Soles + 20 materials | 8 hours |
+
+All five buildings to tier 3 cost 6,000 Soles. Speeding up costs 1 Sole per minute left.
+
+**Era 1 total:** about 6,000 Soles for the base plus about 2,060 for training, so roughly 8,000 Soles. At 6,000 steps a day (600 Soles at 10 steps per Sole), that is about 13 days, inside the 10 to 14 day target.
+
+**Starter grant (MVP):** 300 Soles and 3 Bronze loot boxes.
+
+**Change for v1:** Trials are open from the start, replacing "unlocks at hero level 5". The first-session plan has Trials 1 to 4 at minute 10, which a level 5 gate would block.
+
 ## PROCTOR (narrator)
 
 The host and main source of personality; mostly writing. Comments on step data and on how the player plays. Achievements with funny descriptions:
@@ -366,7 +461,7 @@ Sell things that make walking worth more, never things that replace it.
 | 9 | Monetization | Resolved | See Monetization; prices open |
 | 10 | Social layer | Later | Friends, Houses, guild raids, PvP after the MVP |
 
-Still missing from the document: audio direction, a notification plan, Era 1 content in detail, analytics, privacy and compliance, team/budget/timeline.
+Still missing from the document: audio direction, a notification plan, analytics, privacy and compliance, team/budget/timeline.
 
 ## Open decisions
 
@@ -374,4 +469,4 @@ Still missing from the document: audio direction, a notification plan, Era 1 con
 2. Prices: full-game unlock, boosters, season pass, cosmetics.
 3. Art style: confirm the 3D comic-book reading.
 4. PROCTOR: text only or voiced.
-5. Next design pass: detail Era 1 completely (15 Trials, enemies, Primal skill tree, base tiers, Great Mammoth).
+5. Era 1: v1 numbers drafted (see Era 1 combat); tune after the combat prototype.
