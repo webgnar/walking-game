@@ -7,7 +7,7 @@ import {
 } from './data/era1.js';
 import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
 import * as ST from './logic/story.js';
-import { IC, LAUREL, WREATH, DISH } from './ui/icons.js';
+import { IC, WREATH, DISH } from './ui/icons.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -198,7 +198,6 @@ const SCREENS = {
     <div class="homecenter">
       ${s.report ? `<button class="btn small ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
     </div>
-    <div class="laurels"><div class="ring"></div>${LAUREL}${LAUREL}</div>
     <div class="home-left">
       <button class="btn plate cream ${hint('base')}" data-a="go" data-v="base">${IC.base}<span>Base</span>${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
       <button class="btn plate" data-a="go" data-v="shop">${IC.shop}<span>Shop</span></button>

@@ -484,12 +484,6 @@ h3.h { font-family: var(--display); font-weight: 600; color: var(--gold); letter
 .simlog .slbar i { display: block; height: 100%; background: var(--green); }
 .homecenter { top: calc(var(--st) + 86px); }
 
-/* ---- Home: laurels framing the hero ---- */
-.laurels { position: absolute; left: 50%; top: 52%; width: min(52vh, 360px); height: min(64vh, 440px); transform: translate(-58%, -50%); pointer-events: none; color: rgba(201,162,76,.32); }
-.laurels .ring { position: absolute; inset: 6% 4%; border: 1px solid rgba(201,162,76,.18); border-radius: 50%; }
-.laurels .laurel { position: absolute; top: 4%; height: 82%; }
-.laurels .laurel:nth-of-type(1) { left: -14%; }
-.laurels .laurel:nth-of-type(2) { right: -14%; transform: scaleX(-1); }
 body.proctor-on .obsfeed { visibility: hidden; }
 
 /* ---- Home: side plates ---- */
@@ -654,6 +648,5 @@ body.proctor-on .obsfeed { visibility: hidden; }
   .proctor .eye { display: none; }
   .proctor { max-width: min(34vw, 300px) !important; }
 }
-@media (max-height: 360px) { .laurels { display: none; } }
 .node, .node.done, .node.open, .node.mini, .node.mini.done, .node.era, .node.era.done { background: none; border: 0; }
 .cutph .brief { background: rgba(10,8,7,.88); color: var(--muted); border-top: 1px solid var(--line2); font-family: var(--mono); }

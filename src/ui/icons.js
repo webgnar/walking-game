@@ -15,12 +15,6 @@ export const IC = {
   bone: svg('<path d="M7.5 16.5 16.5 7.5"/><path d="M6 14.5a2 2 0 1 0-2.6 2.9 2 2 0 1 0 3.2 2.9 2 2 0 1 0 2.9-2.6"/><path d="M18 9.5a2 2 0 1 0 2.6-2.9 2 2 0 1 0-3.2-2.9 2 2 0 1 0-2.9 2.6"/>'),
 };
 
-// Gold laurel branch (left side); mirror it with CSS for the right.
-export const LAUREL = `<svg class="laurel" viewBox="0 0 60 140" aria-hidden="true"><path d="M48 136C22 112 12 80 18 40 20 26 26 14 34 4" fill="none" stroke="currentColor" stroke-width="2.2"/>${
-  [[30, 20, -40], [24, 34, -35], [20, 50, -25], [18, 66, -15], [19, 82, -5], [23, 98, 8], [29, 112, 20], [37, 124, 32]]
-    .map(([x, y, r]) => `<ellipse cx="${x - 8}" cy="${y}" rx="9" ry="3.6" transform="rotate(${r} ${x} ${y})" fill="currentColor"/><ellipse cx="${x + 7}" cy="${y - 4}" rx="8" ry="3.2" transform="rotate(${r - 70} ${x} ${y})" fill="currentColor" opacity=".8"/>`).join('')
-}</svg>`;
-
 // Small laurel wreath for the era banner.
 export const WREATH = `<svg class="wreath" viewBox="0 0 64 64" aria-hidden="true">${
   [-1, 1].map((d) => `<g transform="translate(32 0) scale(${d} 1) translate(-32 0)"><path d="M30 56C16 50 9 38 11 22" fill="none" stroke="currentColor" stroke-width="1.6"/>${
