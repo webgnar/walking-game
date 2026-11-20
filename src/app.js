@@ -86,7 +86,7 @@ function say(text, opts = {}) {
   app.proctor = p;
   renderProctor();
   // PROCTOR gets out of the way on its own unless the line matters
-  if (!opts.sticky) setTimeout(() => { if (app.proctor === p) { app.proctor = null; renderProctor(); } }, opts.auto || (app.screen === 'combat' ? 7000 : 11000));
+  if (!opts.sticky) setTimeout(() => { if (app.proctor === p) { app.proctor = null; renderProctor(); } }, opts.auto || (app.screen === 'combat' ? 5000 : 8000));
 }
 
 function tick() {
@@ -221,7 +221,7 @@ const SCREENS = {
     const pts = nodes.map((t) => pos(t.n));
     const nt = T.nextTrial(s);
     return `${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared${s.eraKey ? ' · Era Key ✔' : ''}`)}
-    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
+    <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
     <div class="map">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#20f0ff" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity=".7"/></svg>
       ${nodes.map((t) => {
@@ -719,7 +719,7 @@ function lootCard(it, i) {
 function renderProctor() {
   const p = app.proctor;
   const el = $('#proctor');
-  if (!p || app.screen === 'intro' || app.modal) { el.innerHTML = ''; return; }
+  if (!p || app.screen === 'intro' || app.modal || (app.screen === 'combat' && app.battle && app.battle.trial !== 0 && !p.glitch)) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="proctor ${p.glitch ? 'glitch' : ''} ${p.wide && app.screen !== 'combat' ? 'wide' : ''} ${app.screen === 'combat' ? 'incombat' : ''}" data-a="dismissProctor"><div class="eye"></div><div class="bubble"><span class="who">${p.glitch ? '??????' : 'PROCTOR'}</span>${esc(p.text)}</div></div>`;
 }
 

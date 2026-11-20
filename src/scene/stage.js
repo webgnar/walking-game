@@ -71,6 +71,10 @@ export class Stage {
     this.camPos.set(...c.pos);
     this.camLook.set(...c.look);
     const h = this.hero;
+    // undo any death/stun/win pose left over from the last fight
+    this.tweens = [];
+    h.rotation.set(0, 0, 0);
+    h.userData.armR.rotation.x = 0;
     h.visible = mode !== 'map' && mode !== 'base';
     if (mode === 'combat') {
       h.position.set(-2.8, 0, 0.4);

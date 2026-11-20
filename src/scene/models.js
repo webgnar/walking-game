@@ -246,7 +246,9 @@ export function buildCave() {
     const a = Math.PI * 0.9 + (i / 26) * Math.PI * 1.2 + rng() * 0.1;
     const r = 9 + rng() * 6;
     const s = 1.5 + rng() * 3.5;
-    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x40342e : 0x4b3d34, [Math.cos(a) * r, s * 0.4, Math.sin(a) * r], [rng() * 3, rng() * 3, rng() * 3], null, 0.1);
+    // keep the inner edge of every rock clear of the base plot
+    const rr = Math.max(r, s + 9.5);
+    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x40342e : 0x4b3d34, [Math.cos(a) * rr, s * 0.4, Math.sin(a) * rr], [rng() * 3, rng() * 3, rng() * 3], null, 0.1);
     g.add(m);
   }
   // distant mountains
