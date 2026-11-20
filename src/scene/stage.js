@@ -7,6 +7,8 @@ const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
 };
 
+const HOME_SCALE = 1.3;
+
 const CAMS = {
   intro: { pos: [0, 1.3, 3.2], look: [0, 1.4, 0] },
   home: { pos: [0, 1.7, 5.6], look: [0, 1.1, 0] },
@@ -91,6 +93,8 @@ export class Stage {
     h.userData.armR.rotation.x = 0;
     if (this.rig) this.rig.reset();
     h.visible = mode !== 'map' && mode !== 'base';
+    // the hero stands bigger on Home, where he's the centrepiece
+    h.scale.setScalar(mode === 'home' ? HOME_SCALE : 1);
     if (mode === 'combat') {
       h.position.set(-2.8, 0, 0.4);
       h.rotation.y = 0.75;
@@ -275,7 +279,7 @@ export class Stage {
       const a = this.actor(who);
       if (!a) return null;
       obj = a.obj;
-      h = who === 'hero' ? 2.1 : enemyHeight(a.id);
+      h = who === 'hero' ? 2.1 * obj.scale.y : enemyHeight(a.id);
     }
     if (!obj) return null;
     const v = new THREE.Vector3();
