@@ -17,7 +17,7 @@ Progress is saved in the browser (localStorage). **Settings → Reset progress**
 
 | GDD system | Status |
 | --- | --- |
-| Cold open, tutorial wolf fight, starter grant (300 Soles, 3 Bronze boxes) | Done |
+| Opening: premise text, 9-shot black-and-white cutscene (placeholder art with art briefs), tutorial wolf fight, starter grant (300 Soles, 3 Bronze boxes) | Done. Drop art into `public/cutscenes/` and set `art` on each shot in `INTRO_CUTSCENE` |
 | +100 steps button (hold to keep walking) feeding one step entry point | Done. `ingestSteps()` in `src/logic/economy.js` is the single path HealthKit will call later |
 | Soles at 10 steps per Sole, daily soft cap 30,000 (half rate above) | Done |
 | Loot box every 1,000 steps, GDD rarity table, Shrine bonus, 3-day box limit | Done |

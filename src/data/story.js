@@ -1,12 +1,38 @@
 // PROCTOR lines, glitches, story fragments and achievements. Act 1: "Something's wrong."
 // Era 1 never reveals the SOULS twist; it only hints.
 
+// Opening, part 1: the premise, typed out in green.
 export const INTRO_LINES = [
-  'Subject 7,301,224.',
-  'Caste: Primal.',
-  'Selected for the Ascent.',
-  'Projected survival: 0.003%.',
-  '...Begin.',
+  'In a far-future empire, the ruling Aurum caste are engineered demigods.',
+  'Once a generation they run the Ascent:',
+  'a lowborn is placed in a simulation of all human history',
+  'and must fight from caveman to god...',
+  'Survive every era and you are remade as Aurum.',
+];
+
+// Opening, part 2: the cutscene, black-and-white anime style. Tap to advance.
+// art: image path under public/ (for example 'cutscenes/intro-01.jpg'). While art is
+// null the game draws a manga-style placeholder and shows the brief for the artist.
+// style: 'panel' (default), 'flash' (white-out), 'title' (big title card).
+export const INTRO_CUTSCENE = [
+  { art: null, icon: '🏗', sfx: 'CLANK… CLANK…', caption: 'Lowborn Quarry 9. Third shift.',
+    brief: 'Wide shot: a vast quarry under a gleaming gold spire. Hundreds of lowborn workers, ore carts, smog.' },
+  { art: null, icon: '⛏', sfx: 'KRAK', thought: 'Same rock. Same quota. Same tower watching.',
+    brief: 'Mid shot: our hero swinging a pick. Long hair, stubble, sweat and dust. Tired eyes.' },
+  { art: null, icon: '✋', sfx: 'VMMMM', glow: true, thought: 'What…?',
+    brief: 'Extreme close-up: his hands on the pick handle. The sigils burned into the backs of his hands start to flash.' },
+  { art: null, icon: '😨', glow: true, thought: "The marks… they've never done that.",
+    voice: { who: 'Voice from the spire', text: 'Subject 7,301,224. Caste: Primal. You have been selected for the Ascent.' },
+    brief: 'Close-up: he stares at his glowing hands. The workers around him back away.' },
+  { art: null, icon: '🙇', voice: { who: 'Voice from the spire', text: 'Projected survival: 0.003%.' },
+    brief: 'Wide: every worker kneels. A beam of light from the spire falls on him alone.' },
+  { art: null, style: 'flash', sfx: 'FSSSHHHH',
+    brief: 'White flash: his body breaks apart into a swirl of dust. The pick falls and clatters.' },
+  { art: null, icon: '🕯', caption: 'Somewhere. Somewhen.', thought: 'Where… am I?',
+    brief: 'He lands on cold stone in a cave, coughing up dust. Firelight. He is wearing furs now.' },
+  { art: null, icon: '🐺', sfx: 'GRRRR',
+    brief: 'His view: yellow eyes in the dark. A wolf steps into the firelight, snarling.' },
+  { style: 'title', title: 'Trial 0', text: 'Fight to the death' },
 ];
 
 export const PROCTOR = {

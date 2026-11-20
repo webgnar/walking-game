@@ -5,7 +5,7 @@ import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
   INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS,
 } from './data/era1.js';
-import { INTRO_LINES, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS } from './data/story.js';
+import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS } from './data/story.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -135,7 +135,8 @@ function hint(key) {
 
 const SCREENS = {
   intro() {
-    return `<div class="intro" data-a="introTap"><div class="scanlines"></div>${INTRO_LINES.map((l, i) => `<div class="line" id="il${i}"></div>`).join('')}<div class="skip">tap to continue</div></div>`;
+    if (app.introPhase === 'cut') return cutShot(INTRO_CUTSCENE[app.cutI], app.cutI, INTRO_CUTSCENE.length);
+    return `<div class="intro premise" data-a="introTap"><div class="scanlines"></div>${INTRO_LINES.map((l, i) => `<div class="line" id="il${i}"></div>`).join('')}<div class="skip">tap to continue</div></div>`;
   },
 
   home() {
@@ -405,6 +406,26 @@ const SCREENS = {
       <button class="btn cyan" data-a="go" data-v="home">Home</button></div></div>`;
   },
 };
+
+// One shot of the opening cutscene. Real art when shot.art is set; otherwise a
+// black-and-white manga placeholder that shows the art brief.
+function cutShot(sh, i, n) {
+  const dots = `<div class="cutdots">${Array.from({ length: n }, (_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>`;
+  const skip = '<button class="btn tiny ghost cutskip" data-a="introSkip">Skip</button>';
+  if (sh.style === 'title') {
+    return `<div class="cut title" data-a="introTap"><div class="speed"></div><div class="tt"><small>${esc(sh.title)}</small>${esc(sh.text)}</div>${dots}</div>`;
+  }
+  const pic = sh.art
+    ? `<img class="cutart" src="${esc(sh.art)}" alt="">`
+    : `<div class="cutph"><div class="speed"></div>${sh.icon ? `<div class="cutico ${sh.glow ? 'glow' : ''}">${sh.icon}</div>` : ''}<div class="brief">ART: ${esc(sh.brief)}</div></div>`;
+  return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="introTap" key="${i}">
+    <div class="cutpanel">${pic}
+      ${sh.caption ? `<div class="cap">${esc(sh.caption)}</div>` : ''}
+      ${sh.sfx ? `<div class="sfx">${esc(sh.sfx)}</div>` : ''}
+      ${sh.thought ? `<div class="thought">${esc(sh.thought)}</div>` : ''}
+      ${sh.voice ? `<div class="voice"><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
+    </div>${dots}${skip}</div>`;
+}
 
 function card(icon, title, sub = '', cls = '') {
   return `<div class="lootcard ${cls}"><div class="li">${icon}</div>${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
@@ -964,13 +985,19 @@ const ACTIONS = {
   dismissToast(v) { app.toastQ = (app.toastQ || []).filter((t) => t.id !== v); renderToasts(); },
 
   introTap() {
-    if (app.introTimer) { clearInterval(app.introTimer); app.introTimer = null; INTRO_LINES.forEach((l, i) => { const el = $(`#il${i}`); if (el) el.textContent = l; }); app.introDone = true; return; }
-    if (app.introDone || !app.introStarted) {
-      if (!app.introStarted) return typeIntro();
-      s.intro = true;
-      save(s);
-      startBattle(0);
+    if (app.introPhase === 'cut') {
+      if (app.cutI < INTRO_CUTSCENE.length - 1) { app.cutI++; render(); return; }
+      return ACTIONS.introSkip();
     }
+    if (app.introTimer) { clearInterval(app.introTimer); app.introTimer = null; INTRO_LINES.forEach((l, i) => { const el = $(`#il${i}`); if (el) el.textContent = l; }); app.introDone = true; return; }
+    if (!app.introStarted) return typeIntro();
+    if (app.introDone) { app.introPhase = 'cut'; app.cutI = 0; render(); }
+  },
+  introSkip() {
+    app.introPhase = null;
+    s.intro = true;
+    save(s);
+    startBattle(0);
   },
   afterTutorial() {
     s.tutorial = 'boxes';
@@ -1227,7 +1254,7 @@ function typeIntro() {
       ci = 0;
       if (li >= INTRO_LINES.length) { clearInterval(app.introTimer); app.introTimer = null; app.introDone = true; }
     }
-  }, 45);
+  }, 28);
 }
 
 function onClick(ev) {

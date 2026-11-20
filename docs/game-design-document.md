@@ -339,21 +339,84 @@ Still open: text only or voiced.
 - **Flashbacks:** decoding every fragment of an era plays a flashback cutscene: a memory recovered from 7,301,223 (former tribute), shown as sepia comic panels. Each era has one, and they continue the same story from era to era. It can be rewatched from the Truth Board.
 - **Naming:** messages and glitches from 7,301,223 are always labeled "7,301,223 (former tribute)".
 
-## First session (target: 20+ minutes, then the player goes for a walk)
+## Opening (built)
 
-| Time | What happens |
+1. **Premise, typed in green:** "In a far-future empire, the ruling Aurum caste are engineered demigods. Once a generation they run the Ascent: a lowborn is placed in a simulation of all human history and must fight from caveman to god... Survive every era and you are remade as Aurum."
+2. **Cutscene, black-and-white anime style** (tap to advance, Skip in the corner). Art to come; the build shows manga-style placeholders with an art brief on each shot. Shot list (`INTRO_CUTSCENE` in `src/data/story.js`):
+
+| # | Shot | Text |
+| --- | --- | --- |
+| 1 | Wide: a vast quarry under a gold spire, hundreds of lowborn workers | Caption: "Lowborn Quarry 9. Third shift." SFX: CLANK… CLANK… |
+| 2 | Mid: the hero swinging a pick; long hair, stubble, sweat, dust | Thought: "Same rock. Same quota. Same tower watching." SFX: KRAK |
+| 3 | Extreme close-up: the sigils on the backs of his hands start to flash | Thought: "What…?" SFX: VMMMM |
+| 4 | Close-up: he stares at his hands; workers back away | Voice from the spire: "Subject 7,301,224. Caste: Primal. You have been selected for the Ascent." |
+| 5 | Wide: every worker kneels; light from the spire falls on him alone | Voice: "Projected survival: 0.003%." |
+| 6 | White flash: his body breaks into a swirl of dust; the pick falls | SFX: FSSSHHHH |
+| 7 | He lands on cold stone in a firelit cave, coughing dust, now in furs | Caption: "Somewhere. Somewhen." Thought: "Where… am I?" |
+| 8 | His view: yellow eyes in the dark; a wolf steps into the firelight | SFX: GRRRR |
+| 9 | Title card | "Trial 0: Fight to the death" |
+
+3. **The first fight** starts straight after the title card.
+
+The sigils on his hands are a new story thread: they're how the Ascent marks and tracks a tribute (in the full story, how it draws on their effort). They should glow when he walks and react to things from 7,301,223.
+
+## The first hour (proposed)
+
+**Goal:** after about 20 minutes, the player wants to go for a walk, because the story stopped at a cliffhanger they can only get past by walking. Across the first hour of play (three sessions with walks in between), every session ends with three open loops:
+
+- **A story loop that needs steps:** a message or memory that only clears up by walking.
+- **A power loop:** a Trial they can't beat yet.
+- **A timer loop:** a base upgrade finishing while they're out.
+
+### New mechanic: transmissions (proposed)
+
+Messages from 7,301,223 (former tribute) arrive broken. The signal only gets stronger while you walk: "Signal 12%. Walk 1,000 steps to clear it." Each one reads as a cliffhanger, and the expedition report shows the cleared message when you come back. The sigils on the hero's hands pulse as the signal grows.
+
+This ties the story straight to walking, rather than only to Soles. In the MVP the +100 steps button fills the signal.
+
+### Session 1: about 0 to 25 minutes, ending with a walk
+
+| Time | Beat | Hook |
+| --- | --- | --- |
+| 0:00 | Premise text, cutscene, "Fight to the death" | Who chose him, and why do his hands glow? |
+| 2:30 | Wolf fight won in under a minute; PROCTOR introduces itself | A host who clearly doesn't want him to win |
+| 3:30 | Starter grant; open 3 loot boxes; first gear changes the hero's look | Variable reward |
+| 6:00 | First building free; start an upgrade with a timer | Something finishing later |
+| 8:00 | First level up; unlock Roar | Power |
+| 10:00 | Trials 1 to 4 | Quick wins |
+| 14:00 | **First transmission**, broken: "they told you this was a ███ … the tower … your hands …" Signal 8%. His sigils flicker. PROCTOR: "Cosmic ray. Ignore it." | Story cliffhanger that needs steps |
+| 16:00 | Trial 5, the Alpha Wolf; first Truth Board part: a carving on the cave wall. His sigils glow when he touches it | Someone was here before |
+| 19:00 | **The wall:** Trial 6 is too hard, Soles are gone | Power loop |
+| 20:00 | Goal card: "Walk 1,000 steps: clear the signal, earn a loot box, finish your upgrade." Ask for notifications: "Signal restored. 7,301,223 has something to tell you." | All three loops point out the door |
+
+### Session 2: after the first walk, about 25 to 45 minutes
+
+| Beat | Hook |
 | --- | --- |
-| 0:00 | Cold open; the selection text types out. The hero wakes in a cave. |
-| 0:30 | First fight, no menus: one wolf, two skills, intent icons. |
-| 2:00 | Starting resources. MVP: a starter grant of Soles and loot boxes. Full game: PROCTOR reviews the last 7 days from Apple Health and roasts or praises them. |
-| 4:00 | Open loot boxes; equip gear; the hero's look changes. |
-| 6:00 | Base: first building (instant); start a tier upgrade on a timer. |
-| 8:00 | First level up: unlock Roar, spend attribute points. |
-| 10:00 | Trials 1 to 4. |
-| 14:00 | First glitch: "they told you this was a game." PROCTOR dismisses it. |
-| 16:00 | Trial 5 mini-boss, the Alpha Wolf: boss gear, respec token, first story fragment. |
-| 19:00 | The wall: Trial 6 is too hard and the player is out of Soles. "It's called your front door." |
-| 20:00 | Goal: "Walk 2,000 steps: earn 2 loot boxes and finish your upgrade." Ask for notifications. |
+| Expedition report opens with the cleared transmission: "they told you this was a game. it isn't. i was 7,301,223. i was a miner too." | Answered, and a bigger question |
+| Spend Soles; finish upgrades; Trials 6 to 9 | Power payoff |
+| Truth Board parts 2 to 4; the map piece shows layers under the firepit | Mystery grows |
+| A 2-panel black-and-white **memory flicker** (not the full flashback): a different miner's hands, flashing the same way | Foreshadows the Era 1 flashback |
+| Trial 10, the Sabretooth: barely won or lost | Power loop |
+| Second transmission: "count the jokes. when it stops joking, run." Signal 5%; walk 2,000 steps | Story loop |
+
+### Session 3: after the second walk, about 45 to 60 minutes
+
+| Beat | Hook |
+| --- | --- |
+| Cleared transmission plus Truth Board tier 2: the winners register (same body, different names) | First real dread |
+| Trials 11 to 14; the Great Mammoth teased on the map | Power climb |
+| PROCTOR makes one remark with no joke in it, then covers it up | Chilling moment |
+| Ends with the Mammoth too strong, the last Truth Board parts still locked, and "Memory 1" at 7 of 9 | Players come back for the flashback and the Era Key |
+
+The Era 1 flashback (all 9 parts decoded) and the Mammoth land in the following days, at the 10 to 14 day pace.
+
+### Retention design rules
+
+- Never end a session on a resolved beat; always on a question.
+- A new story beat in every session, and each one needs steps, not just Soles.
+- PROCTOR's tone shifts slightly across the hour, so players notice something changing.
+- Cutscenes stay short (under 90 seconds) and skippable.
 
 ## MVP scope
 
