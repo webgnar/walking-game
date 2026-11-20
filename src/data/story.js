@@ -160,12 +160,13 @@ export const FRAGMENTS = [
 // Transmissions: broken messages from 7,301,223 (former tribute). The signal only
 // gets stronger while you walk; words fill in as it does. Started by first wins.
 // steps = steps needed to clear. start = share of words readable at 0% signal.
+// after = where it sits in the Truth Board story (after that many fragment parts).
 export const TRANSMISSIONS = [
-  { id: 't1', trial: 4, steps: 1000, start: 0.3,
+  { id: 't1', after: 0, trial: 4, steps: 1000, start: 0.3,
     text: "they told you this was a game. it isn't. i was 7,301,223. i was a miner too. the tower lit my hands the same way it lit yours. watch your hands when you walk." },
-  { id: 't2', trial: 10, steps: 2000, start: 0.25,
+  { id: 't2', after: 4, trial: 10, steps: 2000, start: 0.25,
     text: 'count the jokes. when PROCTOR stops joking, run. mine stopped in the ninth era. i did not run.' },
-  { id: 't3', trial: 14, steps: 3000, start: 0.2,
+  { id: 't3', after: 7, trial: 14, steps: 3000, start: 0.2,
     text: 'the mammoth is a door. on the other side, they are watching you. read the whole board before you walk through it. all of it.' },
 ];
 

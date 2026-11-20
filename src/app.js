@@ -120,11 +120,14 @@ function render() {
   follow(true);
 }
 
+// Soles everywhere (with the walking rate under them); flint and bone only on the
+// screens where they're spent: Base, Workshop and Shop.
+const MAT_SCREENS = ['base', 'craft', 'shop'];
 function curPlate() {
+  const mats = MAT_SCREENS.includes(app.screen);
   return `<div class="cur">
-      <span class="c soles" title="Soles">${IC.sole}${fmt(s.soles)}</span><i>/</i>
-      <span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i>
-      <span class="c" title="Bone">${IC.bone}${s.mats.bone}</span>
+      <span class="c soles" title="Soles">${IC.sole}<span class="sv">${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span></span>
+      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span>` : ''}
     </div>`;
 }
 
@@ -147,7 +150,6 @@ function homeTop() {
   const today = E.todaySteps(s);
   const toBox = E.STEPS_PER_BOX - s.steps.towardBox;
   const seg = Math.floor(s.steps.towardBox / 100); // 10 segments, one per 100 steps
-  const a = ST.activeTransmission(s);
   const stride = s.active.strideUntil > env.now();
   return `
     <button class="ui-gear sq" data-a="settings" aria-label="Settings">${IC.gear}</button>
@@ -157,17 +159,8 @@ function homeTop() {
     </div>
     <div class="ui-steps"><div class="lbl">Today <b>${fmt(today)}</b> steps <span>·</span> next loot box in <b>${fmt(toBox)}</b>${stride ? ' <span>·</span> <em>Stride Brew</em>' : ''}</div>
       <div class="segs">${Array.from({ length: 10 }, (_, i) => `<i class="${i < seg ? 'on' : ''}"></i>`).join('')}</div></div>
-    <button class="ui-brief" ${a ? 'data-a="modal" data-v="transmission"' : 'disabled'}>
-      <span class="radar"><i></i></span>
-      <span class="txt"><span class="k">Command brief <span>//</span> ${a ? `Signal ${Math.floor(a.frac * 100)}%` : 'Standby'}</span>
-        <span class="h">${a ? `${esc(FORMER_TRIBUTE)}` : 'Awaiting movement'}</span>
-        <span class="s">${a ? `Walk ${fmt(a.left)} steps to clear it` : `Walk ${fmt(toBox)} steps for the next loot box`}</span></span>
-      <span class="sky"></span>
-    </button>
     <div class="ui-res">
-      <span class="c" title="Soles"><span class="uicon ic-sole">${IC.sole}</span>${fmt(s.soles)}</span><i></i>
-      <span class="c" title="Flint"><span class="uicon ic-flint">${IC.flint}</span>${s.mats.flint}</span><i></i>
-      <span class="c" title="Bone"><span class="uicon ic-bone">${IC.bone}</span>${s.mats.bone}</span>
+      <span class="c" title="Soles"><span class="uicon ic-sole">${IC.sole}</span>${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span>
     </div>`;
 }
 
@@ -417,27 +410,38 @@ const SCREENS = {
     const done = list.filter((f) => s.fragments.decoded.includes(f.id)).length;
     const fb = FLASHBACKS[era];
     const ready = B.flashbackReady(s, era);
-    return `${topbar('Truth Board', `Tier ${tier} · ${s.fragments.decoded.length}/${FRAGMENTS.length} decoded`, 'base')}
+    const live = ST.activeTransmission(s);
+    const txEntry = (t) => s.transmissions.cleared.includes(t.id)
+      ? `<div class="entry msg tx"><div class="ch">Transmission</div><div class="ek">Signal cleared · from ${esc(FORMER_TRIBUTE)}</div><p>${esc(t.text)}</p></div>`
+      : live && live.id === t.id ? `<div class="entry msg tx live"><div class="ch">Transmission · incoming</div><div class="ek">Signal ${Math.floor(live.frac * 100)}% · from ${esc(FORMER_TRIBUTE)}</div><p>${esc(ST.signalText(live, live.frac))}</p><div class="mbar"><i style="width:${live.frac * 100}%"></i></div><div class="small">Walk ${fmt(live.left)} more steps to clear the signal.</div></div>` : '';
+    const parts = list.map((f, i) => {
+      const st = B.fragmentState(s, f);
+      const from = f.from ? `<span class="from">${esc(f.from)}</span>` : '';
+      const head = `<div class="ch">Part ${i + 1}</div>`;
+      if (st === 'missing') return `<div class="entry missing">${head}<div class="et">Not found yet</div><div class="small">Walk and open loot boxes. Pieces turn up after the Alpha Wolf.</div></div>`;
+      if (st === 'decoded') return `<div class="entry ${f.from ? 'msg' : ''}" data-a="readFrag" data-v="${f.id}">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div><p>${esc(f.text)}</p></div>`;
+      return `<div class="entry redacted">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div>
+        <p class="fx">${esc(f.text.slice(0, 90))}</p>
+        ${st === 'decodable' ? `<button class="btn tiny yellow" data-a="decode" data-v="${f.id}">Decode · 👣${f.cost}</button>` : `<div class="small" style="color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
+      </div>`;
+    });
+    // One story: each transmission sits between the parts where it arrives.
+    const story = [];
+    for (let i = 0; i <= parts.length; i++) {
+      for (const t of TRANSMISSIONS.filter((x) => x.after === i)) story.push(txEntry(t));
+      if (i < parts.length) story.push(parts[i]);
+    }
+    return `${topbar('Truth Board', `Tier ${tier} · ${done}/${list.length} decoded`, 'base')}
     <div class="screen"><div class="col grow panel pad truthboard">
-      <div class="memory ${ready ? 'ready' : ''}">
-        <div class="grow"><div class="mk">Flashback · Primal era</div><div class="mt">${esc(fb.title)}</div>
-          ${ready ? '<div class="small">Every piece decoded. The memory is whole.</div>' : `<div class="small">Decode all ${list.length} pieces of this era to recover the memory.</div><div class="mbar"><i style="width:${(done / list.length) * 100}%"></i></div>`}</div>
-        <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? '▶ Watch again' : '▶ Play memory') : `🔒 ${done}/${list.length}`}</button>
+      <div class="tbhead">
+        ${live ? `<div class="memory signalcard"><div class="grow"><div class="mk">Incoming signal · ${esc(FORMER_TRIBUTE)}</div><div class="mt">${Math.floor(live.frac * 100)}%</div><div class="small">Walk ${fmt(live.left)} steps to clear it.</div><div class="mbar"><i style="width:${live.frac * 100}%"></i></div></div></div>` : ''}
+        <div class="memory ${ready ? 'ready' : ''}">
+          <div class="grow"><div class="mk">Flashback · Primal era</div><div class="mt">${esc(fb.title)}</div>
+            ${ready ? '<div class="small">Every piece decoded. The memory is whole.</div>' : `<div class="small">Decode all ${list.length} parts to recover it.</div><div class="mbar"><i style="width:${(done / list.length) * 100}%"></i></div>`}</div>
+          <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? '▶ Watch again' : '▶ Play memory') : `🔒 ${done}/${list.length}`}</button>
+        </div>
       </div>
-      ${s.transmissions.cleared.length || s.transmissions.active ? `<button class="btn tiny ghost" style="align-self:flex-start" data-a="modal" data-v="transmission">📡 Transmissions (${s.transmissions.cleared.length} cleared${s.transmissions.active ? ', 1 incoming' : ''})</button>` : ''}
-      <div class="scroll grow story">
-      ${list.map((f, i) => {
-        const st = B.fragmentState(s, f);
-        const from = f.from ? `<span class="from">${esc(f.from)}</span>` : '';
-        const head = `<div class="ch">Part ${i + 1}</div>`;
-        if (st === 'missing') return `<div class="entry missing">${head}<div class="et">Not found yet</div><div class="small">Walk and open loot boxes. Pieces turn up after the Alpha Wolf.</div></div>`;
-        if (st === 'decoded') return `<div class="entry ${f.from ? 'msg' : ''}" data-a="readFrag" data-v="${f.id}">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div><p>${esc(f.text)}</p></div>`;
-        return `<div class="entry redacted">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div>
-          <p class="fx">${esc(f.text.slice(0, 90))}</p>
-          ${st === 'decodable' ? `<button class="btn tiny yellow" data-a="decode" data-v="${f.id}">Decode · 👣${f.cost}</button>` : `<div class="small" style="color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
-        </div>`;
-      }).join('')}
-      </div>
+      <div class="scroll grow story">${story.join('')}</div>
     </div></div>`;
   },
 
@@ -759,20 +763,6 @@ const MODALS = {
     return cutShot(m.shots[m.i], m.i, m.shots.length, 'cutNext', 'cutSkip');
   },
 
-  transmission() {
-    const a = ST.activeTransmission(s);
-    const log = s.transmissions.cleared;
-    return `<div class="dialog panel halftone tx">
-      <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">📡 Transmissions</h2>
-      <div class="small muted">From ${esc(FORMER_TRIBUTE)}. The signal only gets stronger while you walk.</div>
-      <div class="body">
-        ${a ? `<div class="txmsg live"><div class="txh">Incoming · signal ${Math.floor(a.frac * 100)}%</div><p>${esc(ST.signalText(a, a.frac))}</p>
-          <div class="mbar"><i style="width:${a.frac * 100}%"></i></div><div class="small">Walk ${fmt(a.left)} more steps to clear it.</div></div>` : '<div class="small muted">No signal right now.</div>'}
-        ${log.slice().reverse().map((id) => `<div class="txmsg"><div class="txh">Cleared</div><p>${esc(ST.txById(id).text)}</p></div>`).join('')}
-      </div></div>`;
-  },
-
   flashback(m) {
     const fb = FLASHBACKS[m.era];
     const p = fb.panels[m.i];
@@ -1028,7 +1018,7 @@ function endBattle() {
 // A broken transmission arrives from 7,301,223 (former tribute).
 function incoming(id) {
   const def = ST.txById(id);
-  say(`${ST.signalText(def, 0)}  [signal 0%: walk ${fmt(def.steps)} steps to clear it]`, {
+  say(`${ST.signalText(def, 0)}  [signal 0% · walk ${fmt(def.steps)} steps to clear it · follow it on the Truth Board]`, {
     glitch: true, sticky: true, who: FORMER_TRIBUTE,
     then: () => say('Cosmic ray. Ignore it. Definitely do not go for a walk to hear the rest.'),
   });

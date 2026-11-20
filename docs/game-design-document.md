@@ -372,7 +372,7 @@ The sigils on his hands are a new story thread: they're how the Ascent marks and
 
 Messages from 7,301,223 (former tribute) arrive broken. The signal only gets stronger while you walk: "Signal 12%. Walk 1,000 steps to clear it." Each one reads as a cliffhanger, and the expedition report shows the cleared message when you come back. The sigils on the hero's hands pulse as the signal grows.
 
-This ties the story straight to walking, rather than only to Soles. In the MVP the +100 steps button fills the signal.
+This ties the story straight to walking, rather than only to Soles. In the MVP the +100 steps button fills the signal. The signal is followed on the Truth Board (not on Home): an incoming-signal card at the top, and each transmission placed in the story between the parts where it arrives.
 
 ### Session 1: about 0 to 25 minutes, ending with a walk
 
