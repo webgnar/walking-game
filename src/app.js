@@ -137,8 +137,10 @@ function topbar(title, sub, back = 'home', backLabel = '') {
 }
 
 function applyUiStyle() {
-  const retro = s.uiStyle === 'retro';
-  document.body.classList.toggle('retro', retro);
+  // v2: zack's brush mockup became the default look (older saves are moved onto it once)
+  if (s.uiStyleV !== 2) { s.uiStyle = 'brush'; s.uiStyleV = 2; }
+  document.body.classList.toggle('retro', s.uiStyle === 'retro');
+  document.body.classList.toggle('brush', s.uiStyle === 'brush');
 }
 
 const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev';
@@ -150,10 +152,10 @@ function homeHeader() {
   return `<div class="homehead">
     <button class="banner" data-a="settings" aria-label="Settings">${WREATH}</button>
     <div class="dossier">
-      <div class="era" aria-label="${era}">${esc(era.toUpperCase().replace(/A/g, 'Λ'))}</div>
+      <div class="era" data-a="settings" aria-label="${era} (settings)"><span class="mtn">⛰</span>${esc(s.uiStyle === 'brush' ? era.toUpperCase() : era.toUpperCase().replace(/A/g, 'Λ'))}</div>
       <div class="ver">Simulation ${esc(BUILD.split(' ')[0])}</div>
-      <div class="subj">Subject 7,301,224</div>
-      <div class="lvl">Level ${s.hero.level}</div>
+      <div class="subj"><span>Subject 7,301,224</span></div>
+      <div class="lvl"><span>Level ${s.hero.level}</span></div>
       <dl><dt>Class</dt><dd>${esc(era)}</dd><dt>State</dt><dd class="ok">Active</dd><dt>Rank</dt><dd>Unassigned</dd></dl>
       <div class="barcode"></div>
     </div>
@@ -171,7 +173,7 @@ function simLog() {
     ? `Signal ${Math.floor(a.frac * 100)}% · ${esc(FORMER_TRIBUTE)} · walk ${fmt(a.left)} steps to clear it`
     : `Awaiting movement · ${fmt(toBox)} steps to the next loot box${stride ? ' · Stride Brew active' : ''}`;
   return `<div class="simlog">
-    <div class="slh"><span>&gt; Simulation log // Cycle ${cycle()}</span><span class="r">Today <b>${fmt(today)}</b> steps · next loot box in <b>${fmt(toBox)}</b></span></div>
+    <div class="slh"><span><b class="wave">((•))</b>&gt; Simulation log // Cycle ${cycle()}</span><span class="r">Today <b>${fmt(today)}</b> steps · next loot box in <b>${fmt(toBox)}</b></span></div>
     <button class="slline ${a ? 'sig' : ''}" ${a ? 'data-a="modal" data-v="transmission"' : 'disabled'}>&gt; ${line} <span class="cur">▍</span></button>
     <div class="slbar"><i style="width:${(s.steps.towardBox / 10).toFixed(1)}%"></i></div>
   </div>`;
@@ -205,13 +207,13 @@ const SCREENS = {
       ${s.report ? `<button class="btn small ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
     </div>
     <div class="home-left">
-      <button class="btn plate cream ${hint('base')}" data-a="go" data-v="base">${IC.base}<span>Base</span>${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
-      <button class="btn plate" data-a="go" data-v="shop">${IC.shop}<span>Shop</span></button>
-      <button class="btn plate" data-a="modal" data-v="goals">${IC.goals}<span>Goals</span>${goalsReady ? `<span class="badge">${goalsReady}</span>` : ''}</button>
+      <button class="btn plate cream ${hint('base')}" data-a="go" data-v="base">${IC.base}<i class="emo">⛺</i><span>Base</span>${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
+      <button class="btn plate" data-a="go" data-v="shop">${IC.shop}<i class="emo">🛒</i><span>Shop</span></button>
+      <button class="btn plate" data-a="modal" data-v="goals">${IC.goals}<i class="emo">🎯</i><span>Goals</span>${goalsReady ? `<span class="badge">${goalsReady}</span>` : ''}</button>
     </div>
     <div class="home-right">
-      <button class="btn plate crimson big ${hint('trials')}" data-a="go" data-v="map">${IC.trials}<span>Trials</span></button>
-      <button class="btn plate ${hint('boxes')}" data-a="modal" data-v="boxes">${IC.boxes}<span>Boxes</span>${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
+      <button class="btn plate crimson big ${hint('trials')}" data-a="go" data-v="map">${IC.trials}<i class="emo">⚔️</i><span>Trials</span></button>
+      <button class="btn plate ${hint('boxes')}" data-a="modal" data-v="boxes">${IC.boxes}<i class="emo">📦</i><span>Boxes</span>${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
       ${s.boxes.length > 1 ? '<button class="btn small openall" data-a="openAll">Open all</button>' : ''}
     </div>
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
@@ -219,6 +221,8 @@ const SCREENS = {
     </div>
     ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
     ${obsFeed()}
+    <div class="herotarget"><i></i><i></i><i></i><i></i></div>
+    <div class="statusbar"><b>▮▮▮▮▮</b> Sim_core ${esc(BUILD.split(' ')[0])} // Bio: stable // Env: ${s.era === 1 ? 'Primal' : 'Brick'} // Integrity: 99.4%</div>
     <div class="home-bottom">
       <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
       <button class="btn plate crimson stepbtn" data-hold="steps"><span>+100 steps</span><small>Hold to keep walking <span class="debugtag">Test</span></small></button>
@@ -838,8 +842,8 @@ const MODALS = {
         ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
         <div class="sep"></div>
         <h3 class="h">UI style</h3>
-        <div class="small muted">Retro dither is a UI mockup: pixel type and dithered shading on the interface. The 3D scene is unchanged.</div>
-        <div class="row" style="margin:6px 0">${[['current', 'Current'], ['retro', 'Retro dither']].map(([k, l]) => `<button class="tab ${(s.uiStyle || 'current') === k ? 'on' : ''}" data-a="uiStyle" data-v="${k}">${l}</button>`).join('')}</div>
+        <div class="small muted">Brush is the newest mockup. Dossier and Retro dither are the earlier ones. The 3D scene is the same in all three.</div>
+        <div class="row" style="margin:6px 0">${[['brush', 'Brush'], ['current', 'Dossier'], ['retro', 'Retro dither']].map(([k, l]) => `<button class="tab ${(s.uiStyle || 'brush') === k ? 'on' : ''}" data-a="uiStyle" data-v="${k}">${l}</button>`).join('')}</div>
         <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>
         <div class="small muted">"Tuned" raises enemy health ×1.25 and damage ×1.5, and lets Guard be used once a turn. "GDD v1" uses the design document's table exactly.</div>
