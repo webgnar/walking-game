@@ -163,6 +163,10 @@ export function useSkill(b, id, targetUid) {
         ev.push({ t: 'interrupt', who: target.uid });
       }
       damageEnemy(b, target, p + h.stats.str + h.stats.weapon + h.warpaint, 'physical', ev);
+      if (sk.stunChance && !target.dead && !target.stunned && !ENEMIES[target.id].boss && env.rand() < sk.stunChance) {
+        target.stunned = true;
+        ev.push({ t: 'stun', who: target.uid });
+      }
       break;
     }
     case 'fire': {

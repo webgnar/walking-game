@@ -253,7 +253,7 @@ First-guess numbers so the combat prototype can be built. Expect them to change 
 | Club Strike | 1 | 6 physical damage | Start |
 | Guard | 1 | Block 6 + half Vitality this turn | Start |
 | Roar | 2 | Stun one enemy for 1 turn (it skips its intent). 3-turn cooldown | Level 2 |
-| Hurl Stone | 1 | 4 physical damage to any enemy. Interrupts a "calling backup" intent | Level 3 |
+| Hurl Stone | 1 | 4 physical damage to any enemy. Interrupts a "calling backup" intent. 15% chance to stun (bosses resist) | Level 3 |
 | Firebrand | 2 | 8 fire damage, then 3 burn a turn for 2 turns. Beasts with fire fear skip their next attack | Level 5 |
 
 Skill Points upgrade a skill by +2 power (or +2 block) per rank, up to rank 3.

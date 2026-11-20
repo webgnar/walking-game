@@ -32,8 +32,8 @@ export const SKILLS = {
     unlock: 2, icon: '📣', desc: () => 'Stun one enemy for 1 turn. 3-turn cooldown',
   },
   hurl: {
-    id: 'hurl', name: 'Hurl Stone', ap: 1, kind: 'physical', power: 4, target: 'enemy', interrupts: true,
-    unlock: 3, icon: '🪨', desc: (p) => `${p} physical damage. Interrupts "calling backup"`,
+    id: 'hurl', name: 'Hurl Stone', ap: 1, kind: 'physical', power: 4, target: 'enemy', interrupts: true, stunChance: 0.15,
+    unlock: 3, icon: '🪨', desc: (p) => `${p} physical damage. Interrupts "calling backup". 15% chance to stun (not bosses)`,
   },
   firebrand: {
     id: 'firebrand', name: 'Firebrand', ap: 2, kind: 'fire', power: 8, target: 'enemy', burn: 3, burnTurns: 2,
