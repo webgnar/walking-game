@@ -151,10 +151,12 @@ const SCREENS = {
     </div>
     <div class="home-right">
       <button class="btn big pink ${hint('trials')}" data-a="go" data-v="map">⚔ Trials</button>
-      <button class="btn ${hint('hero')}" data-a="hero" data-v="gear">🎒 Hero${sp ? `<span class="badge">${sp}</span>` : ''}</button>
       <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
     </div>
     ${s.report ? `<div class="reportbtn"><button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button></div>` : ''}
+    <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
+      ${sp || hint('hero') ? `<div class="herotag ${hint('hero') || 'pulse'}">${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</div>` : ''}
+    </div>
     <div class="home-bottom">
       <button class="btn stepbtn" data-hold="steps">+100 steps<small>hold to keep walking <span class="debugtag">TEST</span></small></button>
       <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">🏆</button>
