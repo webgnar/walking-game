@@ -59,6 +59,7 @@ export function newState() {
     eraKey: false,
     evolved: false,
     fragments: { found: [], decoded: [] },
+    flashbacksSeen: [], // eras whose Truth Board flashback has played
     glitches: 0,
     achievements: {},
     toasts: [],

@@ -301,3 +301,45 @@ h3.h { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: va
 
 .installtip { position: absolute; top: calc(var(--st) + 100px); left: 50%; transform: translateX(-50%); width: min(420px, 50vw); font-size: 12.5px; line-height: 1.25; background: var(--panel); border-color: var(--cyan); cursor: pointer; z-index: 2; }
 html:fullscreen, body:fullscreen { background: #0d0b14; }
+
+/* Home: Open all sits under Boxes, a little smaller */
+.home-right .btn.openall { font-size: calc(var(--u) * 4.4); padding: calc(var(--u) * 1.4) 8px; }
+
+/* Truth Board: a story read top to bottom, with the era's flashback on top */
+.truthboard { background: #2c1f12; gap: 8px; }
+.truthboard .memory { display: flex; align-items: center; gap: 10px; border: 3px solid var(--ink); background: #140e08; padding: 8px 10px; box-shadow: 3px 3px 0 var(--ink); color: #e8d6b0; }
+.truthboard .memory.ready { border-color: var(--yellow); box-shadow: 0 0 14px rgba(255,214,51,.35), 3px 3px 0 var(--ink); }
+.truthboard .memory .mk { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--yellow); }
+.truthboard .memory .mt { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: .03em; }
+.truthboard .mbar { height: 6px; background: #3b2a1a; border: 1px solid var(--ink); margin-top: 4px; }
+.truthboard .mbar i { display: block; height: 100%; background: var(--yellow); }
+.truthboard .story { display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 10px; }
+.truthboard .entry { background: #efe6cc; color: #1a1408; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); padding: 8px 12px; max-width: 70ch; cursor: pointer; }
+.truthboard .entry p { margin: 4px 0 6px; font-size: 14px; line-height: 1.45; }
+.truthboard .entry.msg { background: #0b0b10; color: var(--green); border-color: var(--green); font-family: ui-monospace, Menlo, monospace; }
+.truthboard .entry.msg .et { color: var(--green); }
+.truthboard .entry .ch { font-size: 10px; text-transform: uppercase; letter-spacing: .14em; opacity: .6; }
+.truthboard .entry .ek { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #8a2a20; }
+.truthboard .entry.msg .ek { color: var(--green); opacity: .8; }
+.truthboard .entry .from { margin-left: 6px; }
+.truthboard .entry .from::before { content: '· from '; }
+.truthboard .entry .et { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: .03em; }
+.truthboard .entry.redacted .fx { background: #111; color: #111; border-radius: 2px; user-select: none; }
+.truthboard .entry.missing { background: rgba(255,255,255,.05); color: #a8977a; border-style: dashed; box-shadow: none; cursor: default; }
+
+/* Flashback cutscene: a recovered memory, sepia comic panels over static */
+.flashback { position: absolute; inset: 0; background: radial-gradient(ellipse at center, #2a1d10, #050302 75%); color: #f1e2c2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 12px) calc(var(--sl) + 16px); cursor: pointer; animation: fadeIn .6s; }
+.flashback .fbhead, .flashback .fbfoot { position: absolute; left: calc(var(--sl) + 16px); right: calc(var(--sr) + 16px); display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: ui-monospace, Menlo, monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #b89c6a; }
+.flashback .fbhead { top: calc(var(--st) + 10px); }
+.flashback .fbfoot { bottom: calc(var(--sb) + 10px); }
+.flashback .fbfoot i { display: inline-block; width: 18px; height: 4px; margin-right: 4px; background: #4a3a22; }
+.flashback .fbfoot i.on { background: var(--yellow); }
+.flashback .fbpanel { width: min(620px, 88vw); background: #efe0bd; color: #1f160a; border: 4px solid #120c05; box-shadow: 6px 6px 0 #120c05; padding: 14px 18px; filter: sepia(.35); animation: fbIn .5s ease-out; position: relative; }
+.flashback .fbpanel .cap { display: inline-block; background: var(--yellow); color: #120c05; border: 2px solid #120c05; padding: 1px 8px; font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: .06em; transform: rotate(-1.5deg); margin-bottom: 8px; }
+.flashback .fbpanel p { margin: 0; font-size: calc(var(--u) * 3.6); line-height: 1.45; font-family: Georgia, 'Times New Roman', serif; font-style: italic; }
+.flashback .fbpanel.speech { background: #fff; filter: none; }
+.flashback .fbpanel.speech p { font-family: inherit; font-style: normal; }
+.flashback .fbpanel .spk { font-family: var(--display); font-weight: 800; color: var(--pink); font-size: 14px; letter-spacing: .08em; }
+.flashback .fbpanel.end { background: #120c05; color: var(--yellow); border-color: var(--yellow); filter: none; text-align: center; }
+@keyframes fbIn { from { opacity: 0; transform: translateY(14px) scale(.97); filter: sepia(1) blur(3px); } }
+@media (prefers-reduced-motion: reduce) { .flashback, .flashback .fbpanel { animation: none; } }

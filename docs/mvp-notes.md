@@ -30,7 +30,8 @@ Progress is saved in the browser (localStorage). **Settings → Reset progress**
 | All 15 Era 1 Trials, mini-bosses, Great Mammoth, Era Key, first-win vs replay rewards | Done |
 | Combat: 3 AP + carry-over, intents, block, crit, dodge, stun, burn, bleed, fire fear, interrupts, veterans | Done |
 | PROCTOR lines, glitches (first after Trial 4), 19 achievements | Done |
-| Story fragments and Truth Board decoding | Done (9 Act 1 fragments) |
+| Story fragments and Truth Board decoding | Done: 9 Act 1 fragments read in order as a story; decoding all 9 plays the Era 1 flashback cutscene |
+| Open all loot boxes | Done: on Home (with 2+ boxes) and in the loot box window; shows one merged summary |
 | Evolve: Era Key + base tier 3 + level 10, pick 1 of 3 Boons, free respec, materials to Soles | Done. Era 2 shows an "under construction" screen |
 | 3D comic look: toon shading, ink outlines, halftone overlay; cyberpunk comic UI | Placeholder shapes, as agreed |
 | Eras 2 and 3 | Not started: waiting on their design |
@@ -51,7 +52,8 @@ All in `src/data/era1.js`, `src/data/story.js` and `src/logic/economy.js`.
 - **Shop:** the GDD gear plus flint and bone at 10 Soles each.
 - **Inventory slots:** 20, then 30/40/50 by tier. Full bags salvage new gear into materials.
 - **Shrine:** +10% Silver/Gold odds and +5% Platinum and up, per tier.
-- **Truth Board:** tier N decodes level N fragments; decoding costs 40-200 Soles.
+- **Truth Board:** tier N decodes level N fragments; decoding costs 40-200 Soles. The Era 1 flashback (`FLASHBACKS` in `src/data/story.js`) has 7 panels and must not reveal the SOULS twist.
+- **Base costs (after playtest):** 50/150/400 Soles and 5 min/45 min/3 h per tier, down from 100/300/800 and 10 min/2 h/8 h.
 - **Daily goals:** one walking goal plus two from win, open, craft, train, build. All three give a Silver box. **Weekly:** 4,000+ steps on any 4 days gives a Gold box.
 - **Box limit "3 days":** 18 unopened boxes; extra boxes from walking are lost and the report says so.
 - **Boons:** six placeholder Boons.

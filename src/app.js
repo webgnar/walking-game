@@ -5,7 +5,7 @@ import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
   INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS,
 } from './data/era1.js';
-import { INTRO_LINES, PROCTOR, FRAGMENTS, ACHIEVEMENTS } from './data/story.js';
+import { INTRO_LINES, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS } from './data/story.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -114,9 +114,9 @@ function render() {
   follow(true);
 }
 
-function topbar(title, sub, back = 'home') {
+function topbar(title, sub, back = 'home', backLabel = '') {
   return `<div class="topbar">
-    ${back ? `<button class="iconbtn" data-a="go" data-v="${back}" aria-label="Back">◀</button>` : `<button class="iconbtn" data-a="settings" aria-label="Settings">⚙</button>`}
+    ${back && backLabel ? `<button class="btn small cyan" data-a="go" data-v="${back}">${backLabel}</button>` : back ? `<button class="iconbtn" data-a="go" data-v="${back}" aria-label="Back">◀</button>` : `<button class="iconbtn" data-a="settings" aria-label="Settings">⚙</button>`}
     <div><div class="title">${esc(title)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
     <div class="spacer"></div>
     <div class="cur">
@@ -157,6 +157,7 @@ const SCREENS = {
     <div class="home-right">
       <button class="btn big pink ${hint('trials')}" data-a="go" data-v="map">⚔ Trials</button>
       <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
+      ${s.boxes.length > 1 ? '<button class="btn orange openall" data-a="openAll">Open all</button>' : ''}
     </div>
     ${s.report ? `<div class="reportbtn"><button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button></div>` : ''}
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
@@ -228,8 +229,8 @@ const SCREENS = {
     const nodes = TRIALS.filter((t) => t.n > 0);
     const pts = nodes.map((t) => pos(t.n));
     const nt = T.nextTrial(s);
-    return `${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared${s.eraKey ? ' · Era Key ✔' : ''}`)}
-    <div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
+    return `<div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
+    ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', '🏠 Home')}
     <div class="map">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#20f0ff" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity=".7"/></svg>
       ${nodes.map((t) => {
@@ -367,21 +368,31 @@ const SCREENS = {
 
   truth() {
     const tier = s.base.truth.tier;
+    const era = 1;
+    const list = B.eraFragments(era);
+    const done = list.filter((f) => s.fragments.decoded.includes(f.id)).length;
+    const fb = FLASHBACKS[era];
+    const ready = B.flashbackReady(s, era);
     return `${topbar('Truth Board', `Tier ${tier} · ${s.fragments.decoded.length}/${FRAGMENTS.length} decoded`, 'base')}
-    <div class="screen"><div class="col grow panel pad" style="background:#3b2a1a">
-      <div class="small" style="color:#e8d6b0">Fragments come from loot boxes and boss wins. Upgrade the Truth Board to decode deeper ones.</div>
-      <div class="scroll grow" style="padding:10px 4px"><div class="frags">
-      ${FRAGMENTS.map((f, i) => {
+    <div class="screen"><div class="col grow panel pad truthboard">
+      <div class="memory ${ready ? 'ready' : ''}">
+        <div class="grow"><div class="mk">Flashback · Primal era</div><div class="mt">${esc(fb.title)}</div>
+          ${ready ? '<div class="small">Every piece decoded. The memory is whole.</div>' : `<div class="small">Decode all ${list.length} pieces of this era to recover the memory.</div><div class="mbar"><i style="width:${(done / list.length) * 100}%"></i></div>`}</div>
+        <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? '▶ Watch again' : '▶ Play memory') : `🔒 ${done}/${list.length}`}</button>
+      </div>
+      <div class="scroll grow story">
+      ${list.map((f, i) => {
         const st = B.fragmentState(s, f);
-        const r = `--r:${((i * 37) % 7) - 3}deg`;
-        if (st === 'missing') return `<div class="frag missing" style="${r}"><div class="ft">???</div><div class="small">Not found yet</div></div>`;
-        if (st === 'decoded') return `<div class="frag" style="${r}" data-a="readFrag" data-v="${f.id}"><div class="fk">${esc(f.kind)}</div><div class="ft">${esc(f.title)}</div><div>${esc(f.text)}</div></div>`;
-        return `<div class="frag redacted" style="${r}"><div class="fk">${esc(f.kind)}</div><div class="ft">${esc(f.title)}</div>
-          <div class="fx">${esc(f.text.slice(0, 70))}</div>
-          ${st === 'decodable' ? `<button class="btn tiny yellow" style="margin-top:6px" data-a="decode" data-v="${f.id}">Decode · 👣${f.cost}</button>` : `<div class="small" style="margin-top:6px;color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
+        const from = f.from ? `<span class="from">${esc(f.from)}</span>` : '';
+        const head = `<div class="ch">Part ${i + 1}</div>`;
+        if (st === 'missing') return `<div class="entry missing">${head}<div class="et">Not found yet</div><div class="small">Walk and open loot boxes. Pieces turn up after the Alpha Wolf.</div></div>`;
+        if (st === 'decoded') return `<div class="entry ${f.from ? 'msg' : ''}" data-a="readFrag" data-v="${f.id}">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div><p>${esc(f.text)}</p></div>`;
+        return `<div class="entry redacted">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div>
+          <p class="fx">${esc(f.text.slice(0, 90))}</p>
+          ${st === 'decodable' ? `<button class="btn tiny yellow" data-a="decode" data-v="${f.id}">Decode · 👣${f.cost}</button>` : `<div class="small" style="color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
         </div>`;
       }).join('')}
-      </div></div>
+      </div>
     </div></div>`;
   },
 
@@ -541,12 +552,21 @@ const MODALS = {
   },
 
   boxes(m) {
+    if (m.openedAll) {
+      const o = m.openedAll;
+      return `<div class="dialog panel wide halftone reveal" style="align-items:center">
+        <div class="tierlabel" style="color:var(--yellow)">${o.count} LOOT BOXES OPENED</div>
+        <div class="small" style="margin:4px 0 2px">${E.TIERS.filter((t) => o.tiers[t]).map((t) => `<span style="color:var(--${t})">${o.tiers[t]} ${E.TIER_NAMES[t]}</span>`).join(' · ')}</div>
+        ${m.revealed ? `<div class="loot body">${o.items.map((it, i) => lootCard(it, Math.min(i, 12))).join('')}</div>` : `<div class="bigbox tier-${E.TIERS.filter((t) => o.tiers[t]).pop()}">📦</div>`}
+        <div class="actions" style="justify-content:center">${m.revealed ? '<button class="btn cyan" data-a="closeModal">Done</button>' : ''}</div>
+      </div>`;
+    }
     if (m.opened) {
       const o = m.opened;
       return `<div class="dialog panel wide halftone reveal" style="align-items:center">
         <div class="tierlabel" style="color:var(--${o.tier})">${E.TIER_NAMES[o.tier].toUpperCase()} LOOT BOX</div>
         ${m.revealed ? `<div class="loot">${o.items.map((it, i) => lootCard(it, i)).join('')}</div>` : `<div class="bigbox tier-${o.tier}">${TIER_ICON[o.tier]}</div>`}
-        <div class="actions" style="justify-content:center">${m.revealed ? `${s.boxes.length ? `<button class="btn yellow" data-a="openBox" data-v="${s.boxes[0].id}">Open next (${s.boxes.length})</button>` : ''}<button class="btn cyan" data-a="closeModal">Done</button>` : ''}</div>
+        <div class="actions" style="justify-content:center">${m.revealed ? `${s.boxes.length ? `<button class="btn yellow" data-a="openBox" data-v="${s.boxes[0].id}">Open next (${s.boxes.length})</button>` : ''}${s.boxes.length > 1 ? `<button class="btn orange" data-a="openAll">Open all (${s.boxes.length})</button>` : ''}<button class="btn cyan" data-a="closeModal">Done</button>` : ''}</div>
       </div>`;
     }
     const odds = E.boxOdds(s.base.shrine.tier);
@@ -559,7 +579,7 @@ const MODALS = {
         <div class="sep"></div>
         <div class="small muted">Odds${s.base.shrine.tier ? ` (Shrine tier ${s.base.shrine.tier})` : ''}: ${E.TIERS.map((t) => `${E.TIER_NAMES[t]} ${(odds[t] * 100).toFixed(2)}%`).join(' · ')}</div>
       </div>
-      ${s.boxes.length > 1 ? `<div class="actions"><button class="btn yellow" data-a="openBox" data-v="${s.boxes[0].id}">Open first</button></div>` : ''}
+      ${s.boxes.length > 1 ? `<div class="actions"><button class="btn yellow" data-a="openBox" data-v="${s.boxes[0].id}">Open first</button><button class="btn orange" data-a="openAll">Open all (${s.boxes.length})</button></div>` : ''}
     </div>`;
   },
 
@@ -661,9 +681,28 @@ const MODALS = {
     const f = FRAGMENTS.find((x) => x.id === m.id);
     return `<div class="dialog panel" style="background:#efe6cc;color:#1a1408;width:min(520px,92vw)">
       <button class="x" data-a="closeModal">✕</button>
-      <div class="small" style="color:#8a2a20;text-transform:uppercase;letter-spacing:.1em">${esc(f.kind)}</div>
+      <div class="small" style="color:#8a2a20;text-transform:uppercase;letter-spacing:.1em">${esc(f.kind)}${f.from ? ` · from ${esc(f.from)}` : ''}</div>
       <h2 class="h" style="color:#1a1408;text-shadow:none">${esc(f.title)}</h2>
-      <p style="font-size:16px">${esc(f.text)}</p></div>`;
+      <p style="font-size:16px">${esc(f.text)}</p>
+      ${m.flashback ? `<div class="actions" style="justify-content:space-between;align-items:center"><span class="small" style="color:#8a2a20">The last piece. Something is surfacing…</span><button class="btn yellow" data-a="flashback" data-v="${m.flashback}">▶ Play memory</button></div>` : ''}</div>`;
+  },
+
+  flashback(m) {
+    const fb = FLASHBACKS[m.era];
+    const p = fb.panels[m.i];
+    const last = m.i >= fb.panels.length - 1;
+    return `<div class="flashback" data-a="flashNext">
+      <div class="scanlines"></div>
+      <div class="fbhead"><span>${esc(fb.title)}</span><span>${esc(fb.source)}</span></div>
+      <div class="fbpanel ${p.speaker ? 'speech' : ''} ${p.end ? 'end' : ''}" key="${m.i}">
+        <div class="cap">${esc(p.caption)}</div>
+        ${p.speaker ? `<div class="spk">${esc(p.speaker)}</div>` : ''}
+        <p>${esc(p.text)}</p>
+      </div>
+      <div class="fbfoot"><span>${fb.panels.map((_, i) => `<i class="${i <= m.i ? 'on' : ''}"></i>`).join('')}</span>
+        <span>${last ? 'tap to return' : 'tap to continue'}</span>
+        ${last ? '' : '<button class="btn tiny ghost" data-a="flashSkip">Skip</button>'}</div>
+    </div>`;
   },
 
   evolve(m) {
@@ -724,7 +763,7 @@ function lootCard(it, i) {
     case 'mat': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${MATERIALS[it.key].name}</div>`;
     case 'gear': { const g = GEAR[it.key]; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(g.name)}<small>${statText(g.stats)}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
     case 'frag': return `<div class="lootcard frag" ${d}><div class="li">📄</div>Story fragment<small>Pinned to the Truth Board</small></div>`;
-    case 'booster': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${esc(BOOSTERS[it.key].name)}<small>${esc(BOOSTERS[it.key].desc)}</small></div>`;
+    case 'booster': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n > 1 ? `${it.n} × ` : ''}${esc(BOOSTERS[it.key].name)}<small>${esc(BOOSTERS[it.key].desc)}</small></div>`;
     case 'blueprint': return `<div class="lootcard rare" ${d}><div class="li">📐</div>Blueprint<small>${esc(B.recipeName(RECIPES.find((r) => r.id === it.id)))}</small></div>`;
     case 'respec': return `<div class="lootcard" ${d}><div class="li">🔄</div>Respec token</div>`;
   }
@@ -736,7 +775,7 @@ function renderProctor() {
   const p = app.proctor;
   const el = $('#proctor');
   if (!p || app.screen === 'intro' || app.modal || (app.screen === 'combat' && app.battle && app.battle.trial !== 0 && !p.glitch)) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="proctor ${p.glitch ? 'glitch' : ''} ${p.wide && app.screen !== 'combat' ? 'wide' : ''} ${app.screen === 'combat' ? 'incombat' : ''}" data-a="dismissProctor"><div class="eye"></div><div class="bubble"><span class="who">${p.glitch ? '??????' : 'PROCTOR'}</span>${esc(p.text)}</div></div>`;
+  el.innerHTML = `<div class="proctor ${p.glitch ? 'glitch' : ''} ${p.wide && app.screen !== 'combat' ? 'wide' : ''} ${app.screen === 'combat' ? 'incombat' : ''}" data-a="dismissProctor"><div class="eye"></div><div class="bubble"><span class="who">${p.glitch ? esc(p.who || FORMER_TRIBUTE) : 'PROCTOR'}</span>${esc(p.text)}</div></div>`;
 }
 
 function renderToasts() {
@@ -920,7 +959,7 @@ const ACTIONS = {
   settings() { openModal('settings'); },
   modal(v) { openModal(v); },
   closeModal() { closeModal(); render(); },
-  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
+  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
   dismissProctor() { const then = app.proctor && app.proctor.then; app.proctor = null; renderProctor(); if (then) then(); },
   dismissToast(v) { app.toastQ = (app.toastQ || []).filter((t) => t.id !== v); renderToasts(); },
 
@@ -954,6 +993,19 @@ const ACTIONS = {
     commit();
     setTimeout(() => { if (app.modal && app.modal.opened === o) { app.modal.revealed = true; renderModal(); } }, 750);
     if (s.tutorial === 'boxes' && s.boxes.length === 0) {
+      s.tutorial = 'base';
+      app.proctor = { text: s.inv.length ? 'Gear! Equip it from the Hero screen. Then go to your Base: your first building is free.' : 'Next: your Base. Your first building is free. I am feeling generous. It will pass.' };
+    }
+    if (s.trials.cleared[5] && Math.random() < 0.08) setTimeout(glitch, 1500);
+  },
+  openAll() {
+    if (!s.boxes.length) return;
+    const o = E.openAll(s);
+    app.modal = { type: 'boxes', openedAll: o, revealed: false };
+    renderModal();
+    commit();
+    setTimeout(() => { if (app.modal && app.modal.openedAll === o) { app.modal.revealed = true; renderModal(); } }, 750);
+    if (s.tutorial === 'boxes') {
       s.tutorial = 'base';
       app.proctor = { text: s.inv.length ? 'Gear! Equip it from the Hero screen. Then go to your Base: your first building is free.' : 'Next: your Base. Your first building is free. I am feeling generous. It will pass.' };
     }
@@ -1064,11 +1116,35 @@ const ACTIONS = {
   // truth board
   decode(v) {
     const r = B.decode(s, v);
-    if (r.ok) openModal('frag', { id: v });
+    if (r.ok) openModal('frag', { id: v, flashback: r.flashback });
     else if (r.why === 'soles') say(pick(PROCTOR.noSoles));
     commit();
   },
   readFrag(v) { openModal('frag', { id: v }); },
+  flashback(v) {
+    const era = Number(v);
+    if (!B.flashbackReady(s, era)) return;
+    app.proctor = null;
+    app.modal = { type: 'flashback', era, i: 0 };
+    renderModal();
+    renderProctor();
+  },
+  flashNext() {
+    const m = app.modal;
+    if (!m || m.type !== 'flashback') return;
+    if (m.i < FLASHBACKS[m.era].panels.length - 1) { m.i++; renderModal(); return; }
+    ACTIONS.flashSkip();
+  },
+  flashSkip(_, el, ev) {
+    if (ev) ev.stopPropagation();
+    const m = app.modal;
+    if (!m || m.type !== 'flashback') return;
+    const first = !s.flashbacksSeen.includes(m.era);
+    B.markFlashbackSeen(s, m.era);
+    closeModal();
+    commit();
+    if (first) setTimeout(() => say('That was a corrupted memory file. Nothing to see. Back to work.'), 400);
+  },
 
   // evolve
   evolveGo() {

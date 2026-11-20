@@ -193,6 +193,28 @@ export function openBox(s, boxId) {
   return { tier: box.tier, items: rollContents(s, box.tier) };
 }
 
+// Opens every unopened box. Returns the tiers opened and the loot merged into one list:
+// materials and boosters are summed, everything else is listed once per drop.
+export function openAll(s) {
+  const tiers = {};
+  const merged = [];
+  const sums = {};
+  while (s.boxes.length) {
+    const o = openBox(s, s.boxes[0].id);
+    tiers[o.tier] = (tiers[o.tier] || 0) + 1;
+    for (const it of o.items) {
+      if (it.type === 'mat' || it.type === 'booster') {
+        const k = `${it.type}:${it.key}`;
+        if (!sums[k]) { sums[k] = { ...it, n: 0 }; merged.push(sums[k]); }
+        sums[k].n += it.n || 1;
+      } else merged.push(it);
+    }
+  }
+  const order = { mat: 0, booster: 1, gear: 2, blueprint: 3, frag: 4, respec: 5 };
+  merged.sort((a, b) => order[a.type] - order[b.type]);
+  return { tiers, items: merged, count: Object.values(tiers).reduce((a, b) => a + b, 0) };
+}
+
 export function rollContents(s, tier) {
   const T = BOX_TABLE[tier];
   const items = [];

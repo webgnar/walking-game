@@ -1,6 +1,6 @@
 // Base buildings, crafting, Truth Board, evolving, achievements.
 import { BUILDINGS, BUILD_COST, BUILD_MAT_SPLIT, RECIPES, GEAR, BOONS, BUILDING_ORDER, MATERIALS } from '../data/era1.js';
-import { FRAGMENTS, ACHIEVEMENTS } from '../data/story.js';
+import { FRAGMENTS, FLASHBACKS, ACHIEVEMENTS } from '../data/story.js';
 import { env, toast, pick } from './state.js';
 import { addGear, addBooster, goalEvent, grantReward, todaySteps } from './economy.js';
 import { respec } from './hero.js';
@@ -158,7 +158,23 @@ export function decode(s, id) {
   if (s.soles < f.cost) return { ok: false, why: 'soles' };
   s.soles -= f.cost;
   s.fragments.decoded.push(id);
-  return { ok: true };
+  // Decoding the last fragment of an era unlocks that era's flashback.
+  const flashback = flashbackReady(s, f.era) && !s.flashbacksSeen.includes(f.era) ? f.era : null;
+  return { ok: true, flashback };
+}
+
+export function eraFragments(era) {
+  return FRAGMENTS.filter((f) => f.era === era);
+}
+
+// All of an era's fragments decoded, and the era has a flashback written.
+export function flashbackReady(s, era) {
+  const list = eraFragments(era);
+  return !!FLASHBACKS[era] && list.length > 0 && list.every((f) => s.fragments.decoded.includes(f.id));
+}
+
+export function markFlashbackSeen(s, era) {
+  if (!s.flashbacksSeen.includes(era)) s.flashbacksSeen.push(era);
 }
 
 // ---------- Evolving ----------

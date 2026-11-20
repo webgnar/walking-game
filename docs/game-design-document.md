@@ -307,13 +307,13 @@ First wins give about 1,220 XP. The other ~1,030 XP to reach level 10 comes from
 
 | Tier | Cost per building | Upgrade timer |
 | --- | --- | --- |
-| 1 | 100 Soles + 3 materials | 10 minutes |
-| 2 | 300 Soles + 8 materials | 2 hours |
-| 3 | 800 Soles + 20 materials | 8 hours |
+| 1 | 50 Soles + 3 materials | 5 minutes |
+| 2 | 150 Soles + 8 materials | 45 minutes |
+| 3 | 400 Soles + 20 materials | 3 hours |
 
-All five buildings to tier 3 cost 6,000 Soles. Speeding up costs 1 Sole per minute left.
+Lowered after the first playtest (was 100/300/800 Soles and 10 minutes/2 hours/8 hours): the tester cleared all 15 Trials and then had nothing to do but wait on the base. All five buildings to tier 3 now cost 3,000 Soles. Speeding up costs 1 Sole per minute left.
 
-**Era 1 total:** about 6,000 Soles for the base plus about 2,060 for training, so roughly 8,000 Soles. At 6,000 steps a day (600 Soles at 10 steps per Sole), that is about 13 days, inside the 10 to 14 day target.
+**Era 1 total:** about 3,000 Soles for the base plus about 2,060 for training, so roughly 5,000 Soles. At 6,000 steps a day (600 Soles at 10 steps per Sole), that is about 8 to 9 days, a little faster than the 10 to 14 day target. Revisit in the economy spreadsheet.
 
 **Starter grant (MVP):** 300 Soles and 3 Bronze loot boxes.
 
@@ -335,7 +335,9 @@ Still open: text only or voiced.
 
 - **Found while walking:** story fragments in loot boxes (corrupted logs, messages from earlier contestants, map pieces, PROCTOR's redacted files).
 - **Glitches:** brief messages that aren't from PROCTOR, more often each era.
-- **Truth Board:** fragments collect here; upgrading it lets the player spend Soles to uncover more.
+- **Truth Board:** reads as a story. Each era's fragments are numbered parts, shown in order; upgrading the board lets the player spend Soles to decode deeper parts.
+- **Flashbacks:** decoding every fragment of an era plays a flashback cutscene: a memory recovered from 7,301,223 (former tribute), shown as sepia comic panels. Each era has one, and they continue the same story from era to era. It can be rewatched from the Truth Board.
+- **Naming:** messages and glitches from 7,301,223 are always labeled "7,301,223 (former tribute)".
 
 ## First session (target: 20+ minutes, then the player goes for a walk)
 

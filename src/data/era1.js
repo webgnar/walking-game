@@ -187,10 +187,12 @@ export const BUILDINGS = {
 };
 export const BUILDING_ORDER = ['studio', 'altar', 'inventory', 'shrine', 'truth'];
 // tier index = target tier (1..3)
+// Lowered after playtest: players cleared all 15 Trials and then sat waiting on the base.
+// Was 100/300/800 Soles and 10/120/480 minutes.
 export const BUILD_COST = {
-  1: { soles: 100, mats: 3, minutes: 10 },
-  2: { soles: 300, mats: 8, minutes: 120 },
-  3: { soles: 800, mats: 20, minutes: 480 },
+  1: { soles: 50, mats: 3, minutes: 5 },
+  2: { soles: 150, mats: 8, minutes: 45 },
+  3: { soles: 400, mats: 20, minutes: 180 },
 };
 // how a building's material cost splits between flint and bone (MVP guess)
 export const BUILD_MAT_SPLIT = { studio: 'flint', altar: 'bone', inventory: 'bone', shrine: 'mixed', truth: 'flint' };

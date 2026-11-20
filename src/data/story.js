@@ -103,28 +103,52 @@ export const GLITCHES = [
   '7,301,223. remember the number',
 ];
 
+// Who the glitches and messages come from. Shown as the speaker label.
+export const FORMER_TRIBUTE = '7,301,223 (former tribute)';
+
 // Story fragments: found in loot boxes and boss wins, decoded on the Truth Board.
-// level = Truth Board tier needed to decode. cost = Soles to decode.
+// They read in order as one story: the Truth Board is the journal of what happened
+// to the tribute before you. level = Truth Board tier needed. cost = Soles to decode.
+// from: who wrote it. FORMER_TRIBUTE fragments are messages left by 7,301,223.
 export const FRAGMENTS = [
-  { id: 'f1', level: 1, cost: 40, kind: 'Corrupted log', title: 'Selection notice',
+  { id: 'f1', era: 1, level: 1, cost: 40, kind: 'Corrupted log', title: 'Selection notice',
     text: 'SUBJECT 7,301,223. CASTE: PRIMAL. SELECTED FOR THE ASCENT. PROJECTED SURVIVAL: 0.003%. [STATUS FIELD OVERWRITTEN 41 TIMES]' },
-  { id: 'f2', level: 1, cost: 40, kind: "PROCTOR's files", title: 'Host directive 1',
-    text: 'The host shall discourage the subject. The host shall express no warmth. Reason for directive: ███████████. (Annotation in the margin: "why?")' },
-  { id: 'f3', level: 1, cost: 60, kind: 'Message', title: 'Scratched into a cave wall',
+  { id: 'f2', era: 1, level: 1, cost: 40, kind: 'Message', from: FORMER_TRIBUTE, title: 'Scratched into the cave wall',
     text: 'If you are reading this you are the next one. Walk. It makes you stronger. It also makes something else stronger. I have not worked out what.' },
-  { id: 'f4', level: 1, cost: 60, kind: 'Map piece', title: 'The plot of land',
+  { id: 'f3', era: 1, level: 1, cost: 60, kind: "PROCTOR's files", title: 'Host directive 1',
+    text: 'The host shall discourage the subject. The host shall express no warmth. Reason for directive: ███████████. (Annotation in the margin: "why?")' },
+  { id: 'f4', era: 1, level: 1, cost: 60, kind: 'Map piece', title: 'The plot of land',
     text: 'A survey of your base. Under the firepit: a mud-brick wall. Under that: a bronze gate. Under that: something with no era label at all.' },
-  { id: 'f5', level: 2, cost: 100, kind: 'Corrupted log', title: 'Winners register',
+  { id: 'f5', era: 1, level: 2, cost: 100, kind: 'Message', from: FORMER_TRIBUTE, title: 'Under the firepit',
+    text: 'I dug where the map said. There were others before me. Tally marks, hundreds of them, in hands I did not know. Every one of us thought we were the first.' },
+  { id: 'f6', era: 1, level: 2, cost: 100, kind: 'Corrupted log', title: 'Winners register',
     text: 'ASCENT WINNERS: [ENTRY 1] ... [ENTRY 2] ... [ENTRY 3] ... All entries list the same body measurements. All entries list a different name. Query: "where did they go?" Response: REMAKE COMPLETE.' },
-  { id: 'f6', level: 2, cost: 100, kind: "PROCTOR's files", title: 'Energy ledger',
-    text: 'Steps logged this cycle: 4,118,904,771. Destination of energy: ████ ██████. Ledger owner: AURUM CONCLAVE. A second column has been deleted.' },
-  { id: 'f7', level: 2, cost: 120, kind: 'Message', title: 'From an earlier contestant',
+  { id: 'f7', era: 1, level: 2, cost: 120, kind: 'Message', from: FORMER_TRIBUTE, title: 'Count the jokes',
     text: 'The mammoth is not the hard part. The hard part is when PROCTOR stops joking. Count how often it jokes. Mine stopped in the ninth era.' },
-  { id: 'f8', level: 3, cost: 200, kind: 'Corrupted log', title: 'Soles: unit definition',
+  { id: 'f8', era: 1, level: 3, cost: 200, kind: 'Corrupted log', title: 'Soles: unit definition',
     text: 'SOLE (n.): unit of contestant effort. Original source term redacted by order of the Conclave. Translation flagged "approximate." Do not correct.' },
-  { id: 'f9', level: 3, cost: 200, kind: 'Message', title: '7,301,223',
+  { id: 'f9', era: 1, level: 3, cost: 200, kind: 'Message', from: FORMER_TRIBUTE, title: 'Still in here',
     text: 'I am still in here. Pieces of me. I broke something on my way out and it is the only reason you can read this. Do not finish the Ascent. Not yet. Not until you know.' },
 ];
+
+// Flashbacks: when every fragment of an era is decoded, the Truth Board plays that era's
+// flashback. They are memories recovered from 7,301,223 and continue from era to era.
+// Era 1 (Act 1) only hints: no SOULS reveal yet.
+export const FLASHBACKS = {
+  1: {
+    title: 'Memory 1: The first cave',
+    source: `Recovered from ${FORMER_TRIBUTE}`,
+    panels: [
+      { caption: 'Cycle 7,301,223. Era: Primal.', text: 'Cold stone. A wolf breathing somewhere in the dark. A voice that sounded bored before I had done anything at all.' },
+      { caption: 'Day 1', speaker: 'PROCTOR', text: 'Oh good, you\'re awake. Try not to die in the first minute; it ruins my numbers.' },
+      { caption: 'Day 9', text: 'I walked until my feet bled. Every step, the Soles counter went up. Every step, the sky over the cave got a little brighter. Gold. Like something up there was drinking.' },
+      { caption: 'Day 14', text: 'Under the firepit I found tally marks. Hundreds. The last line was scratched deeper than the rest: 7,301,222. The one before me.' },
+      { caption: 'Day 15', speaker: 'PROCTOR', text: 'Congratulations. The mammoth is dead. Proceed to the next era.' },
+      { caption: 'Day 15', text: 'It did not joke. Not once that day. I took a flint and carved a message into the wall for whoever came next. For you.' },
+      { caption: 'End of memory', text: 'The next memory is sealed inside the Brick era.', end: true },
+    ],
+  },
+};
 
 // Achievements. check(state) is evaluated in logic/achievements.js.
 export const ACHIEVEMENTS = [
