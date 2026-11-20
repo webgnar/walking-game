@@ -650,3 +650,63 @@ body.proctor-on .obsfeed { visibility: hidden; }
 }
 .node, .node.done, .node.open, .node.mini, .node.mini.done, .node.era, .node.era.done { background: none; border: 0; }
 .cutph .brief { background: rgba(10,8,7,.88); color: var(--muted); border-top: 1px solid var(--line2); font-family: var(--mono); }
+
+/* =====================================================================
+   RETRO DITHER STYLE (Settings > UI style). Same palette; Bayer-dithered shading,
+   pixel type for small labels, stepped pixel corners. The big titles stay crisp.
+   ===================================================================== */
+body.retro {
+  --shade: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAYCAYAAADd5VyeAAAAMElEQVR4nGNgYGCYxkAswK1yGq1UoAjiV8GIJpNF0IxpGCrQzSBsCxEqmNCVEhYAAMl5EXOz1FevAAAAAElFTkSuQmCC");
+  --pshade: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAwCAYAAAA2GtvFAAAARUlEQVR4nGNgYGDIY6AcEG8GbpV5tFKBlYPVjDy6mEGECkY0mUl0MSMPQwW6GYRtIUIFE7qjkAXyYAKTkAQZmGhtBpECALdnGk6FmeK0AAAAAElFTkSuQmCC");
+  --half: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGNgYGBwY4AAGI3CccPgYKgAAEdcAjGzONjnAAAAAElFTkSuQmCC");
+  --pix: 'Silkscreen', var(--display);
+  --mono: 'VT323', 'JetBrains Mono', monospace;
+}
+body.retro #stage { image-rendering: pixelated; }
+body.retro #halftone::before { background: var(--half) 0 0 / 4px 4px; opacity: .35; }
+
+/* plates: stepped corners, dithered shadow band along the bottom */
+body.retro .btn { clip-path: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+body.retro .btn::before { inset: 2px; clip-path: polygon(0 4px, 2px 4px, 2px 2px, 4px 2px, 4px 0, 100% 0, calc(100% - 11px) 100%, 0 100%); background: var(--shade) 0 100% / 8px 30px repeat-x, var(--fill); image-rendering: pixelated; }
+body.retro .btn.crimson::after, body.retro .btn.pink::after { background: repeating-linear-gradient(115deg, transparent 0 4px, rgba(255,120,100,.85) 4px 8px); filter: contrast(3); image-rendering: pixelated; }
+body.retro .home-left .btn, body.retro .home-right .btn, body.retro .stepbtn { font-family: var(--pix); font-weight: 400; letter-spacing: .12em; }
+body.retro .home-left .btn, body.retro .home-right .btn { font-size: calc(var(--u) * 4.2); }
+body.retro .home-right .btn.big { font-size: calc(var(--u) * 5); }
+body.retro .btn.small, body.retro .btn.tiny, body.retro .tab, body.retro .herotag, body.retro .bldg .bn, body.retro .sk .sn, body.retro h3.h, body.retro .node .lbl, body.retro .intent, body.retro .hpbox .nm, body.retro .toast .tt, body.retro .skill .sname { font-family: var(--pix); font-weight: 400; letter-spacing: .08em; }
+body.retro .ico { shape-rendering: crispEdges; stroke-width: 2.2; stroke-linecap: square; stroke-linejoin: miter; }
+
+/* panels: hard 2px gold frame, dithered fall-off inside */
+body.retro .panel { border: 2px solid var(--line); background: var(--pshade) 0 100% / 8px 96px repeat-x, linear-gradient(180deg, rgba(28,20,16,.96), rgba(14,10,8,.96)); image-rendering: pixelated; }
+body.retro .panel::before, body.retro .panel::after { border-width: 2px; }
+body.retro .cur { border: 2px solid var(--line); clip-path: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0, 100% 0, 100% 100%, 0 100%); font-family: var(--pix); font-weight: 400; font-size: calc(var(--u) * 3.6); }
+
+/* home dossier and log in pixel type */
+body.retro .dossier .subj, body.retro .dossier .lvl { font-family: var(--pix); font-weight: 400; letter-spacing: .06em; }
+body.retro .dossier, body.retro .dossier dl, body.retro .dossier .ver { font-family: var(--mono); font-size: 14px; }
+body.retro .dossier dl { font-size: 15px; letter-spacing: .1em; }
+body.retro .banner { clip-path: polygon(0 0, 100% 0, 100% 100%, 88% 96%, 75% 92%, 63% 88%, 50% 84%, 37% 88%, 25% 92%, 12% 96%, 0 100%); background: var(--half) 0 0 / 4px 4px, linear-gradient(180deg, #8f1d16, #6b140f); }
+body.retro .simlog .slh { font-family: var(--mono); font-size: 14px; letter-spacing: .04em; white-space: nowrap; }
+body.retro .simlog .slline { font: 400 19px/1 var(--mono); border-width: 2px; padding: 6px 10px; background: var(--half) 0 0 / 4px 4px, rgba(6,10,8,.94); text-shadow: 0 0 6px rgba(134,227,164,.45); }
+body.retro .simlog .slbar { height: 4px; background: repeating-linear-gradient(90deg, rgba(134,227,164,.2) 0 4px, transparent 4px 6px); }
+body.retro .simlog .slbar i { background: repeating-linear-gradient(90deg, var(--green) 0 4px, transparent 4px 6px); }
+body.retro .obsfeed, body.retro .proctor .bubble { font-family: var(--mono); font-size: 15px !important; line-height: 1.1 !important; letter-spacing: .04em; }
+body.retro .proctor .who { font-size: 13px !important; white-space: nowrap; }
+body.retro .proctor .bubble { border-width: 2px; background: var(--pshade) 0 100% / 8px 96px repeat-x, rgba(14,10,8,.95); }
+body.retro .obsfeed .cam, body.retro .proctor .eye { image-rendering: pixelated; }
+
+/* combat HUD */
+body.retro .hp { height: 10px; border: 2px solid #000; outline: 2px solid var(--line2); }
+body.retro .hp > i { background: repeating-linear-gradient(90deg, #e0453a 0 6px, #b0271d 6px 8px); transition: width .3s steps(6); }
+body.retro .hp.hero > i { background: repeating-linear-gradient(90deg, #e3c47e 0 6px, #a8822f 6px 8px); }
+body.retro .hp .tx { font-family: var(--mono); font-size: 13px; line-height: 8px; }
+body.retro .sk { border-width: 2px; background: var(--shade) 0 100% / 8px 48px repeat-x, linear-gradient(180deg, #1f1712, #120d0a); image-rendering: pixelated; }
+body.retro .apdots i { transform: none; width: 12px; height: 12px; }
+body.retro .dmg, body.retro .pow { font-family: var(--pix); font-weight: 700; letter-spacing: .04em; }
+body.retro .combat-top .comic, body.retro .combatlog { font-family: var(--mono); font-size: 16px; }
+body.retro .combat-top .comic { font-family: var(--thin); font-size: calc(var(--u) * 5); }
+@media (max-height: 440px) {
+  body.retro .dossier .subj, body.retro .dossier .lvl { font-size: calc(var(--u) * 3); }
+  body.retro .dossier .ver { letter-spacing: .2em; }
+  body.retro .simlog .slline { font-size: 16px; }
+}
+body.retro .btn.cream::before, body.retro .btn.cyan::before { background: linear-gradient(transparent calc(100% - 4px), rgba(120,90,40,.55) calc(100% - 4px)), var(--fill); }

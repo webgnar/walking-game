@@ -46,6 +46,7 @@ export function start() {
   E.ensureGoals(s);
   B.tickBase(s);
   syncLook();
+  applyUiStyle();
   stage.setBase(tiers());
   for (const t of TRANSMISSIONS) if (s.trials.cleared[t.trial]) ST.startTransmission(s, t.id);
   if (!s.intro) go('intro');
@@ -133,6 +134,12 @@ function topbar(title, sub, back = 'home', backLabel = '') {
     <div class="spacer"></div>
     ${curPlate()}
   </div>`;
+}
+
+function applyUiStyle() {
+  const retro = s.uiStyle === 'retro';
+  document.body.classList.toggle('retro', retro);
+  stage.setRetro(retro);
 }
 
 const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev';
@@ -831,6 +838,10 @@ const MODALS = {
         <div class="small">${fullscreenHelp()}</div>
         ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
         <div class="sep"></div>
+        <h3 class="h">UI style</h3>
+        <div class="small muted">Retro dither is a mockup: pixel type, dithered shading and a dithered 3D scene.</div>
+        <div class="row" style="margin:6px 0">${[['current', 'Current'], ['retro', 'Retro dither']].map(([k, l]) => `<button class="tab ${(s.uiStyle || 'current') === k ? 'on' : ''}" data-a="uiStyle" data-v="${k}">${l}</button>`).join('')}</div>
+        <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>
         <div class="small muted">"Tuned" raises enemy health ×1.25 and damage ×1.5, and lets Guard be used once a turn. "GDD v1" uses the design document's table exactly.</div>
         <div class="row" style="margin:6px 0">${Object.keys(TUNING_PRESETS).map((k) => `<button class="tab ${(s.tuning || 'tuned') === k ? 'on' : ''}" data-a="tuning" data-v="${k}">${k === 'gdd' ? 'GDD v1' : 'Tuned'}</button>`).join('')}</div>
@@ -1154,6 +1165,7 @@ const ACTIONS = {
   },
   fullscreen() { s.noFullscreen = false; enterFullscreen(); closeModal(); },
   installTip() { s.installTipSeen = true; save(s); render(); },
+  uiStyle(v) { s.uiStyle = v; applyUiStyle(); app.modal = { type: 'settings' }; commit(); },
   tuning(v) { s.tuning = v; setTuning(v); app.modal = { type: 'settings' }; commit(); },
   reset() {
     if (!app.modal.confirm) { app.modal.confirm = true; renderModal(); return; }

@@ -8,6 +8,28 @@ const BUILD_POS = {
 };
 
 const HOME_SCALE = 1.3;
+
+// Retro style: render the scene small, then posterize it with a 4x4 Bayer dither and upscale with
+// hard pixels.
+const RETRO_DIV = 3;
+const DITHER_FRAG = `
+  uniform sampler2D tScene;
+  uniform vec2 uRes;
+  varying vec2 vUv;
+  float bayer(vec2 p) {
+    int x = int(mod(p.x, 4.0)), y = int(mod(p.y, 4.0));
+    int i = x + y * 4;
+    int b[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+    return float(b[i]) / 16.0 - 0.5;
+  }
+  void main() {
+    vec2 px = floor(vUv * uRes);
+    vec3 c = texture2D(tScene, (px + 0.5) / uRes).rgb;
+    c = pow(max(c, 0.0), vec3(1.0 / 2.2)); // linear -> sRGB
+    float levels = 7.0;
+    c = floor(c * levels + 0.5 + bayer(px) * 0.9) / levels;
+    gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+  }`;
 // Lunge timing: the hero is furthest forward at LUNGE_PEAK of LUNGE_MS; strikes connect then.
 const LUNGE_MS = 380, LUNGE_PEAK = 0.4;
 export const STRIKE_MS = LUNGE_MS * LUNGE_PEAK;
@@ -101,9 +123,33 @@ export class Stage {
     check();
   }
 
+  setRetro(on) {
+    this.retro = on;
+    if (on && !this.rt) {
+      this.rt = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+      this.postMat = new THREE.ShaderMaterial({
+        uniforms: { tScene: { value: this.rt.texture }, uRes: { value: new THREE.Vector2(1, 1) } },
+        vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+        fragmentShader: DITHER_FRAG,
+        depthTest: false, depthWrite: false,
+      });
+      this.postScene = new THREE.Scene();
+      const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.postMat);
+      q.frustumCulled = false;
+      this.postScene.add(q);
+      this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    }
+    this.resize();
+  }
+
   resize() {
     const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
+    if (this.rt) {
+      const rw = Math.max(1, Math.round(w / RETRO_DIV)), rh = Math.max(1, Math.round(h / RETRO_DIV));
+      this.rt.setSize(rw, rh);
+      this.postMat.uniforms.uRes.value.set(rw, rh);
+    }
     this.camera.aspect = w / h;
     // keep the scene readable in portrait-ish windows
     this.camera.fov = w / h < 1.3 ? 58 : 42;
@@ -350,7 +396,12 @@ export class Stage {
       tw.fn(p);
       return (now - tw.t0) < tw.ms;
     });
-    this.renderer.render(this.scene, this.camera);
+    if (this.retro && this.rt) {
+      this.renderer.setRenderTarget(this.rt);
+      this.renderer.render(this.scene, this.camera);
+      this.renderer.setRenderTarget(null);
+      this.renderer.render(this.postScene, this.postCam);
+    } else this.renderer.render(this.scene, this.camera);
   }
 }
 
