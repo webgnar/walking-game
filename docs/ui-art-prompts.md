@@ -113,6 +113,13 @@ A single stylized gold eagle wing, pointing to the left, feathers swept back, po
 A tall hanging war banner. An iron and gold pole runs down the left side and across the top, with a round gold finial on the right end of the top bar. A deep crimson cloth hangs from the top bar with soft vertical folds and a gold laurel wreath near the top. The bottom of the cloth is a swallowtail. Front-on, transparent background.
 ```
 
+## Backdrop (fixed, opaque, 16:9)
+
+**backdrop-home.png** (export 2560 x 1440). Don't use the shared style block or transparency for this one.
+```
+A wide 16:9 painted game background, matching the attached mockup's backdrop. Dark fantasy imperial sci-fi, Red Rising mood. Hazy crimson night sky, darker at the top. A huge red moon at about 80% across and 30% down. On the right, a dark citadel of tall spires and walls on a cliff, warm orange lit windows, a crimson banner with a gold eagle hanging on the main keep. Low distant ridges on the left. The horizon line where the far ground meets the cliffs sits at 42% from the top of the image. Below the horizon only plain dark reddish-brown ground, no rocks, no fire, no people in the foreground. No UI, no text. Painterly, high detail.
+```
+
 ## Icons (fixed, transparent)
 
 Use this line before each icon prompt:

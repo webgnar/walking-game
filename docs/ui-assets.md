@@ -67,9 +67,13 @@ Position and size are % of the screen (x from left, y from top), measured from t
 
 Font is Cinzel for titles and Saira for small caps. These stay as text: PRIMAL, SUBJECT 7,301,224, LEVEL III, TODAY 0 STEPS · NEXT LOOT BOX IN 1,000, COMMAND BRIEF // SIGNAL 0%, the brief headline and line, the resource numbers, plate labels (BASE, SHOP, GOALS, TRIALS, BOXES), subtitles (Command · Develop · Survive, Supply · Gear · Upgrade, Missions · Progress · Rewards, Prove · Rank · Ascend, Loot · Rewards · Artifacts), 4 POINTS TO SPEND, +100 STEPS, HOLD TO KEEP WALKING, TEST.
 
-## Not part of the UI pass
+## Backdrop (castle, moon, sky)
 
-The castle, red moon and rocky foreground in the mockup are backdrop, not UI. They are a future 3D/background item. The eagle emblem carved in the bottom-left rock belongs to that backdrop too.
+| File | Element | Type | Export size | Paint |
+|---|---|---|---|---|
+| `backdrop-home.png` | Sky, red moon, citadel on the cliff | fixed, **opaque** (no transparency) | 2560 x 1440 | Hazy crimson sky, huge red moon at about 80% across and 30% down, the dark citadel with lit windows and a crimson eagle banner on the cliff on the right. **The horizon (where the far ground meets the cliffs) must sit at 42% from the top**, because the 3D ground, rocks, hero and fire are drawn in front of it and end there. Below the horizon, plain dark ground. No hero, no fire, no rocks in the foreground: those are 3D. |
+
+Until it exists, the game paints a placeholder version of the same scene (src/scene/backdrop.js). It sits behind every screen, cover-fitted, with the horizon kept in place on wider phones.
 
 ## Checking your art
 

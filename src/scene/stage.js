@@ -1,6 +1,7 @@
 // The single Three.js stage behind the UI. Modes move the camera; combat adds enemy actors.
 import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
+import { buildBackdrop } from './backdrop.js';
 import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding } from './models.js';
 
 const BUILD_POS = {
@@ -29,8 +30,9 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x140e0c);
-    this.scene.fog = new THREE.Fog(0x140e0c, 16, 40);
+    this.backdrop = buildBackdrop();
+    this.scene.background = this.backdrop;
+    this.scene.fog = new THREE.Fog(0x3a1d17, 14, 34);
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     this.camPos = new THREE.Vector3(...CAMS.home.pos);
     this.camLook = new THREE.Vector3(...CAMS.home.look);
@@ -107,6 +109,8 @@ export class Stage {
     const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
+    this.backdrop.userData.lastAspect = w / h;
+    this.backdrop.userData.fit(w / h);
     // keep the scene readable in portrait-ish windows
     this.camera.fov = w / h < 1.3 ? 58 : 42;
     this.camera.updateProjectionMatrix();

@@ -297,14 +297,13 @@ export function buildCave() {
     const s = 1.5 + rng() * 3.5;
     // keep the inner edge of every rock clear of the base plot
     const rr = Math.max(r, s + 9.5);
-    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x40342e : 0x4b3d34, [Math.cos(a) * rr, s * 0.4, Math.sin(a) * rr], [rng() * 3, rng() * 3, rng() * 3], null, 0.1);
+    const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
+    // behind-right stays low so the citadel and moon in the backdrop show over it (Home mockup)
+    const low = x > 1 && z < 0 ? 0.45 : 1;
+    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x40342e : 0x4b3d34, [x, s * 0.4 * low, z], [rng() * 3, rng() * 3, rng() * 3], [low, low, low], 0.1);
     g.add(m);
   }
-  // distant mountains
-  for (let i = 0; i < 7; i++) {
-    const m = part(G.cone(5 + rng() * 5, 8 + rng() * 8, 5), 0x3a2a3e, [-25 + i * 9, 3, -26 - rng() * 4], [0, rng(), 0], null, 0.15);
-    g.add(m);
-  }
+  // (distant mountains, moon and citadel are painted in the backdrop: scene/backdrop.js)
   return g;
 }
 
