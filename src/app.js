@@ -53,7 +53,8 @@ export function start() {
   stage.snapCamera();
   document.addEventListener('click', onClick);
   // fullscreen: browsers only allow it from a tap, so ask on the first one
-  document.addEventListener('pointerdown', () => { if (!s.noFullscreen) enterFullscreen(); }, { once: true });
+  // Auto-fullscreen on the first tap only on touch phones; desktop uses the Settings button.
+  if (isPhone()) document.addEventListener('pointerdown', () => { if (!s.noFullscreen) enterFullscreen(); }, { once: true });
   // belt and braces: save when the app is backgrounded or closed
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(s); });
   window.addEventListener('pagehide', () => save(s));
@@ -1288,6 +1289,7 @@ const ACTIONS = {
 const isStandalone = () => window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const canFullscreen = () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 const isIOS = () => /iPhone|iPod/.test(navigator.userAgent);
+const isPhone = () => window.matchMedia('(pointer: coarse)').matches && /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent);
 function enterFullscreen() {
   if (isStandalone() || document.fullscreenElement || document.webkitFullscreenElement) return;
   const el = document.documentElement;
