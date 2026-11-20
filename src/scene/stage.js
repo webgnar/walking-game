@@ -138,13 +138,31 @@ export class Stage {
         this.tween(400, (p) => obj.scale.setScalar(Math.max(0.01, p) * (obj.userData.baseScale || 1)), 'back');
       }
       const big = e.id === 'mammoth';
-      const spacing = n >= 4 ? 1.55 : 1.85;
+      const spacing = n >= 4 ? 1.7 : 2.15;
       const x = big ? 3.0 : 0.6 + i * spacing;
       const z = big ? -0.6 : i % 2 ? -0.9 : 0.4;
       a.home.set(x, 0, z);
       a.obj.position.copy(a.home);
     });
     for (const [uid, a] of this.enemies) if (!seen.has(uid)) { this.scene.remove(a.obj); this.enemies.delete(uid); }
+    this.frameFight(list);
+  }
+
+  // Center the camera on the hero-vs-enemies pair and zoom to fit them.
+  frameFight(list) {
+    if (this.mode !== 'combat' || !list.length) return;
+    const heroX = -2.8;
+    const xs = list.map((e) => this.enemies.get(e.uid).home.x);
+    const big = list.some((e) => e.id === 'mammoth');
+    const enemyMid = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const right = Math.max(...xs) + (big ? 3.8 : 0.8);
+    const cx = (heroX + enemyMid) / 2;
+    const span = right - (heroX - 0.6);
+    const aspect = this.camera.aspect || 2;
+    const dist = Math.max(6.5, (span * 0.62 + 1.2) * (2.1 / Math.min(aspect, 2.4)) + 2.6);
+    const lookY = big ? 1.9 : 1.15;
+    this.camPos.set(cx, lookY + 1.1 + dist * 0.05, dist);
+    this.camLook.set(cx, lookY, 0);
   }
 
   actor(who) {
