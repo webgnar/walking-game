@@ -452,8 +452,8 @@ Sketch questions answered: blueprints aren't a slot (they teach recipes); the in
 
 - **Mood:** a Society control room watching a test. Dark charcoal and soot, deep crimson, burnished gold, a cold terminal green for system text.
 - **World, hero, enemies and base:** 3D with soft, natural lighting. No ink outlines, toon bands or halftone. Fire and light do the drama.
-- **UI:** PROCTOR's interface as an imperial dossier. Thin, wide-tracked capitals; angled button plates with fine gold borders; crimson hazard slashes on the main actions; laurel and sigil motifs; corner brackets and crosshair ticks; a version tag.
-- **Home layout (reference screen):** the era title with a crimson laurel banner; a subject dossier (subject number, level, CLASS / STATE / RANK); a SIMULATION LOG terminal line that carries transmissions and the step meter; the hero framed by laurels with the fire beside him; Base, Shop and Goals on the left; Trials (primary, crimson) and Boxes on the right; PROCTOR speaks through an OBSERVATION FEED panel; +100 steps as a crimson plate.
+- **UI (final, 2026-11-20):** the team's mockup `ui-that-we-want.png` is the target. Imperial gold-on-crimson: ornate beveled gold frames, charcoal and crimson plates with pointed ends, laurels, Cinzel capitals with wide-tracked subtitles. Every frame is an image slot that takes zack's hand-made PNGs; see docs/ui-assets.md (sizes, 9-slice caps) and docs/ui-art-prompts.md.
+- **Home layout (reference screen):** portrait medallion with the PRIMAL / SUBJECT / LEVEL plate and a gear button top left; the segmented TODAY STEPS strip and the COMMAND BRIEF // SIGNAL panel (radar and skyline inset) top center; a winged resource bar top right; a hanging crimson banner with a laurel behind BASE, SHOP and GOALS on the left; TRIALS (crimson) and BOXES on the right; the hero and fire in the middle with a POINTS TO SPEND tag; +100 STEPS as a crimson plate with a laurel medallion and TEST tag, and a trophy button, bottom right. The castle and red moon backdrop is a future background item.
 - **Story moments:** cutscenes and flashbacks as grainy black-and-white or sepia film stills with terminal captions, not comic panels. Loot reveals and achievements as gold-on-black seals.
 - **Readability:** every label stays legible on a landscape phone; small caps never go below about 11px.
 - **Story fit:** the UI is PROCTOR's interface, the same in every era; its glitches carry the story glitches.
@@ -533,6 +533,6 @@ Still missing from the document: audio direction, a notification plan, analytics
 
 1. Economy spreadsheet: starting numbers, training costs, rate-upgrade prices, days per era.
 2. Prices: full-game unlock, boosters, season pass, cosmetics.
-3. Art style: decided, Red Rising-style book sci-fi (see Art style).
+3. Art style: decided, Red Rising-style book sci-fi with the imperial gold-frame UI from the team mockup (see Art style).
 4. PROCTOR: text only or voiced.
 5. Era 1: v1 numbers drafted (see Era 1 combat); tune after the combat prototype.

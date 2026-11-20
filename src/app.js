@@ -7,7 +7,8 @@ import {
 } from './data/era1.js';
 import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
 import * as ST from './logic/story.js';
-import { IC, WREATH, DISH } from './ui/icons.js';
+import { IC, WREATH } from './ui/icons.js';
+import { loadUiAssets } from './ui/assets.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -46,7 +47,7 @@ export function start() {
   E.ensureGoals(s);
   B.tickBase(s);
   syncLook();
-  applyUiStyle();
+  loadUiAssets();
   stage.setBase(tiers());
   for (const t of TRANSMISSIONS) if (s.trials.cleared[t.trial]) ST.startTransmission(s, t.id);
   if (!s.intro) go('intro');
@@ -136,52 +137,42 @@ function topbar(title, sub, back = 'home', backLabel = '') {
   </div>`;
 }
 
-function applyUiStyle() {
-  // v2: zack's brush mockup became the default look (older saves are moved onto it once)
-  if (s.uiStyleV !== 2) { s.uiStyle = 'brush'; s.uiStyleV = 2; }
-  document.body.classList.toggle('retro', s.uiStyle === 'retro');
-  document.body.classList.toggle('brush', s.uiStyle === 'brush');
-}
-
 const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev';
-const cycle = () => String(4327 + Math.max(0, Math.floor((env.now() - (s.created || env.now())) / 86400000))).padStart(6, '0').replace(/^(\d{3})/, '$1,');
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
+const roman = (n) => ROMAN[n] || String(n);
 
-// Home header: era banner (opens Settings), era title, build tag and the subject dossier.
-function homeHeader() {
+// ---------- Home (imperial layout; every frame is an image slot, see docs/ui-assets.md) ----------
+function homeTop() {
   const era = s.era === 1 ? 'Primal' : 'Brick';
-  return `<div class="homehead">
-    <button class="banner" data-a="settings" aria-label="Settings">${WREATH}</button>
-    <div class="dossier">
-      <div class="era" data-a="settings" aria-label="${era} (settings)"><span class="mtn">⛰</span>${esc(s.uiStyle === 'brush' ? era.toUpperCase() : era.toUpperCase().replace(/A/g, 'Λ'))}</div>
-      <div class="ver">Simulation ${esc(BUILD.split(' ')[0])}</div>
-      <div class="subj"><span>Subject 7,301,224</span></div>
-      <div class="lvl"><span>Level ${s.hero.level}</span></div>
-      <dl><dt>Class</dt><dd>${esc(era)}</dd><dt>State</dt><dd class="ok">Active</dd><dt>Rank</dt><dd>Unassigned</dd></dl>
-      <div class="barcode"></div>
-    </div>
-  </div>
-  <div class="topbar home">${curPlate()}</div>`;
-}
-
-// SIMULATION LOG: the step meter plus the current transmission, as one terminal line.
-function simLog() {
   const today = E.todaySteps(s);
   const toBox = E.STEPS_PER_BOX - s.steps.towardBox;
-  const stride = s.active.strideUntil > env.now();
+  const seg = Math.floor(s.steps.towardBox / 100); // 10 segments, one per 100 steps
   const a = ST.activeTransmission(s);
-  const line = a
-    ? `Signal ${Math.floor(a.frac * 100)}% · ${esc(FORMER_TRIBUTE)} · walk ${fmt(a.left)} steps to clear it`
-    : `Awaiting movement · ${fmt(toBox)} steps to the next loot box${stride ? ' · Stride Brew active' : ''}`;
-  return `<div class="simlog">
-    <div class="slh"><span><b class="wave">((•))</b>&gt; Simulation log // Cycle ${cycle()}</span><span class="r">Today <b>${fmt(today)}</b> steps · next loot box in <b>${fmt(toBox)}</b></span></div>
-    <button class="slline ${a ? 'sig' : ''}" ${a ? 'data-a="modal" data-v="transmission"' : 'disabled'}>&gt; ${line} <span class="cur">▍</span></button>
-    <div class="slbar"><i style="width:${(s.steps.towardBox / 10).toFixed(1)}%"></i></div>
-  </div>`;
+  const stride = s.active.strideUntil > env.now();
+  return `
+    <button class="ui-gear sq" data-a="settings" aria-label="Settings">${IC.gear}</button>
+    <div class="ui-id">
+      <div class="ui-portrait"><i></i></div>
+      <div class="ui-idplate"><div class="t1">${esc(era)}</div><div class="t2">Subject 7,301,224</div><div class="t3">Level ${roman(s.hero.level)}</div></div>
+    </div>
+    <div class="ui-steps"><div class="lbl">Today <b>${fmt(today)}</b> steps <span>·</span> next loot box in <b>${fmt(toBox)}</b>${stride ? ' <span>·</span> <em>Stride Brew</em>' : ''}</div>
+      <div class="segs">${Array.from({ length: 10 }, (_, i) => `<i class="${i < seg ? 'on' : ''}"></i>`).join('')}</div></div>
+    <button class="ui-brief" ${a ? 'data-a="modal" data-v="transmission"' : 'disabled'}>
+      <span class="radar"><i></i></span>
+      <span class="txt"><span class="k">Command brief <span>//</span> ${a ? `Signal ${Math.floor(a.frac * 100)}%` : 'Standby'}</span>
+        <span class="h">${a ? `${esc(FORMER_TRIBUTE)}` : 'Awaiting movement'}</span>
+        <span class="s">${a ? `Walk ${fmt(a.left)} steps to clear it` : `Walk ${fmt(toBox)} steps for the next loot box`}</span></span>
+      <span class="sky"></span>
+    </button>
+    <div class="ui-res">
+      <span class="c" title="Soles"><span class="uicon ic-sole">${IC.sole}</span>${fmt(s.soles)}</span><i></i>
+      <span class="c" title="Flint"><span class="uicon ic-flint">${IC.flint}</span>${s.mats.flint}</span><i></i>
+      <span class="c" title="Bone"><span class="uicon ic-bone">${IC.bone}</span>${s.mats.bone}</span>
+    </div>`;
 }
 
-function obsFeed() {
-  return `<div class="obsfeed"><div class="cam">${DISH}</div><div class="ol"><div class="oh"><i></i>Observation feed A.03</div>
-    <div>Subject: 7,301,224</div><div>Biometrics: stable</div><div>Env: simulation</div><div>Integrity: 99.4%</div></div></div>`;
+function homePlate(cls, icon, label, sub, attrs, badge) {
+  return `<button class="ui-plate ${cls}" ${attrs}><span class="uicon ic-${icon}">${IC[icon]}</span><span class="tx"><span class="l">${label}</span><span class="sub">${sub}</span></span>${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
 }
 
 function hint(key) {
@@ -201,31 +192,25 @@ const SCREENS = {
     const goalsReady = goals.list.filter((g) => !g.claimed && E.goalDone(g)).length + (!goals.bonusClaimed && goals.list.every((g) => g.claimed) ? 1 : 0) + (E.weeklyDays(s) >= E.WEEKLY.daysNeeded && !E.updateWeekly(s).claimed ? 1 : 0);
     const jobs = BUILDING_ORDER.filter((b) => s.base[b].job).length;
     const sp = s.hero.freeAttr + s.hero.freeSkill;
-    return `${homeHeader()}
-    ${simLog()}
-    <div class="homecenter">
-      ${s.report ? `<button class="btn small ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
+    return `<div class="ui-home">
+    ${homeTop()}
+    <div class="ui-banner"><i class="pole"></i><i class="cloth">${WREATH}</i></div>
+    ${s.report ? `<button class="btn small ui-report ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
+    <div class="ui-left">
+      ${homePlate(`dark big ${hint('base')}`, 'base', 'Base', 'Command · Develop · Survive', 'data-a="go" data-v="base"', jobs)}
+      ${homePlate('dark', 'shop', 'Shop', 'Supply · Gear · Upgrade', 'data-a="go" data-v="shop"')}
+      ${homePlate('dark', 'goals', 'Goals', 'Missions · Progress · Rewards', 'data-a="modal" data-v="goals"', goalsReady)}
     </div>
-    <div class="home-left">
-      <button class="btn plate cream ${hint('base')}" data-a="go" data-v="base">${IC.base}<i class="emo">⛺</i><span>Base</span>${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
-      <button class="btn plate" data-a="go" data-v="shop">${IC.shop}<i class="emo">🛒</i><span>Shop</span></button>
-      <button class="btn plate" data-a="modal" data-v="goals">${IC.goals}<i class="emo">🎯</i><span>Goals</span>${goalsReady ? `<span class="badge">${goalsReady}</span>` : ''}</button>
-    </div>
-    <div class="home-right">
-      <button class="btn plate crimson big ${hint('trials')}" data-a="go" data-v="map">${IC.trials}<i class="emo">⚔️</i><span>Trials</span></button>
-      <button class="btn plate ${hint('boxes')}" data-a="modal" data-v="boxes">${IC.boxes}<i class="emo">📦</i><span>Boxes</span>${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
+    <div class="ui-right">
+      ${homePlate(`crimson big ${hint('trials')}`, 'trials', 'Trials', 'Prove · Rank · Ascend', 'data-a="go" data-v="map"')}
+      ${homePlate(`dark ${hint('boxes')}`, 'boxes', 'Boxes', 'Loot · Rewards · Artifacts', 'data-a="modal" data-v="boxes"', s.boxes.length)}
       ${s.boxes.length > 1 ? '<button class="btn small openall" data-a="openAll">Open all</button>' : ''}
     </div>
-    <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
-      ${sp || hint('hero') ? `<div class="herotag ${hint('hero') || 'pulse'}">${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</div>` : ''}
-    </div>
+    <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero"></div>
+    ${sp || hint('hero') ? `<button class="ui-points ${hint('hero') || ''}" data-a="hero" data-v="${sp ? 'stats' : 'gear'}"><span>✦</span>${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</button>` : ''}
+    <button class="ui-stepbtn" data-hold="steps"><span class="medal"><span class="uicon ic-steps">${IC.sole}</span></span><span class="tx"><span class="l">+100 Steps</span><span class="sub">Hold to keep walking</span></span><span class="test">Test</span></button>
+    <button class="ui-trophy sq" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
     ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
-    ${obsFeed()}
-    <div class="herotarget"><i></i><i></i><i></i><i></i></div>
-    <div class="statusbar"><b>▮▮▮▮▮</b> Sim_core ${esc(BUILD.split(' ')[0])} // Bio: stable // Env: ${s.era === 1 ? 'Primal' : 'Brick'} // Integrity: 99.4%</div>
-    <div class="home-bottom">
-      <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
-      <button class="btn plate crimson stepbtn" data-hold="steps"><span>+100 steps</span><small>Hold to keep walking <span class="debugtag">Test</span></small></button>
     </div>`;
   },
 
@@ -841,10 +826,6 @@ const MODALS = {
         <div class="small">${fullscreenHelp()}</div>
         ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
         <div class="sep"></div>
-        <h3 class="h">UI style</h3>
-        <div class="small muted">Brush is the newest mockup. Dossier and Retro dither are the earlier ones. The 3D scene is the same in all three.</div>
-        <div class="row" style="margin:6px 0">${[['brush', 'Brush'], ['current', 'Dossier'], ['retro', 'Retro dither']].map(([k, l]) => `<button class="tab ${(s.uiStyle || 'brush') === k ? 'on' : ''}" data-a="uiStyle" data-v="${k}">${l}</button>`).join('')}</div>
-        <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>
         <div class="small muted">"Tuned" raises enemy health ×1.25 and damage ×1.5, and lets Guard be used once a turn. "GDD v1" uses the design document's table exactly.</div>
         <div class="row" style="margin:6px 0">${Object.keys(TUNING_PRESETS).map((k) => `<button class="tab ${(s.tuning || 'tuned') === k ? 'on' : ''}" data-a="tuning" data-v="${k}">${k === 'gdd' ? 'GDD v1' : 'Tuned'}</button>`).join('')}</div>
@@ -1168,7 +1149,6 @@ const ACTIONS = {
   },
   fullscreen() { s.noFullscreen = false; enterFullscreen(); closeModal(); },
   installTip() { s.installTipSeen = true; save(s); render(); },
-  uiStyle(v) { s.uiStyle = v; applyUiStyle(); app.modal = { type: 'settings' }; commit(); },
   tuning(v) { s.tuning = v; setTuning(v); app.modal = { type: 'settings' }; commit(); },
   reset() {
     if (!app.modal.confirm) { app.modal.confirm = true; renderModal(); return; }
