@@ -1196,4 +1196,4 @@ function bindHold() {
 }
 
 // exposed for debugging in the console
-window.ascent = { get state() { return s; }, app, E, B, H, C, T };
+window.ascent = { get state() { return s; }, get stage() { return stage; }, app, E, B, H, C, T };

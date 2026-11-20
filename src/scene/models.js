@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { buildFlames } from './fire.js';
 
 let gradient;
-function toonGradient() {
+export function toonGradient() {
   if (gradient) return gradient;
   const data = new Uint8Array([70, 70, 70, 255, 160, 160, 160, 255, 255, 255, 255, 255]);
   gradient = new THREE.DataTexture(data, 3, 1, THREE.RGBAFormat);
@@ -114,13 +114,16 @@ const LOOKS = {
 // looks: { weapon: 'club1', armor: 'armor2', ... }
 export function setHeroLook(hero, looks) {
   const { slots } = hero.userData;
-  for (const [slot, grp] of Object.entries(slots)) {
+  // (the rigged hero puts an inner, rescaled group inside each slot)
+  const into = (slot) => slots[slot].userData.inner || slots[slot];
+  for (const slot of Object.keys(slots)) {
+    const grp = into(slot);
     grp.clear();
     const k = looks[slot];
     if (k && LOOKS[k]) grp.add(LOOKS[k]());
   }
   // bare-handed: a simple stick
-  if (!looks.weapon) slots.weapon.add(part(G.cyl(0.04, 0.06, 0.6), C.wood, [0, 0, 0.22], [Math.PI / 2.4, 0, 0]));
+  if (!looks.weapon) into('weapon').add(part(G.cyl(0.04, 0.06, 0.6), C.wood, [0, 0, 0.22], [Math.PI / 2.4, 0, 0]));
 }
 
 // ---------- Enemies ----------

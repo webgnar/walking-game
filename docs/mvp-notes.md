@@ -60,3 +60,9 @@ All in `src/data/era1.js`, `src/data/story.js` and `src/logic/economy.js`.
 ## Economy check
 
 `tests/era1.test.js` has a bot play Era 1 at 6,000 steps a day using the real game logic. It finishes Era 1 (Era Key, all buildings tier 3, level 10, evolve) in **13 days**, inside the GDD's 10-14 day target.
+
+## Hero model and animations
+
+The hero is the rigged caveman in `public/models/caveman.fbx` (Mixamo bone names), loaded by `src/scene/caveman.js` with toon shading and an ink outline. Gear hangs off his hand, head and chest bones.
+
+Animation clips go in `public/models/anims/` as one FBX per clip, exported from the same rig: `idle.fbx`, `walk.fbx`, `attack.fbx`, `hurt.fbx`, `death.fbx`, `roar.fbx`, `victory.fbx`. Any that are missing are skipped. Idle loops by default; attack plays on physical skills, hurt on hits, roar on Roar, death on a loss and victory on a win. Without clips he holds a hand-made relaxed pose with a breathing idle and a scripted club swing.

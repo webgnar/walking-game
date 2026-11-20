@@ -1,5 +1,6 @@
 // The single Three.js stage behind the UI. Modes move the camera; combat adds enemy actors.
 import * as THREE from 'three';
+import { loadCaveman } from './caveman.js';
 import { buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding } from './models.js';
 
 const BUILD_POS = {
@@ -43,6 +44,19 @@ export class Stage {
     this.hero = buildHero();
     this.scene.add(this.hero);
     this.heroHome = new THREE.Vector3(0, 0, 0);
+    this.looks = {};
+    // swap the placeholder body for the rigged caveman once it has loaded
+    this.hero.userData.body.visible = false;
+    loadCaveman().then((rig) => {
+      const h = this.hero;
+      h.add(rig.model);
+      rig.attachSlots(h.userData.slots);
+      setHeroLook(h, this.looks);
+      this.rig = rig;
+    }).catch((e) => {
+      console.warn('[stage] caveman failed to load, using placeholder', e);
+      this.hero.userData.body.visible = true;
+    });
 
     this.buildings = {};
     this.buildingTiers = {};
@@ -75,6 +89,7 @@ export class Stage {
     this.tweens = [];
     h.rotation.set(0, 0, 0);
     h.userData.armR.rotation.x = 0;
+    if (this.rig) this.rig.reset();
     h.visible = mode !== 'map' && mode !== 'base';
     if (mode === 'combat') {
       h.position.set(-2.8, 0, 0.4);
@@ -97,6 +112,7 @@ export class Stage {
   }
 
   setHeroLook(looks) {
+    this.looks = looks;
     setHeroLook(this.hero, looks);
   }
 
@@ -190,6 +206,7 @@ export class Stage {
       }
       case 'hit': {
         this.flash(o, 0xff2030);
+        if (who === 'hero' && this.rig) this.rig.play('hurt');
         const dir = who === 'hero' ? -1 : 1;
         this.tween(300, (p) => { o.position.x = home.x + dir * 0.25 * Math.sin(p * Math.PI); });
         break;
@@ -199,12 +216,13 @@ export class Stage {
         break;
       case 'cast':
         this.flash(o, 0xff8a3d);
-        this.swing();
+        if (!(who === 'hero' && this.rig && this.rig.play('roar'))) this.swing();
         break;
       case 'stun':
         this.tween(500, (p) => { o.rotation.z = Math.sin(p * Math.PI * 4) * 0.12 * (1 - p); });
         break;
       case 'die': {
+        if (who === 'hero' && this.rig && this.rig.play('death')) break;
         const r0 = o.rotation.z;
         this.tween(600, (p) => {
           o.rotation.z = r0 + (who === 'hero' ? 1 : -1) * p * 1.4;
@@ -214,12 +232,14 @@ export class Stage {
         break;
       }
       case 'win':
+        if (who === 'hero' && this.rig && this.rig.play('victory')) break;
         this.tween(700, (p) => { o.position.y = Math.sin(p * Math.PI) * 0.6; });
         break;
     }
   }
 
   swing() {
+    if (this.rig) { this.rig.swing(); return; }
     const arm = this.hero.userData.armR;
     this.tween(360, (p) => { arm.rotation.x = -Math.sin(p * Math.PI) * 2.2; });
   }
@@ -277,6 +297,7 @@ export class Stage {
     const hb = this.hero.userData.body;
     hb.position.y = Math.sin(t * 2) * 0.02;
     this.hero.userData.hairBack.rotation.x = 0.12 + Math.sin(t * 1.7) * 0.04;
+    if (this.rig) this.rig.update(dt, t);
     for (const a of this.enemies.values()) {
       const b = a.obj.userData.body;
       if (b) b.position.y = Math.sin(t * 2.4 + a.uid) * 0.03;
