@@ -263,9 +263,8 @@ export class Stage {
       const b = a.obj.userData.body;
       if (b) b.position.y = Math.sin(t * 2.4 + a.uid) * 0.03;
     }
-    const f = this.fire.userData.flames;
-    f.scale.set(1 + Math.sin(t * 13) * 0.08, 1 + Math.sin(t * 9) * 0.15, 1 + Math.cos(t * 11) * 0.08);
-    this.fire.userData.light.intensity = 11 + Math.sin(t * 15) * 2;
+    if (this.fire.visible) this.fire.userData.flames.userData.update(t, this.camera);
+    this.fire.userData.light.intensity = 11 + Math.sin(t * 15) * 1.5 + Math.sin(t * 6.3) * 1.5;
     for (const b of Object.values(this.buildings)) b.children.forEach((c) => { if (c.material && c.material.wireframe) c.rotation.y = t * 0.3; });
     // tweens
     const now = performance.now();

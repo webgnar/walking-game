@@ -1,5 +1,6 @@
 // Placeholder 3D models built from primitives, in a cel-shaded comic style.
 import * as THREE from 'three';
+import { buildFlames } from './fire.js';
 
 let gradient;
 function toonGradient() {
@@ -267,12 +268,8 @@ export function buildFire() {
   }
   g.add(part(G.cyl(0.05, 0.05, 0.8, 6), C.wood, [0, 0.12, 0], [0, 0, Math.PI / 2], null, 0.03));
   g.add(part(G.cyl(0.05, 0.05, 0.8, 6), C.wood, [0, 0.12, 0], [Math.PI / 2, 0, Math.PI / 2], null, 0.03));
-  const flames = new THREE.Group();
-  const f1 = new THREE.Mesh(G.cone(0.3, 0.8, 7), new THREE.MeshBasicMaterial({ color: 0xff7a1a }));
-  const f2 = new THREE.Mesh(G.cone(0.18, 0.55, 7), new THREE.MeshBasicMaterial({ color: 0xffe14d }));
-  f1.position.y = 0.45; f2.position.y = 0.38;
-  ink(f1, 0.03);
-  flames.add(f1, f2);
+  const flames = buildFlames();
+  flames.position.y = 0.1;
   g.add(flames);
   const light = new THREE.PointLight(0xff8a3d, 12, 9, 1.6);
   light.position.y = 0.9;
