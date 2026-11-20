@@ -63,6 +63,6 @@ All in `src/data/era1.js`, `src/data/story.js` and `src/logic/economy.js`.
 
 ## Hero model and animations
 
-The hero is the rigged caveman in `public/models/caveman.fbx` (Mixamo bone names), loaded by `src/scene/caveman.js` with toon shading and an ink outline. Gear hangs off his hand, head and chest bones.
+The hero is the rigged caveman in `public/models/caveman.fbx` (Mixamo bone names), loaded by `src/scene/caveman.js` with toon shading (no ink outline, by request). Gear hangs off his hand, head and chest bones.
 
-Animation clips go in `public/models/anims/` as one FBX per clip, exported from the same rig: `idle.fbx`, `walk.fbx`, `attack.fbx`, `hurt.fbx`, `death.fbx`, `roar.fbx`, `victory.fbx`. Any that are missing are skipped. Idle loops by default; attack plays on physical skills, hurt on hits, roar on Roar, death on a loss and victory on a win. Without clips he holds a hand-made relaxed pose with a breathing idle and a scripted club swing.
+Animation clips live in `public/models/anims/`, one FBX per clip: `idle` (loops), `walk` (loaded, not used yet), `attack` (Club Strike), `throw` (Hurl Stone and Firebrand), `block` (Guard), `roar` (Roar), `hurt` (taking a hit), `death` (losing) and `victory` (winning). Straight Mixamo exports are Y-up and get turned into the rig's Z-up frame on load, and every clip is pinned in place horizontally. Any missing clip is skipped; with none at all he falls back to a hand-made pose.

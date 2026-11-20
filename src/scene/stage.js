@@ -201,7 +201,7 @@ export class Stage {
           o.position.x = home.x + dir * dist * easeOut(k);
           o.position.y = home.y + Math.sin(k * Math.PI) * 0.25;
         });
-        if (who === 'hero') this.swing();
+        if (who === 'hero') this.swing(opts.skill === 'hurl' ? 'throw' : 'attack');
         break;
       }
       case 'hit': {
@@ -213,10 +213,12 @@ export class Stage {
       }
       case 'block':
         this.flash(o, 0x20f0ff);
+        if (who === 'hero' && this.rig) this.rig.play('block');
         break;
       case 'cast':
         this.flash(o, 0xff8a3d);
-        if (!(who === 'hero' && this.rig && this.rig.play('roar'))) this.swing();
+        // Roar thumps the chest; Firebrand is thrown
+        if (!(who === 'hero' && this.rig && this.rig.play(opts.skill === 'roar' ? 'roar' : 'throw'))) this.swing();
         break;
       case 'stun':
         this.tween(500, (p) => { o.rotation.z = Math.sin(p * Math.PI * 4) * 0.12 * (1 - p); });
@@ -238,8 +240,8 @@ export class Stage {
     }
   }
 
-  swing() {
-    if (this.rig) { this.rig.swing(); return; }
+  swing(clip = 'attack') {
+    if (this.rig) { this.rig.swing(clip); return; }
     const arm = this.hero.userData.armR;
     this.tween(360, (p) => { arm.rotation.x = -Math.sin(p * Math.PI) * 2.2; });
   }

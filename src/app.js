@@ -796,9 +796,9 @@ async function playEvents(ev) {
     switch (e.t) {
       case 'use': {
         const sk = SKILLS[e.skill];
-        if (sk.kind === 'physical') stage.anim('hero', 'attack', { dist: e.skill === 'hurl' ? 0.4 : 1.5 });
+        if (sk.kind === 'physical') stage.anim('hero', 'attack', { dist: e.skill === 'hurl' ? 0.4 : 1.5, skill: e.skill });
         else if (sk.kind === 'block') stage.anim('hero', 'block');
-        else stage.anim('hero', 'cast');
+        else stage.anim('hero', 'cast', { skill: e.skill });
         if (sk.kind === 'stun') floatText('hero', 'ROAR!', 'pow');
         await wait(200);
         break;

@@ -1,5 +1,5 @@
 // The rigged caveman hero (Mixamo-style skeleton, FBX). Loads the mesh, gives it the comic toon look
-// with a skinned ink outline, and plays animation clips when they exist. Until clips are added the
+// and plays animation clips when they exist. Until clips are added the
 // bones are posed by hand (relaxed arms, breathing, club swing) so he never stands in a T-pose.
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
@@ -7,9 +7,8 @@ import { toonGradient } from './models.js';
 
 const URL = '/models/caveman.fbx';
 // Animation clips, one file each: public/models/anims/<name>.fbx (missing files are skipped).
-export const CLIP_NAMES = ['idle', 'walk', 'attack', 'hurt', 'death', 'roar', 'victory'];
+export const CLIP_NAMES = ['idle', 'walk', 'attack', 'throw', 'block', 'hurt', 'death', 'roar', 'victory'];
 const HEIGHT = 1.9; // world units, matches the old placeholder hero
-const INK_WORLD = 0.018; // outline thickness in world units
 
 const loader = new FBXLoader();
 const loadFBX = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
@@ -20,18 +19,6 @@ async function exists(url) {
     const r = await fetch(url, { method: 'HEAD' });
     return r.ok && !(r.headers.get('content-type') || '').includes('text/html');
   } catch { return false; }
-}
-
-function inkMaterial(thickness) {
-  const m = new THREE.MeshBasicMaterial({ color: 0x0b0b10, side: THREE.BackSide });
-  m.onBeforeCompile = (s) => {
-    s.uniforms.uInk = { value: thickness };
-    s.vertexShader = 'uniform float uInk;\n' + s.vertexShader.replace(
-      '#include <skinning_vertex>',
-      '#include <skinning_vertex>\n  transformed += normalize(objectNormal) * uInk;',
-    );
-  };
-  return m;
 }
 
 export async function loadCaveman() {
@@ -78,22 +65,35 @@ export async function loadCaveman() {
   }
   skinned.material = new THREE.MeshToonMaterial({ color: map ? 0xffffff : 0xb07a52, map, gradientMap: toonGradient() });
   old.dispose();
-  // outline: a second skinned mesh on the same skeleton, pushed out along normals
-  const wscale = skinned.getWorldScale(new THREE.Vector3()).x || s;
-  const outline = new THREE.SkinnedMesh(skinned.geometry, inkMaterial(INK_WORLD / wscale));
-  outline.bind(skinned.skeleton, skinned.bindMatrix);
-  outline.position.copy(skinned.position);
-  outline.quaternion.copy(skinned.quaternion);
-  outline.scale.copy(skinned.scale);
-  outline.userData.isInk = true;
-  outline.raycast = () => {};
-  skinned.parent.add(outline);
   skinned.frustumCulled = false;
-  outline.frustumCulled = false;
 
   const rig = new Rig(model, fbx, bone);
   rig.loadClips(); // fire and forget
   return rig;
+}
+
+// Our rig is Z-up (Blender export). Straight Mixamo exports are Y-up, which shows up as the hips
+// track sitting at y ~50 instead of z ~50; rotate those hips tracks into the Z-up frame.
+// Then pin the hips horizontally so every clip plays on the spot.
+const TO_ZUP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+function fixClip(clip) {
+  clip.tracks = clip.tracks.filter((t) => !/\.(position|scale)$/.test(t.name) || /Hips\.position$/.test(t.name));
+  const pos = clip.tracks.find((t) => /Hips\.position$/.test(t.name));
+  const rot = clip.tracks.find((t) => /Hips\.quaternion$/.test(t.name));
+  const yUp = pos && Math.abs(pos.values[1]) > Math.abs(pos.values[2]);
+  if (yUp) {
+    const v = new THREE.Vector3(), q = new THREE.Quaternion();
+    for (let i = 0; i < pos.values.length; i += 3) {
+      v.fromArray(pos.values, i).applyQuaternion(TO_ZUP).toArray(pos.values, i);
+    }
+    if (rot) for (let i = 0; i < rot.values.length; i += 4) {
+      q.fromArray(rot.values, i).premultiply(TO_ZUP).toArray(rot.values, i);
+    }
+  }
+  if (pos) {
+    const v = pos.values, x0 = v[0], y0 = v[1];
+    for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 1] = y0; }
+  }
 }
 
 class Rig {
@@ -121,14 +121,7 @@ class Rig {
         const clip = f.animations[0];
         if (!clip) continue;
         clip.name = name;
-        // keep the hips in place horizontally so attacks/walks don't drift off their mark
-        clip.tracks = clip.tracks.filter((t) => !/\.position$/.test(t.name) || /Hips/.test(t.name));
-        for (const t of clip.tracks) {
-          if (/Hips\.position$/.test(t.name)) {
-            const v = t.values, x0 = v[0], z0 = v[2];
-            for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 2] = z0; }
-          }
-        }
+        fixClip(clip);
         this.clips[name] = clip;
       } catch (e) { console.warn('[caveman] clip failed', name, e); }
     }
@@ -165,8 +158,8 @@ class Rig {
     if (this.clips.idle) this.play('idle', { fade: 0 });
   }
 
-  swing() {
-    if (!this.play('attack')) this.swingT = 0;
+  swing(clip = 'attack') {
+    if (!this.play(clip)) this.swingT = 0;
   }
 
   // Hand-made rest pose relative to the bind (T) pose, expressed as world-space aims for limbs.
