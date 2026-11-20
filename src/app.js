@@ -50,6 +50,9 @@ export function start() {
   else { go('home'); say(pick(PROCTOR.home)); }
   stage.snapCamera();
   document.addEventListener('click', onClick);
+  // belt and braces: save when the app is backgrounded or closed
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(s); });
+  window.addEventListener('pagehide', () => save(s));
   bindHold();
   setInterval(tick, 1000);
   requestAnimationFrame(follow);
@@ -693,8 +696,9 @@ const MODALS = {
         <div class="row" style="margin:6px 0">${Object.keys(TUNING_PRESETS).map((k) => `<button class="tab ${(s.tuning || 'tuned') === k ? 'on' : ''}" data-a="tuning" data-v="${k}">${k === 'gdd' ? 'GDD v1' : 'Tuned'}</button>`).join('')}</div>
         <div class="sep"></div>
         <h3 class="h">Progress</h3>
-        <div class="small muted">Saved in this browser only (no accounts yet). Total steps ${fmt(s.steps.total)} · Soles earned ${fmt(s.solesEarned)} · Trials won ${s.trials.wins}</div>
-        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything' : 'Reset progress'}</button></div>
+        <div class="small"><span class="ok">✔ Autosaves after every action</span> <span class="muted">(in this browser only; no accounts yet).</span></div>
+        <div class="small muted"> Total steps ${fmt(s.steps.total)} · Soles earned ${fmt(s.solesEarned)} · Trials won ${s.trials.wins}</div>
+        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything' : '🗑 Reset progress (start over)'}</button></div>
       </div></div>`;
   },
 };
