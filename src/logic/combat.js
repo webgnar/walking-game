@@ -139,7 +139,7 @@ function damageEnemy(b, e, raw, kind, ev) {
   e.block -= absorbed;
   dmg -= absorbed;
   e.hp = Math.max(0, e.hp - dmg);
-  ev.push({ t: 'hit', who: e.uid, dmg, crit, absorbed, kind });
+  ev.push({ t: 'hit', who: e.uid, dmg, crit, absorbed, kind, hpAfter: e.hp, blockAfter: e.block });
   if (e.hp <= 0 && !e.dead) {
     e.dead = true;
     ev.push({ t: 'die', who: e.uid });
@@ -211,7 +211,7 @@ function hurtHero(b, raw, pierce, ev, from) {
   if (!pierce) { absorbed = Math.min(h.block, dmg); h.block -= absorbed; dmg -= absorbed; }
   h.hp = Math.max(0, h.hp - dmg);
   h.damageTaken += dmg;
-  ev.push({ t: 'hit', who: 'hero', dmg, absorbed, from });
+  ev.push({ t: 'hit', who: 'hero', dmg, absorbed, from, hpAfter: h.hp, blockAfter: h.block });
 }
 
 // Ends the player's turn; enemies act; a new player turn starts. Returns events.
@@ -288,7 +288,7 @@ export function endTurn(b) {
   if (h.bleed) {
     h.hp = Math.max(0, h.hp - h.bleed.dmg);
     h.damageTaken += h.bleed.dmg;
-    ev.push({ t: 'hit', who: 'hero', dmg: h.bleed.dmg, kind: 'bleed' });
+    ev.push({ t: 'hit', who: 'hero', dmg: h.bleed.dmg, kind: 'bleed', hpAfter: h.hp, blockAfter: 0 });
     h.bleed.turns--;
     if (h.bleed.turns <= 0) h.bleed = null;
     checkOver(b, ev);

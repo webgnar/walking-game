@@ -244,24 +244,27 @@ const SCREENS = {
     const b = app.battle;
     if (!b) return '';
     const h = b.hero;
+    const sh = app.shown || {};
+    const hp = (who, real) => (sh[who] ? sh[who].hp : real);
+    const bl = (who, real) => (sh[who] ? sh[who].block : real);
     const t = TRIALS.find((x) => x.n === b.trial);
     const alive = C.living(b);
     if (!alive.find((e) => e.uid === app.target)) app.target = alive[0] && alive[0].uid;
     return `<div class="combat-top"><div class="comic">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}</div><div class="small muted">Turn ${b.turn}${s.trials.cleared[t.n] && t.n ? ' · replay' : ''}</div></div>
     <div class="combat-hero panel pad">
       <div class="row"><span class="comic" style="font-size:18px">You</span><span class="grow"></span><span class="small muted">Lv ${s.hero.level}</span></div>
-      <div class="hp hero"><i style="width:${(h.hp / h.maxHp) * 100}%"></i><span class="tx">${h.hp}/${h.maxHp}</span>${h.block ? `<span class="bl">🛡${h.block}</span>` : ''}</div>
+      <div class="hp hero"><i style="width:${(hp('hero', h.hp) / h.maxHp) * 100}%"></i><span class="tx">${hp('hero', h.hp)}/${h.maxHp}</span>${bl('hero', h.block) ? `<span class="bl">🛡${bl('hero', h.block)}</span>` : ''}</div>
       ${h.bleed ? `<div class="status bad">🩸 Bleeding ${h.bleed.dmg} × ${h.bleed.turns}</div>` : ''}
       ${h.warpaint ? '<div class="status warn">🎨 Warpaint +3 damage</div>' : ''}
     </div>
     <button class="iconbtn" style="position:absolute;top:calc(var(--st) + 6px);left:calc(var(--sl) + 8px);display:none"></button>
     <button class="btn tiny ghost" style="position:absolute;top:calc(var(--st) + 6px);right:calc(var(--sr) + 8px)" data-a="retreat">🏳 Retreat</button>
-    ${b.enemies.filter((e) => !e.dead).map((e) => {
+    ${b.enemies.filter((e) => !e.dead || (sh[e.uid] && sh[e.uid].hp > 0)).map((e) => {
       const il = C.intentLabel(e);
       return `<div class="hpbox ${e.uid === app.target && alive.length > 1 ? 'target' : ''}" data-anchor="${e.uid}" data-a="target" data-v="${e.uid}">
         <div class="intent ${il.cls}">${il.icon} ${esc(il.text)}${il.note ? `<span class="note">${esc(il.note)}</span>` : ''}</div>
         <div class="nm">${esc(e.name)}</div>
-        <div class="hp"><i style="width:${(e.hp / e.maxHp) * 100}%"></i><span class="tx">${e.hp}/${e.maxHp}</span>${e.block ? `<span class="bl">🛡${e.block}</span>` : ''}</div>
+        <div class="hp"><i style="width:${(hp(e.uid, e.hp) / e.maxHp) * 100}%"></i><span class="tx">${hp(e.uid, e.hp)}/${e.maxHp}</span>${bl(e.uid, e.block) ? `<span class="bl">🛡${bl(e.uid, e.block)}</span>` : ''}</div>
         <div class="status">${e.burn ? `🔥${e.burn.dmg}×${e.burn.turns} ` : ''}${e.feared ? '😨 ' : ''}${e.snarl ? '⬆ ' : ''}${e.stompBonus ? `+${e.stompBonus} stomp` : ''}</div>
       </div>`;
     }).join('')}
@@ -794,6 +797,7 @@ async function playEvents(ev) {
         break;
       }
       case 'hit':
+        if (app.shown && e.hpAfter !== undefined) app.shown[e.who] = { hp: e.hpAfter, block: e.blockAfter };
         if (e.who === 'hero') {
           stage.anim('hero', 'hit');
           floatText('hero', e.dmg ? `-${e.dmg}` : 'BLOCKED', `hero ${e.dmg ? '' : 'info'}`);
@@ -804,7 +808,7 @@ async function playEvents(ev) {
           if (e.crit) floatText(e.who, 'CRIT!', 'pow');
         }
         render();
-        await wait(e.kind === 'burn' ? 350 : 250);
+        await wait(e.kind === 'burn' ? 350 : e.who === 'hero' ? 450 : 250);
         break;
       case 'die':
         stage.anim(e.who, 'die');
@@ -817,7 +821,7 @@ async function playEvents(ev) {
         if (it && (it.kind === 'attack' || it.kind === 'bleed')) stage.anim(e.who, 'attack', { dist: en.id === 'mammoth' ? 1.6 : 2.2 });
         else if (it && it.kind === 'block') { stage.anim(e.who, 'block'); floatText(e.who, it.label.toUpperCase(), 'info'); }
         else if (it) floatText(e.who, it.label.toUpperCase() + '!', 'info');
-        await wait(260);
+        await wait(it && (it.kind === 'attack' || it.kind === 'bleed') ? 200 : 400);
         break;
       }
       case 'skip':
@@ -841,9 +845,14 @@ async function playEvents(ev) {
 async function runAction(fn) {
   if (app.busy || !app.battle || app.battle.over) return;
   app.busy = true;
+  const b0 = app.battle;
+  app.shown = { hero: { hp: b0.hero.hp, block: b0.hero.block } };
+  for (const e of b0.enemies) app.shown[e.uid] = { hp: e.hp, block: e.block };
   render();
   const ev = fn();
+  for (const e of b0.enemies) if (!app.shown[e.uid]) app.shown[e.uid] = { hp: e.maxHp, block: 0 };
   await playEvents(ev);
+  app.shown = null;
   app.busy = false;
   if (app.battle.over) return endBattle();
   render();
