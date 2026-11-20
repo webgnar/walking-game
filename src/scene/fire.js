@@ -1,4 +1,4 @@
-// Stylized comic-book campfire: a camera-facing flame shader with toon color bands and an ink rim,
+// Campfire: camera-facing flame shader with a smooth heat gradient and soft additive edges,
 // plus rising embers. Cheap: two quads and ~40 points.
 import * as THREE from 'three';
 
@@ -15,7 +15,6 @@ const FLAME_FRAG = /* glsl */ `
   varying vec2 vUv;
   uniform float uTime;
   uniform float uSeed;
-  uniform vec3 uInk;
   uniform vec3 uC1; // outer red
   uniform vec3 uC2; // orange
   uniform vec3 uC3; // yellow
@@ -45,15 +44,13 @@ const FLAME_FRAG = /* glsl */ `
     // rising turbulence eats into the flame, more toward the tip
     float n = fbm(vec2(uv.x * 3.4 + uSeed, uv.y * 1.3 - t * 2.6));
     float heat = shape * 0.95 - (n * 1.15) * (0.2 + uv.y * 1.1) + (1.0 - uv.y) * 0.3;
-    if (heat < 0.0) discard;
-    // toon bands: ink rim, red, orange, yellow, white core
-    vec3 col;
-    if (heat < 0.05) col = uInk;
-    else if (heat < 0.22) col = uC1;
-    else if (heat < 0.42) col = uC2;
-    else if (heat < 0.66) col = uC3;
-    else col = uC4;
-    gl_FragColor = vec4(col, 1.0);
+    if (heat <= 0.0) discard;
+    // smooth heat ramp: red edge, orange, yellow, white-hot core; edges fade out softly
+    vec3 col = mix(uC1, uC2, smoothstep(0.0, 0.3, heat));
+    col = mix(col, uC3, smoothstep(0.28, 0.6, heat));
+    col = mix(col, uC4, smoothstep(0.58, 0.95, heat));
+    float a = smoothstep(0.0, 0.18, heat);
+    gl_FragColor = vec4(col * a, a);
   }
 `;
 
@@ -93,14 +90,13 @@ export function buildFlames() {
   const mk = (w, h, seed, z, palette) => {
     const u = {
       uTime: { value: 0 }, uSeed: { value: seed },
-      uInk: { value: new THREE.Color(0x0b0b10) },
       uC1: { value: new THREE.Color(palette[0]) }, uC2: { value: new THREE.Color(palette[1]) },
       uC3: { value: new THREE.Color(palette[2]) }, uC4: { value: new THREE.Color(palette[3]) },
     };
     uniforms.push(u);
     const geo = new THREE.PlaneGeometry(w, h);
     geo.translate(0, h / 2, 0);
-    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, vertexShader: FLAME_VERT, fragmentShader: FLAME_FRAG, side: THREE.DoubleSide }));
+    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, vertexShader: FLAME_VERT, fragmentShader: FLAME_FRAG, side: THREE.DoubleSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
     m.position.z = z;
     return m;
   };

@@ -8,6 +8,9 @@ const BUILD_POS = {
 };
 
 const HOME_SCALE = 1.3;
+// Lunge timing: the hero is furthest forward at LUNGE_PEAK of LUNGE_MS; strikes connect then.
+const LUNGE_MS = 380, LUNGE_PEAK = 0.4;
+export const STRIKE_MS = LUNGE_MS * LUNGE_PEAK;
 
 const CAMS = {
   intro: { pos: [0, 1.3, 3.2], look: [0, 1.4, 0] },
@@ -25,16 +28,16 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x2a1e3a);
-    this.scene.fog = new THREE.Fog(0x2a1e3a, 18, 42);
+    this.scene.background = new THREE.Color(0x140e0c);
+    this.scene.fog = new THREE.Fog(0x140e0c, 16, 40);
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
     this.camPos = new THREE.Vector3(...CAMS.home.pos);
     this.camLook = new THREE.Vector3(...CAMS.home.look);
     this.camera.position.copy(this.camPos);
     this.lookNow = this.camLook.clone();
 
-    this.scene.add(new THREE.HemisphereLight(0xffd9b0, 0x2a2040, 1.4));
-    const sun = new THREE.DirectionalLight(0xffe2c0, 2.2);
+    this.scene.add(new THREE.HemisphereLight(0xffd2b0, 0x2a1612, 1.2));
+    const sun = new THREE.DirectionalLight(0xffd8b8, 1.6);
     sun.position.set(4, 8, 6);
     this.scene.add(sun);
 
@@ -226,12 +229,12 @@ export class Stage {
       case 'attack': {
         const dir = who === 'hero' ? 1 : -1;
         const dist = opts.dist || 1.4;
-        this.tween(380, (p) => {
-          const k = p < 0.4 ? p / 0.4 : 1 - (p - 0.4) / 0.6;
+        this.tween(LUNGE_MS, (p) => {
+          const k = p < LUNGE_PEAK ? p / LUNGE_PEAK : 1 - (p - LUNGE_PEAK) / (1 - LUNGE_PEAK);
           o.position.x = home.x + dir * dist * easeOut(k);
           o.position.y = home.y + Math.sin(k * Math.PI) * 0.25;
         });
-        if (who === 'hero') this.swing(opts.skill === 'hurl' ? 'throw' : 'attack');
+        if (who === 'hero') this.swing(opts.skill === 'hurl' ? 'throw' : 'attack', STRIKE_MS);
         break;
       }
       case 'hit': {
@@ -242,13 +245,14 @@ export class Stage {
         break;
       }
       case 'block':
-        this.flash(o, 0x20f0ff);
+        this.flash(o, 0xe3c47e);
         if (who === 'hero' && this.rig) this.rig.play('block');
         break;
       case 'cast':
         this.flash(o, 0xff8a3d);
         // Roar thumps the chest; Firebrand is thrown
-        if (!(who === 'hero' && this.rig && this.rig.play(opts.skill === 'roar' ? 'roar' : 'throw'))) this.swing();
+        if (who === 'hero' && this.rig && opts.skill === 'roar' && this.rig.play('roar')) break;
+        if (who === 'hero') this.swing('throw', STRIKE_MS);
         break;
       case 'stun':
         this.tween(500, (p) => { o.rotation.z = Math.sin(p * Math.PI * 4) * 0.12 * (1 - p); });
@@ -270,8 +274,8 @@ export class Stage {
     }
   }
 
-  swing(clip = 'attack') {
-    if (this.rig) { this.rig.swing(clip); return; }
+  swing(clip = 'attack', contactMs = 0) {
+    if (this.rig) { this.rig.swing(clip, contactMs); return; }
     const arm = this.hero.userData.armR;
     this.tween(360, (p) => { arm.rotation.x = -Math.sin(p * Math.PI) * 2.2; });
   }

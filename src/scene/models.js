@@ -1,4 +1,4 @@
-// Placeholder 3D models built from primitives, in a cel-shaded comic style.
+// Placeholder 3D models built from primitives, softly lit (no outlines or toon bands).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildFlames } from './fire.js';
@@ -21,7 +21,7 @@ function normalizeHeld(scene, length) {
     for (let i = 0; i < a.count; i += 3) pts.push(new THREE.Vector3().fromBufferAttribute(a, i).applyMatrix4(o.matrixWorld));
     const map = o.material.map;
     if (map) map.colorSpace = THREE.SRGBColorSpace;
-    o.material = new THREE.MeshToonMaterial({ map, color: map ? 0xffffff : C.wood, gradientMap: toonGradient() });
+    o.material = new THREE.MeshStandardMaterial({ map, color: map ? 0xffffff : C.wood, roughness: 0.9 });
   });
   const c = pts.reduce((m, p) => m.add(p), new THREE.Vector3()).divideScalar(pts.length);
   const far = (from) => pts.reduce((best, p) => (p.distanceToSquared(from) > best.distanceToSquared(from) ? p : best), pts[0]);
@@ -66,42 +66,18 @@ function heldClub(extra) {
   return w;
 }
 
-let gradient;
-export function toonGradient() {
-  if (gradient) return gradient;
-  const data = new Uint8Array([70, 70, 70, 255, 160, 160, 160, 255, 255, 255, 255, 255]);
-  gradient = new THREE.DataTexture(data, 3, 1, THREE.RGBAFormat);
-  gradient.minFilter = THREE.NearestFilter;
-  gradient.magFilter = THREE.NearestFilter;
-  gradient.needsUpdate = true;
-  return gradient;
-}
-
 const matCache = new Map();
 export function toon(color, opts = {}) {
   const key = color + JSON.stringify(opts);
   if (!opts.unique && matCache.has(key)) return matCache.get(key);
   const { unique, ...rest } = opts;
-  const m = new THREE.MeshToonMaterial({ color, gradientMap: toonGradient(), ...rest });
+  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0, ...rest });
   if (!opts.unique) matCache.set(key, m);
   return m;
 }
 
-const INK = new THREE.MeshBasicMaterial({ color: 0x0b0b10, side: THREE.BackSide });
-
-// Adds an ink outline (inverted hull) to a mesh.
-export function ink(mesh, t = 0.06) {
-  const o = new THREE.Mesh(mesh.geometry, INK);
-  mesh.geometry.computeBoundingSphere();
-  const r = mesh.geometry.boundingSphere.radius || 1;
-  const s = 1 + t / r;
-  o.scale.setScalar(s);
-  o.position.copy(mesh.geometry.boundingSphere.center).multiplyScalar(1 - s);
-  o.userData.isInk = true;
-  o.raycast = () => {};
-  mesh.add(o);
-  return mesh;
-}
+// Ink outlines were part of the retired comic look; kept as a no-op so callers stay simple.
+export function ink(mesh) { return mesh; }
 
 export function part(geo, color, pos = [0, 0, 0], rot = [0, 0, 0], scale = null, outline = 0.05, matOpts) {
   const m = new THREE.Mesh(geo, toon(color, matOpts));
@@ -357,7 +333,7 @@ export function buildBuilding(id, tier) {
   const g = new THREE.Group();
   if (tier <= 0) {
     // scaffold ghost
-    const m = new THREE.Mesh(G.box(1.6, 1.4, 1.6), new THREE.MeshBasicMaterial({ color: 0x20f0ff, wireframe: true, transparent: true, opacity: 0.45 }));
+    const m = new THREE.Mesh(G.box(1.6, 1.4, 1.6), new THREE.MeshBasicMaterial({ color: 0xc9a24c, wireframe: true, transparent: true, opacity: 0.4 }));
     m.position.y = 0.7;
     g.add(m);
     g.add(part(G.cyl(0.9, 0.9, 0.08, 16), 0x3a2d24, [0, 0.04, 0], [0, 0, 0], null, 0.03));
@@ -378,7 +354,7 @@ export function buildBuilding(id, tier) {
       g.add(part(G.box(0.45 * s, 1.8 * s, 0.35 * s), 0x9a9aa3, [0, 0.35 + 0.9 * s, 0]));
       if (tier >= 2) g.add(part(G.box(0.3, 1.1 * s, 0.25), 0x9a9aa3, [-0.6 * s, 0.35 + 0.55 * s, 0]), part(G.box(0.3, 1.1 * s, 0.25), 0x9a9aa3, [0.6 * s, 0.35 + 0.55 * s, 0]));
       if (tier >= 3) g.add(part(G.box(1.6 * s, 0.25, 0.35), 0x9a9aa3, [0, 0.35 + 1.15 * s, 0]));
-      g.add(part(G.sph(0.12, 8, 6), 0x20f0ff, [0, 0.35 + 1.4 * s, 0.2 * s], [0, 0, 0], null, 0.02, { emissive: 0x0a6a70 }));
+      g.add(part(G.sph(0.12, 8, 6), 0xe3c47e, [0, 0.35 + 1.4 * s, 0.2 * s], [0, 0, 0], null, 0.02, { emissive: 0x5a4210 }));
       break;
     case 'inventory':
       g.add(part(G.cyl(0.7 * s, 0.55 * s, 0.9 * s, 10), col, [0, 0.45 * s, 0]));
@@ -390,7 +366,7 @@ export function buildBuilding(id, tier) {
       g.add(part(G.cyl(0.12, 0.14, 2.2 * s, 6), 0xa83a2a, [0.7 * s, 1.1 * s, 0]));
       g.add(part(G.box(2.0 * s, 0.18, 0.3), 0xa83a2a, [0, 2.15 * s, 0]));
       if (tier >= 2) g.add(part(G.box(1.7 * s, 0.12, 0.25), 0xa83a2a, [0, 1.8 * s, 0]));
-      g.add(part(new THREE.OctahedronGeometry(0.25 + 0.06 * tier, 0), 0xff2bd6, [0, 1.0 * s, 0], [0, 0, 0], null, 0.03, { emissive: 0x6a0a5a }));
+      g.add(part(new THREE.OctahedronGeometry(0.25 + 0.06 * tier, 0), 0xd0352a, [0, 1.0 * s, 0], [0, 0, 0], null, 0.03, { emissive: 0x5a0d08 }));
       break;
     case 'truth':
       g.add(part(G.cyl(0.06, 0.06, 1.6 * s, 6), C.wood, [-0.75 * s, 0.8 * s, 0]));

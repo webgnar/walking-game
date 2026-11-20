@@ -1,5 +1,5 @@
 // The game app: screens, actions and the combat controller. Renders HTML over the Three.js stage.
-import { Stage } from './scene/stage.js';
+import { Stage, STRIKE_MS } from './scene/stage.js';
 import { env, load, save, wipeSave, newState, toast, pick, SAVE_KEY, dayKey } from './logic/state.js';
 import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
@@ -7,6 +7,7 @@ import {
 } from './data/era1.js';
 import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
 import * as ST from './logic/story.js';
+import { IC, LAUREL, WREATH, DISH } from './ui/icons.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -117,17 +118,62 @@ function render() {
   follow(true);
 }
 
+function curPlate() {
+  return `<div class="cur">
+      <span class="c soles" title="Soles">${IC.sole}${fmt(s.soles)}</span><i>/</i>
+      <span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i>
+      <span class="c" title="Bone">${IC.bone}${s.mats.bone}</span>
+    </div>`;
+}
+
 function topbar(title, sub, back = 'home', backLabel = '') {
   return `<div class="topbar">
-    ${back && backLabel ? `<button class="btn small cyan" data-a="go" data-v="${back}">${backLabel}</button>` : back ? `<button class="iconbtn" data-a="go" data-v="${back}" aria-label="Back">◀</button>` : `<button class="iconbtn" data-a="settings" aria-label="Settings">⚙</button>`}
-    <div><div class="title">${esc(title)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
+    ${back && backLabel ? `<button class="btn small" data-a="go" data-v="${back}">${IC.back}${backLabel}</button>` : back ? `<button class="iconbtn" data-a="go" data-v="${back}" aria-label="Back">${IC.back}</button>` : `<button class="iconbtn" data-a="settings" aria-label="Settings">${IC.gear}</button>`}
+    <div class="ttl"><div class="title">${esc(title)}</div>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div>
     <div class="spacer"></div>
-    <div class="cur">
-      <div class="chip soles" title="Soles"><span class="ic">👣</span>${fmt(s.soles)}</div>
-      <div class="chip" title="Flint"><span class="ic">🪨</span>${s.mats.flint}</div>
-      <div class="chip" title="Bone"><span class="ic">🦴</span>${s.mats.bone}</div>
-    </div>
+    ${curPlate()}
   </div>`;
+}
+
+const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev';
+const cycle = () => String(4327 + Math.max(0, Math.floor((env.now() - (s.created || env.now())) / 86400000))).padStart(6, '0').replace(/^(\d{3})/, '$1,');
+
+// Home header: era banner (opens Settings), era title, build tag and the subject dossier.
+function homeHeader() {
+  const era = s.era === 1 ? 'Primal' : 'Brick';
+  return `<div class="homehead">
+    <button class="banner" data-a="settings" aria-label="Settings">${WREATH}</button>
+    <div class="dossier">
+      <div class="era" aria-label="${era}">${esc(era.toUpperCase().replace(/A/g, 'Λ'))}</div>
+      <div class="ver">Simulation ${esc(BUILD.split(' ')[0])}</div>
+      <div class="subj">Subject 7,301,224</div>
+      <div class="lvl">Level ${s.hero.level}</div>
+      <dl><dt>Class</dt><dd>${esc(era)}</dd><dt>State</dt><dd class="ok">Active</dd><dt>Rank</dt><dd>Unassigned</dd></dl>
+      <div class="barcode"></div>
+    </div>
+  </div>
+  <div class="topbar home">${curPlate()}</div>`;
+}
+
+// SIMULATION LOG: the step meter plus the current transmission, as one terminal line.
+function simLog() {
+  const today = E.todaySteps(s);
+  const toBox = E.STEPS_PER_BOX - s.steps.towardBox;
+  const stride = s.active.strideUntil > env.now();
+  const a = ST.activeTransmission(s);
+  const line = a
+    ? `Signal ${Math.floor(a.frac * 100)}% · ${esc(FORMER_TRIBUTE)} · walk ${fmt(a.left)} steps to clear it`
+    : `Awaiting movement · ${fmt(toBox)} steps to the next loot box${stride ? ' · Stride Brew active' : ''}`;
+  return `<div class="simlog">
+    <div class="slh"><span>&gt; Simulation log // Cycle ${cycle()}</span><span class="r">Today <b>${fmt(today)}</b> steps · next loot box in <b>${fmt(toBox)}</b></span></div>
+    <button class="slline ${a ? 'sig' : ''}" ${a ? 'data-a="modal" data-v="transmission"' : 'disabled'}>&gt; ${line} <span class="cur">▍</span></button>
+    <div class="slbar"><i style="width:${(s.steps.towardBox / 10).toFixed(1)}%"></i></div>
+  </div>`;
+}
+
+function obsFeed() {
+  return `<div class="obsfeed"><div class="cam">${DISH}</div><div class="ol"><div class="oh"><i></i>Observation feed A.03</div>
+    <div>Subject: 7,301,224</div><div>Biometrics: stable</div><div>Env: simulation</div><div>Integrity: 99.4%</div></div></div>`;
 }
 
 function hint(key) {
@@ -145,35 +191,32 @@ const SCREENS = {
   home() {
     const goals = E.ensureGoals(s);
     const goalsReady = goals.list.filter((g) => !g.claimed && E.goalDone(g)).length + (!goals.bonusClaimed && goals.list.every((g) => g.claimed) ? 1 : 0) + (E.weeklyDays(s) >= E.WEEKLY.daysNeeded && !E.updateWeekly(s).claimed ? 1 : 0);
-    const today = E.todaySteps(s);
-    const toBox = E.STEPS_PER_BOX - s.steps.towardBox;
-    const stride = s.active.strideUntil > env.now();
     const jobs = BUILDING_ORDER.filter((b) => s.base[b].job).length;
     const sp = s.hero.freeAttr + s.hero.freeSkill;
-    return `${topbar(s.era === 1 ? 'Primal' : 'Brick', `Subject 7,301,224 · Level ${s.hero.level}`, null)}
-    <div class="walkmeter">Today <b>${fmt(today)}</b> steps · next loot box in ${fmt(toBox)}${stride ? ' · <span class="ok">Stride Brew: 2 steps per Sole</span>' : ''}
-      <div class="bar"><i style="width:${(s.steps.towardBox / 10).toFixed(1)}%"></i></div></div>
+    return `${homeHeader()}
+    ${simLog()}
     <div class="homecenter">
-      ${s.report ? `<button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
-      ${signalChip()}
+      ${s.report ? `<button class="btn small ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
     </div>
+    <div class="laurels"><div class="ring"></div>${LAUREL}${LAUREL}</div>
     <div class="home-left">
-      <button class="btn big cyan ${hint('base')}" data-a="go" data-v="base">🏕 Base${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
-      <button class="btn" data-a="go" data-v="shop">🛒 Shop</button>
-      <button class="btn" data-a="modal" data-v="goals">🎯 Goals${goalsReady ? `<span class="badge">${goalsReady}</span>` : ''}</button>
+      <button class="btn plate cream ${hint('base')}" data-a="go" data-v="base">${IC.base}<span>Base</span>${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
+      <button class="btn plate" data-a="go" data-v="shop">${IC.shop}<span>Shop</span></button>
+      <button class="btn plate" data-a="modal" data-v="goals">${IC.goals}<span>Goals</span>${goalsReady ? `<span class="badge">${goalsReady}</span>` : ''}</button>
     </div>
     <div class="home-right">
-      <button class="btn big pink ${hint('trials')}" data-a="go" data-v="map">⚔ Trials</button>
-      <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
-      ${s.boxes.length > 1 ? '<button class="btn orange openall" data-a="openAll">Open all</button>' : ''}
+      <button class="btn plate crimson big ${hint('trials')}" data-a="go" data-v="map">${IC.trials}<span>Trials</span></button>
+      <button class="btn plate ${hint('boxes')}" data-a="modal" data-v="boxes">${IC.boxes}<span>Boxes</span>${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
+      ${s.boxes.length > 1 ? '<button class="btn small openall" data-a="openAll">Open all</button>' : ''}
     </div>
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
       ${sp || hint('hero') ? `<div class="herotag ${hint('hero') || 'pulse'}">${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</div>` : ''}
     </div>
-    ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip" style="${s.report ? 'top:calc(var(--st) + 150px)' : ''}"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
+    ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
+    ${obsFeed()}
     <div class="home-bottom">
-      <button class="btn stepbtn" data-hold="steps">+100 steps<small>hold to keep walking <span class="debugtag">TEST</span></small></button>
-      <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">🏆</button>
+      <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
+      <button class="btn plate crimson stepbtn" data-hold="steps"><span>+100 steps</span><small>Hold to keep walking <span class="debugtag">Test</span></small></button>
     </div>`;
   },
 
@@ -239,7 +282,7 @@ const SCREENS = {
     return `<div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
     ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', '🏠 Home')}
     <div class="map">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#20f0ff" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity=".7"/></svg>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#c9a24c" stroke-width="0.35" stroke-dasharray="1.2 1.2" opacity=".6"/></svg>
       ${nodes.map((t) => {
         const p = pos(t.n);
         const done = !!s.trials.cleared[t.n];
@@ -432,12 +475,6 @@ function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
       ${sh.thought ? `<div class="thought">${esc(sh.thought)}</div>` : ''}
       ${sh.voice ? `<div class="voice"><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
     </div>${dots}${skip}</div>`;
-}
-
-function signalChip() {
-  const a = ST.activeTransmission(s);
-  if (!a) return '';
-  return `<button class="signal" data-a="modal" data-v="transmission"><span class="sig">✦</span><span><b>Signal ${Math.floor(a.frac * 100)}%</b> · ${esc(FORMER_TRIBUTE)} · walk ${fmt(a.left)} steps to clear it</span></button>`;
 }
 
 function card(icon, title, sub = '', cls = '') {
@@ -830,7 +867,9 @@ function lootCard(it, i) {
 function renderProctor() {
   const p = app.proctor;
   const el = $('#proctor');
-  if (!p || app.screen === 'intro' || app.modal || (app.screen === 'combat' && app.battle && app.battle.trial !== 0 && !p.glitch)) { el.innerHTML = ''; return; }
+  const hide = !p || app.screen === 'intro' || app.modal || (app.screen === 'combat' && app.battle && app.battle.trial !== 0 && !p.glitch);
+  document.body.classList.toggle('proctor-on', !hide);
+  if (hide) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="proctor ${p.glitch ? 'glitch' : ''} ${p.wide && app.screen !== 'combat' ? 'wide' : ''} ${app.screen === 'combat' ? 'incombat' : ''}" data-a="dismissProctor"><div class="eye"></div><div class="bubble"><span class="who">${p.glitch ? esc(p.who || FORMER_TRIBUTE) : 'PROCTOR'}</span>${esc(p.text)}</div></div>`;
 }
 
@@ -895,7 +934,8 @@ async function playEvents(ev) {
         else if (sk.kind === 'block') stage.anim('hero', 'block');
         else stage.anim('hero', 'cast', { skill: e.skill });
         if (sk.kind === 'stun') floatText('hero', 'ROAR!', 'pow');
-        await wait(200);
+        // strikes land on the swing's contact frame, at the peak of the lunge
+        await wait(sk.kind === 'block' || sk.kind === 'stun' ? 200 : STRIKE_MS);
         break;
       }
       case 'hit':

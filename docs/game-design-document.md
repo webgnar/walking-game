@@ -336,7 +336,7 @@ Still open: text only or voiced.
 - **Found while walking:** story fragments in loot boxes (corrupted logs, messages from earlier contestants, map pieces, PROCTOR's redacted files).
 - **Glitches:** brief messages that aren't from PROCTOR, more often each era.
 - **Truth Board:** reads as a story. Each era's fragments are numbered parts, shown in order; upgrading the board lets the player spend Soles to decode deeper parts.
-- **Flashbacks:** decoding every fragment of an era plays a flashback cutscene: a memory recovered from 7,301,223 (former tribute), shown as sepia comic panels. Each era has one, and they continue the same story from era to era. It can be rewatched from the Truth Board.
+- **Flashbacks:** decoding every fragment of an era plays a flashback cutscene: a memory recovered from 7,301,223 (former tribute), shown as sepia film stills. Each era has one, and they continue the same story from era to era. It can be rewatched from the Truth Board.
 - **Naming:** messages and glitches from 7,301,223 are always labeled "7,301,223 (former tribute)".
 
 ## Opening (built)
@@ -448,14 +448,15 @@ Sketch questions answered: blueprints aren't a slot (they teach recipes); the in
 
 ## Art style
 
-**Direction (zack):** 3D, but with a comic-book 2D look. **UI:** cyberpunk meets comic book.
+**Direction (zack, 2026-11-20):** book/novel sci-fi, informed by the Red Rising novels. The comic-book look is retired.
 
-Reading of that, to confirm:
-
-- **World, hero, enemies and base:** 3D, cel-shaded, bold ink outlines, halftone shading.
-- **Story moments:** 2D comic art; PROCTOR in speech bubbles; cutscenes and evolutions as comic panels; loot box reveals and achievements as splash cards.
-- **UI:** comic-panel frames, ink borders, halftone fills, neon accents, glitchy scanlines, holographic readouts.
-- **Story fit (suggestion):** the UI is PROCTOR's interface, futuristic in every era; UI glitches carry the story glitches.
+- **Mood:** a Society control room watching a test. Dark charcoal and soot, deep crimson, burnished gold, a cold terminal green for system text.
+- **World, hero, enemies and base:** 3D with soft, natural lighting. No ink outlines, toon bands or halftone. Fire and light do the drama.
+- **UI:** PROCTOR's interface as an imperial dossier. Thin, wide-tracked capitals; angled button plates with fine gold borders; crimson hazard slashes on the main actions; laurel and sigil motifs; corner brackets and crosshair ticks; a version tag.
+- **Home layout (reference screen):** the era title with a crimson laurel banner; a subject dossier (subject number, level, CLASS / STATE / RANK); a SIMULATION LOG terminal line that carries transmissions and the step meter; the hero framed by laurels with the fire beside him; Base, Shop and Goals on the left; Trials (primary, crimson) and Boxes on the right; PROCTOR speaks through an OBSERVATION FEED panel; +100 steps as a crimson plate.
+- **Story moments:** cutscenes and flashbacks as grainy black-and-white or sepia film stills with terminal captions, not comic panels. Loot reveals and achievements as gold-on-black seals.
+- **Readability:** every label stays legible on a landscape phone; small caps never go below about 11px.
+- **Story fit:** the UI is PROCTOR's interface, the same in every era; its glitches carry the story glitches.
 
 ## Technical
 
@@ -466,7 +467,7 @@ Reading of that, to confirm:
 | Web build (MVP) | Vercel; opened in the phone's browser | +100 steps button | The MVP and everyday testing |
 | iPhone app (later) | Capacitor wraps the same code; Xcode or TestFlight | Apple HealthKit through a Capacitor plugin | The real walking loop and the App Store release |
 
-- Comic-book 3D: Three.js toon materials, an outline pass, halftone as a custom shader.
+- Rendering: Three.js standard (PBR-lite) materials, warm point light from the fire, no outline pass.
 - The +100 steps button feeds the same code path real steps will use; hidden in release builds.
 - **Backend:** accounts, cloud saves, server-side loot rolls (Vercel or similar).
 - The iPhone app needs a Mac with Xcode; TestFlight ($99/year) for testers.
@@ -532,6 +533,6 @@ Still missing from the document: audio direction, a notification plan, analytics
 
 1. Economy spreadsheet: starting numbers, training costs, rate-upgrade prices, days per era.
 2. Prices: full-game unlock, boosters, season pass, cosmetics.
-3. Art style: confirm the 3D comic-book reading.
+3. Art style: decided, Red Rising-style book sci-fi (see Art style).
 4. PROCTOR: text only or voiced.
 5. Era 1: v1 numbers drafted (see Era 1 combat); tune after the combat prototype.

@@ -1,9 +1,8 @@
-// The rigged caveman hero (Mixamo-style skeleton, FBX). Loads the mesh, gives it the comic toon look
+// The rigged caveman hero (Mixamo-style skeleton, FBX). Loads the mesh, lights it softly
 // and plays animation clips when they exist. Until clips are added the
 // bones are posed by hand (relaxed arms, breathing, club swing) so he never stands in a T-pose.
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { toonGradient } from './models.js';
 
 const URL = '/models/caveman.fbx';
 // Animation clips, one file each: public/models/anims/<name>.fbx (missing files are skipped).
@@ -63,7 +62,7 @@ export async function loadCaveman() {
     for (let i = 0; i < 60 && !(map.image && (map.image.complete ?? true) && map.image.width); i++) await new Promise((r) => setTimeout(r, 50));
     map.needsUpdate = true;
   }
-  skinned.material = new THREE.MeshToonMaterial({ color: map ? 0xffffff : 0xb07a52, map, gradientMap: toonGradient() });
+  skinned.material = new THREE.MeshStandardMaterial({ color: map ? 0xffffff : 0xb07a52, map, roughness: 0.8 });
   old.dispose();
   skinned.frustumCulled = false;
 
@@ -95,6 +94,13 @@ function fixClip(clip) {
     for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 1] = y0; }
   }
 }
+
+// Where each strike clip starts moving and where it connects (seconds into the clip), measured from
+// the right hand's furthest-forward point.
+const STRIKE = {
+  attack: { from: 0.12, contact: 0.42 },
+  throw: { from: 0.08, contact: 0.36 },
+};
 
 class Rig {
   constructor(model, fbx, bone) {
@@ -131,11 +137,13 @@ class Rig {
   has(name) { return !!this.clips[name]; }
 
   // Play a clip. One-shots return to idle (or hold the last frame for death).
-  play(name, { once = name !== 'idle' && name !== 'walk', fade = 0.15 } = {}) {
+  play(name, { once = name !== 'idle' && name !== 'walk', fade = 0.15, from = 0, speed = 1 } = {}) {
     const clip = this.clips[name];
     if (!clip) return false;
     const a = this.mixer.clipAction(clip);
     a.reset();
+    a.time = from;
+    a.timeScale = speed;
     a.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, Infinity);
     a.clampWhenFinished = once;
     if (this.action && this.action !== a) a.crossFadeFrom(this.action, fade, false);
@@ -158,7 +166,14 @@ class Rig {
     if (this.clips.idle) this.play('idle', { fade: 0 });
   }
 
-  swing(clip = 'attack') {
+  // Play a strike so its contact frame lands `contactMs` from now (the peak of the lunge):
+  // skip the idle lead-in and speed the wind-up to fit.
+  swing(clip = 'attack', contactMs = 0) {
+    const k = STRIKE[clip];
+    if (k && contactMs && this.clips[clip]) {
+      this.play(clip, { from: k.from, speed: (k.contact - k.from) / (contactMs / 1000), fade: 0.05 });
+      return;
+    }
     if (!this.play(clip)) this.swingT = 0;
   }
 
