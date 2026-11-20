@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0d0b14" />
+<title>The Ascent · Tutorial intro mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+<style>
+:root {
+  --ink: #0b0b10; --paper: #f5ecd7; --cyan: #20f0ff; --pink: #ff2bd6; --yellow: #ffe14d; --orange: #ff8a3d;
+  --red: #ff3355; --green: #4dff9a; --panel: #171425; --panel2: #221d36; --muted: #a69fc0;
+  --display: 'Oxanium', 'Rajdhani', sans-serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: #0d0b14; color: var(--paper); font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 600; }
+body { min-height: 100vh; background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1.3px); background-size: 6px 6px; }
+button { font: inherit; color: inherit; }
+
+/* ---------- Player ---------- */
+#player { display: flex; flex-direction: column; align-items: center; padding: max(8px, env(safe-area-inset-top)) 8px 8px; gap: 8px; }
+#frame { position: relative; overflow: hidden; background: #000; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink), 0 0 0 1px rgba(32,240,255,.35), 0 0 40px rgba(255,43,214,.15); border-radius: 6px; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.scene { position: absolute; inset: 0; overflow: hidden; }
+.cam { position: absolute; inset: 0; transform-origin: 50% 50%; transition: transform 1.6s cubic-bezier(.45,.05,.25,1); will-change: transform; }
+.cam img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam svg.mask { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .5s; }
+.spot { position: absolute; border: 2px solid var(--cyan); border-radius: 8px; box-shadow: 0 0 0 2px var(--ink), 0 0 16px var(--cyan), inset 0 0 12px rgba(32,240,255,.35); animation: spotIn .45s ease-out backwards, spotPulse 1.4s .45s ease-in-out infinite; pointer-events: none; }
+.spot.pink { border-color: var(--pink); box-shadow: 0 0 0 2px var(--ink), 0 0 16px var(--pink); }
+.spot.yellow { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--ink), 0 0 16px var(--yellow); }
+@keyframes spotIn { from { transform: scale(1.25); opacity: 0; } }
+@keyframes spotPulse { 50% { filter: brightness(1.5); } }
+.halftone { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(0,0,0,.5) 1px, transparent 1.4px); background-size: 4px 4px; opacity: .18; mix-blend-mode: multiply; }
+.vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 60%, rgba(5,3,10,.6) 100%); }
+
+/* tags (comic callouts) */
+.tag { position: absolute; transform: translate(-50%, -50%) rotate(var(--rot, -2deg)); background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); font-family: var(--display); font-weight: 800; letter-spacing: .03em; text-transform: uppercase; padding: .25em .55em; font-size: 1em; line-height: 1.05; white-space: nowrap; animation: tagIn .4s cubic-bezier(.2,1.6,.4,1) backwards; pointer-events: none; z-index: 4; }
+.tag small { display: block; font-family: 'Rajdhani'; font-weight: 700; text-transform: none; letter-spacing: 0; font-size: .78em; }
+.tag.cyan { background: var(--cyan); } .tag.pink { background: var(--pink); } .tag.green { background: var(--green); } .tag.paper { background: var(--paper); } .tag.orange { background: var(--orange); }
+@keyframes tagIn { from { transform: translate(-50%, -50%) scale(.2) rotate(-14deg); opacity: 0; } }
+
+/* PROCTOR */
+.proctor { position: absolute; left: 1.6%; bottom: 3%; max-width: 46%; display: flex; gap: .5em; align-items: flex-end; z-index: 6; animation: slideUp .3s ease-out; transition: left .4s, right .4s, top .4s, bottom .4s; }
+.proctor.right { left: auto; right: 1.6%; flex-direction: row-reverse; }
+.proctor.right .bubble { border-radius: 14px 14px 2px 14px; }
+.proctor.top { bottom: auto; top: 3%; }
+.proctor.top.center { left: 50%; transform: translateX(-50%); max-width: 58%; animation: none; }
+.proctor.center { left: 50%; transform: translateX(-50%); max-width: 62%; animation: none; }
+.eye { flex: 0 0 auto; width: 2.6em; height: 2.6em; border: 3px solid var(--ink); background: radial-gradient(circle at 50% 50%, var(--pink) 0 22%, #1a0716 24% 45%, var(--cyan) 47% 52%, #0b0b10 54%); box-shadow: 2px 2px 0 var(--ink), 0 0 14px rgba(255,43,214,.6); border-radius: 50%; animation: blink 5s infinite; }
+.eye.talk { animation: blink 5s infinite, eyeTalk .18s infinite alternate; }
+@keyframes eyeTalk { to { box-shadow: 2px 2px 0 var(--ink), 0 0 22px rgba(255,43,214,.95); } }
+@keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+.bubble { background: var(--paper); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); padding: .45em .75em; font-size: 1.12em; line-height: 1.2; border-radius: 14px 14px 14px 2px; font-weight: 600; min-width: 8em; }
+.bubble .who { font-family: var(--display); font-weight: 800; color: var(--pink); font-size: .72em; letter-spacing: .1em; display: block; }
+.proctor.glitch .bubble { background: #05060a; color: var(--green); font-family: ui-monospace, Menlo, monospace; text-transform: lowercase; border-color: var(--green); animation: glitch .25s steps(2) 6; }
+.proctor.glitch .eye { background: #05060a; border-color: var(--green); box-shadow: 0 0 12px var(--green); animation: none; }
+.proctor.glitch .who { color: var(--green); }
+@keyframes glitch { 0% { transform: translate(0); } 25% { transform: translate(-3px, 1px) skewX(6deg); } 50% { transform: translate(3px, -1px); filter: hue-rotate(90deg); } 75% { transform: translate(-1px, 2px) skewX(-4deg); } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } }
+.caret::after { content: '▌'; animation: blinkc .7s steps(1) infinite; color: var(--pink); }
+@keyframes blinkc { 50% { opacity: 0; } }
+
+/* scene caption */
+.caption { position: absolute; top: 3.2%; left: 50%; transform: translateX(-50%) rotate(-1.5deg); z-index: 5; background: var(--ink); color: var(--yellow); border: 2px solid var(--yellow); box-shadow: 4px 4px 0 var(--pink); font-family: var(--display); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-size: 1.05em; padding: .2em .8em; white-space: nowrap; animation: capIn .5s cubic-bezier(.2,1.5,.4,1) backwards, capOut .4s ease-in 2.6s forwards; pointer-events: none; }
+.caption b { color: var(--cyan); margin-right: .5em; }
+@keyframes capIn { from { transform: translateX(-50%) translateY(-150%) rotate(-8deg); opacity: 0; } }
+@keyframes capOut { to { transform: translateX(-50%) translateY(-60%) rotate(-1.5deg); opacity: 0; } }
+
+/* transitions */
+.scene.enter { animation: wipeIn .6s cubic-bezier(.7,0,.2,1) backwards; z-index: 2; }
+@keyframes wipeIn { from { clip-path: polygon(110% 0, 140% 0, 120% 100%, 90% 100%); } to { clip-path: polygon(-30% 0, 140% 0, 120% 100%, -50% 100%); } }
+.scene.leave { z-index: 1; animation: dimOut .6s forwards; }
+@keyframes dimOut { to { filter: brightness(.3) saturate(.4); } }
+.slash { position: absolute; inset: -20%; z-index: 8; pointer-events: none; background: repeating-linear-gradient(105deg, transparent 0 18px, rgba(255,225,77,.85) 18px 22px, transparent 22px 60px); animation: slash .6s ease-out forwards; mix-blend-mode: screen; }
+@keyframes slash { from { transform: translateX(60%); opacity: 1; } to { transform: translateX(-60%); opacity: 0; } }
+.flash { position: absolute; inset: 0; z-index: 9; background: #fff; pointer-events: none; animation: flash .35s ease-out forwards; }
+@keyframes flash { to { opacity: 0; } }
+.glitchfx { position: absolute; inset: 0; z-index: 9; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(77,255,154,.12) 0 2px, transparent 2px 4px); animation: gfx .7s steps(6) forwards; }
+@keyframes gfx { 0% { transform: translateX(-4%); filter: hue-rotate(0); } 30% { transform: translateX(3%); background-color: rgba(255,43,214,.12); } 60% { transform: translateX(-2%); background-color: rgba(32,240,255,.12); } 100% { transform: none; opacity: 0; } }
+.scene.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translate(-1.2%, .6%); } 50% { transform: translate(1%, -.6%); } 75% { transform: translate(-.5%, -.4%); } }
+
+/* terminal cold open */
+.term { position: absolute; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .55em; color: var(--green); font-family: ui-monospace, Menlo, monospace; text-shadow: 0 0 8px rgba(77,255,154,.6); }
+.term .ln { font-size: 1.55em; min-height: 1.3em; }
+.term .ln.red { color: var(--red); text-shadow: 0 0 10px rgba(255,51,85,.7); }
+.scanlines { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 3px); }
+
+/* title / outro cards */
+.card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: .5em; background: radial-gradient(ellipse at center, #2a1740 0%, #0d0b14 70%); }
+.card::before { content: ''; position: absolute; inset: -40%; background: repeating-conic-gradient(from 0deg, rgba(255,43,214,.10) 0 6deg, transparent 6deg 12deg); animation: spin 40s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.card > * { position: relative; }
+.logo { font-family: var(--display); font-weight: 800; font-size: 4.6em; line-height: .95; color: var(--yellow); letter-spacing: .06em; text-shadow: 4px 4px 0 var(--ink), -2px -2px 0 var(--ink), 8px 8px 0 var(--pink); transform: rotate(-3deg); animation: pop .6s cubic-bezier(.2,1.6,.4,1) backwards; }
+.logo small { display: block; font-size: .28em; color: var(--cyan); letter-spacing: .4em; text-shadow: 2px 2px 0 var(--ink); margin-top: .3em; }
+@keyframes pop { from { transform: scale(.2) rotate(-20deg); opacity: 0; } }
+.eras { display: flex; gap: .35em; flex-wrap: nowrap; }
+.era { font-family: var(--display); font-weight: 800; font-size: .95em; padding: .3em .5em; border: 2px solid var(--ink); background: var(--panel2); box-shadow: 2px 2px 0 var(--ink); text-transform: uppercase; letter-spacing: .04em; animation: pop .4s backwards; opacity: .55; }
+.era.on { background: var(--cyan); color: var(--ink); opacity: 1; }
+.era.gold { background: linear-gradient(135deg, #ffe14d, #ff8a3d); color: var(--ink); opacity: 1; box-shadow: 2px 2px 0 var(--ink), 0 0 16px rgba(255,225,77,.7); }
+.loopline { font-family: var(--display); font-weight: 800; font-size: 1.7em; letter-spacing: .05em; text-transform: uppercase; display: flex; gap: .4em; align-items: center; }
+.loopline span { padding: .15em .45em; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); animation: pop .5s backwards; }
+.loopline i { font-style: normal; color: var(--cyan); animation: pop .5s backwards; }
+.pow { font-family: var(--display); font-weight: 800; font-size: 2.2em; color: var(--ink); background: var(--yellow); border: 3px solid var(--ink); padding: .1em .6em; clip-path: polygon(0 20%, 15% 0, 35% 15%, 55% 0, 75% 12%, 100% 0, 92% 40%, 100% 70%, 80% 100%, 55% 85%, 30% 100%, 10% 82%, 0 60%); transform: rotate(-6deg); animation: pop .5s cubic-bezier(.2,1.6,.4,1) backwards; }
+.cta { font-family: var(--display); font-weight: 800; font-size: 1.3em; background: var(--pink); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: .4em 1em; text-transform: uppercase; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); animation: pop .5s .4s backwards, pulse 1.2s 1s infinite; }
+@keyframes pulse { 50% { filter: brightness(1.3) drop-shadow(0 0 8px var(--pink)); } }
+
+/* HUD inside the frame */
+.hud { position: absolute; right: 1%; bottom: 1.5%; z-index: 7; font-size: .7em; color: rgba(245,236,215,.55); font-family: var(--display); letter-spacing: .1em; pointer-events: none; }
+.skipbtn { position: absolute; top: 2.5%; right: 1.4%; z-index: 7; font-family: var(--display); font-weight: 800; font-size: .8em; letter-spacing: .1em; background: rgba(11,11,16,.75); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); padding: .2em .6em; color: var(--muted); text-transform: uppercase; cursor: pointer; }
+
+/* Controls under the frame */
+#controls { display: flex; align-items: center; gap: 8px; width: 100%; flex-wrap: wrap; justify-content: center; }
+.cbtn { min-height: 40px; min-width: 44px; padding: 4px 12px; border: 3px solid var(--ink); background: var(--panel2); box-shadow: 3px 3px 0 var(--ink); font-family: var(--display); font-weight: 800; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; font-size: 15px; }
+.cbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.cbtn.cyan { background: var(--cyan); color: var(--ink); } .cbtn.yellow { background: var(--yellow); color: var(--ink); }
+#segs { display: flex; gap: 3px; flex: 1 1 260px; max-width: 640px; }
+#segs button { flex: 1; height: 14px; border: 2px solid var(--ink); background: #2a2440; cursor: pointer; padding: 0; position: relative; }
+#segs button.done { background: var(--cyan); }
+#segs button.cur { background: var(--yellow); }
+#segs button:hover::after { content: attr(data-t); position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); font-size: 12px; padding: 2px 6px; white-space: nowrap; z-index: 3; }
+#now { font-size: 14px; color: var(--muted); min-width: 12em; text-align: center; }
+#now b { color: var(--yellow); font-family: var(--display); }
+
+/* ---------- Storyboard ---------- */
+#board { max-width: 1240px; margin: 18px auto 60px; padding: 0 14px; }
+#board header { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+#board h1 { margin: 0; font-family: var(--display); font-weight: 800; color: var(--yellow); letter-spacing: .05em; text-shadow: 3px 3px 0 var(--ink); font-size: 30px; }
+#board .intro { color: var(--muted); max-width: 820px; line-height: 1.35; font-size: 16px; }
+#board .intro b { color: var(--paper); }
+.notes { background: var(--panel); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 10px 14px; margin: 12px 0 18px; line-height: 1.35; font-size: 15px; }
+.notes h3 { margin: 0 0 4px; font-family: var(--display); color: var(--cyan); letter-spacing: .05em; font-size: 17px; }
+.notes ul { margin: 4px 0; padding-left: 20px; }
+.panels { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.pnl { background: var(--panel); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); display: flex; flex-direction: column; }
+.pnl .th { position: relative; aspect-ratio: 844 / 390; background: #000 center/cover no-repeat; border-bottom: 3px solid var(--ink); cursor: pointer; overflow: hidden; }
+.pnl .th .num { position: absolute; top: 6px; left: 6px; background: var(--yellow); color: var(--ink); border: 2px solid var(--ink); font-family: var(--display); font-weight: 800; padding: 0 8px; box-shadow: 2px 2px 0 var(--ink); }
+.pnl .th .play { position: absolute; right: 8px; bottom: 8px; background: var(--pink); color: var(--ink); border: 2px solid var(--ink); font-family: var(--display); font-weight: 800; padding: 1px 10px; box-shadow: 2px 2px 0 var(--ink); font-size: 13px; }
+.pnl .th.term { background: #000; display: flex; align-items: center; justify-content: center; color: var(--green); font-family: ui-monospace, Menlo, monospace; font-size: 14px; text-align: center; }
+.pnl .th.cardth { background: radial-gradient(ellipse at center, #2a1740 0%, #0d0b14 70%); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 800; color: var(--yellow); font-size: 30px; text-shadow: 3px 3px 0 var(--ink), 6px 6px 0 var(--pink); }
+.pnl .bd { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.pnl h2 { margin: 0; font-family: var(--display); font-weight: 800; letter-spacing: .04em; font-size: 19px; color: var(--yellow); }
+.pnl .teach { font-size: 14px; color: var(--cyan); }
+.pnl ol { margin: 0; padding-left: 20px; font-size: 14.5px; line-height: 1.3; }
+.pnl ol li { margin-bottom: 4px; }
+.pnl ol li .shows { display: block; color: var(--muted); font-size: 12.5px; }
+.pnl ol li.gl { color: var(--green); font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+.pnl .src { font-size: 12px; color: var(--muted); border-top: 1px dashed rgba(255,255,255,.15); padding-top: 6px; }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 20px; }
+
+@media (orientation: landscape) and (max-height: 520px) {
+  #player { min-height: 100vh; justify-content: center; padding-top: 4px; }
+  #controls .cbtn { min-height: 34px; font-size: 13px; padding: 2px 8px; }
+  #now { display: none; }
+}
+</style>
+</head>
+<body>
+<section id="player">
+  <div id="frame" aria-label="Cutscene player. Tap to advance."></div>
+  <div id="controls">
+    <button class="cbtn" id="prev" aria-label="Previous">◀</button>
+    <button class="cbtn cyan" id="playpause" aria-label="Play or pause">❚❚</button>
+    <button class="cbtn" id="next" aria-label="Next">▶</button>
+    <div id="segs"></div>
+    <div id="now"></div>
+    <button class="cbtn" id="restart">↺ Restart</button>
+    <button class="cbtn yellow" id="toBoard">Storyboard ↓</button>
+  </div>
+</section>
+
+<section id="board">
+  <header><h1>Tutorial intro: storyboard</h1></header>
+  <div class="intro">A mockup of a skippable intro cutscene for <b>The Ascent</b>, narrated by <b>PROCTOR</b>. Each panel is a scene; each numbered line is one beat (one tap or about four seconds). The backgrounds are real screenshots of the current build on main, so every button PROCTOR points at exists today. Tap a panel to play it.</div>
+  <div class="notes">
+    <h3>Notes for review</h3>
+    <ul>
+      <li><b>Where it sits:</b> the GDD's first session puts a wolf fight at 0:30 with "no menus". This tour runs about 3 minutes, so I'd split it: cold open + wake-up + the walking rule before the wolf, and the screen tour (scenes 4 to 11) right after the tutorial win, where the starter grant already lands. In the real build each scene should point at the live screen, not a screenshot.</li>
+      <li><b>Skippable:</b> a Skip button on every scene; Settings could get "Replay intro".</li>
+      <li><b>Placeholder art:</b> PROCTOR is the eye-and-bubble from the game. The cold open and era ladder would be comic panels in the final art pass.</li>
+      <li><b>PROCTOR voice</b> is still open in the GDD (text or voiced). Lines are written to work as either.</li>
+    </ul>
+  </div>
+  <div class="panels" id="panels"></div>
+</section>
+<footer>The Ascent · tutorial intro mockup · screenshots from the current build</footer>
+
+<script>
+// ---------------------------------------------------------------------------
+// Script. Rects are percentages of the 844×390 landscape screen: [x, y, w, h].
+// zoom: [cx, cy, scale]. tags: [x, y, text, color, sub]. pp: PROCTOR position.
+// ---------------------------------------------------------------------------
+const SHOT = (n) => `/tutorial-mockup/shots/${n}.jpg`;
+const SCENES = [
+  {
+    id: 'cold', title: 'Cold open', kind: 'term', teach: 'Who you are and what this is.',
+    lines: ['Subject 7,301,224.', 'Caste: Primal.', 'Selected for the Ascent.', 'Projected survival: 0.003%.', '...Begin.'],
+    src: 'INTRO_LINES in src/data/story.js (already in the game)',
+  },
+  {
+    id: 'title', title: 'Title', kind: 'title', teach: 'The pitch in one breath.',
+    beats: [
+      { say: "Oh good, you're awake. I'm PROCTOR, your host. I've run this trial seven million times, so I'll keep the tour short." },
+      { say: 'The Ascent: all of human history, ten eras, cave to godhood. Survive it and the Aurum remake you as one of them. Lucky you.', show: 'eras' },
+    ],
+  },
+  {
+    id: 'wake', title: 'The cave', img: 'cave', teach: 'This is you; this is where you start.',
+    beats: [
+      { say: 'This is you. Caste: Primal. The lowest rung. Stick optional.', zoom: [50, 52, 1.35], spots: [[43, 26, 13, 50, 'yellow']] },
+      { say: 'And this is home. A cave and a firepit. It gets better. Slowly. Mostly because of you.', zoom: [55, 55, 1.05], tags: [[71, 64, 'Your base grows every era', 'orange']] },
+    ],
+  },
+  {
+    id: 'walk', title: 'The rule: walk', kind: 'loop', teach: 'Steps become Soles; Soles buy everything.',
+    beats: [
+      { say: 'Here is the only rule that matters. The simulation runs on your effort. Real steps, from your real legs, in the real world.', show: 'loop0' },
+      { say: 'Every 10 steps earns one Sole. Soles buy everything: training, buildings, gear. Walk, then spend.', show: 'loop1' },
+      { say: "You can't buy Soles. You can't fight for them. You walk. I checked: you have legs.", show: 'loop2' },
+    ],
+  },
+  {
+    id: 'home', title: 'Home', img: 'home', teach: 'Every screen branches from here.',
+    beats: [
+      { say: 'This is Home. Everything starts here.', zoom: [50, 50, 1] },
+      { say: 'Your Soles sit top right, next to flint and bone, the materials of the Stone Age. Very exclusive.', zoom: [80, 20, 1.6], spots: [[78.2, 3.5, 21, 7.2, 'yellow']], tags: [[85.5, 18, 'Soles', 'yellow', 'from walking'], [94, 18, 'Materials', 'paper', 'flint · bone']], pp: 'left' },
+      { say: "Today's steps, and how close you are to the next loot box. One box every 1,000 steps.", zoom: [50, 22, 1.6], spots: [[35.6, 14.2, 28.8, 9.4]], tags: [[50, 29, 'Step meter', 'green']] },
+      { say: 'Left side: your Base, the Shop, and daily Goals.', zoom: [20, 50, 1.35], spots: [[1.6, 29.3, 15.8, 41.3]], tags: [[26, 36, 'Build', 'cyan'], [26, 51, 'Buy gear', 'paper'], [26, 65, 'Daily goals', 'paper']], pp: 'right' },
+      { say: 'Right side: the Trials, where you fight, and your loot boxes. The red badge means boxes are waiting.', zoom: [80, 50, 1.35], spots: [[82.4, 36.3, 15.8, 27.4, 'pink']], tags: [[74, 43, 'Fight', 'pink'], [74, 58, 'Loot boxes', 'yellow']] },
+      { say: 'Tap your hero to open the Hero screen. Try to contain your excitement.', zoom: [50, 50, 1.5], spots: [[43.6, 26, 13, 50, 'yellow']], tags: [[50, 82, 'Tap the hero', 'green']], pp: 'right' },
+      { say: 'Settings live top left. The trophy, bottom right, is your achievements. I write those. They are hilarious.', zoom: [50, 50, 1], spots: [[0.8, 1.2, 5.4, 11.6], [93.2, 87, 5.4, 11.4, 'yellow']], tags: [[11, 8, 'Settings'], [88, 80, 'Achievements', 'yellow']], pp: 'center' },
+    ],
+  },
+  {
+    id: 'report', title: 'Expedition report', img: 'report', teach: 'Coming back from a walk pays off.',
+    beats: [
+      { say: 'Come back from a walk and I file an expedition report: your steps, your Soles, and every loot box you earned on the way.', zoom: [50, 50, 1.05], spots: [[16.6, 19.5, 66, 61]], pp: 'top center' },
+      { say: 'Sometimes you find flint or bone just lying around. Tap Collect. Feel accomplished.', zoom: [55, 60, 1.3], spots: [[64.7, 49, 17.4, 30, 'yellow']], pp: 'top center' },
+    ],
+  },
+  {
+    id: 'boxes', title: 'Loot boxes', img: 'boxes', teach: 'What boxes are, where they come from, the odds.',
+    beats: [
+      { say: 'Loot boxes. One for every 1,000 steps. Bronze, Silver, Gold, and rarer things I am not allowed to mention.', zoom: [50, 45, 1.3], spots: [[33.5, 31.5, 33.5, 23.5, 'yellow']], tags: [[50, 60, 'Tap to open', 'yellow']], pp: 'right' },
+      { say: 'The odds are printed right there. I am legally required to be honest about that. Only that.', zoom: [50, 60, 1.4], spots: [[13.5, 55.5, 72.5, 10]], pp: 'top center' },
+      { say: 'You can hold 18. Leave too many unopened and the extras are lost. Like your potential.', zoom: [50, 50, 1], pp: 'top center' },
+    ],
+  },
+  {
+    id: 'boxopen', title: 'Opening a box', img: 'boxopen', teach: 'What comes out: materials, gear, boosters, story.',
+    beats: [
+      { say: 'Inside: crafting materials, gear, boosters. Gear changes how your hero looks. Boosters do things like double your Soles for a day.', zoom: [50, 45, 1.35], spots: [[23.6, 32.5, 52.8, 30.5, 'yellow']], tags: [[34, 70, 'Materials', 'paper'], [61, 70, 'Gear', 'cyan'], [71, 24, 'Booster', 'green']], fx: 'flash', pp: 'top center' },
+      { say: 'And sometimes a story fragment. Those are... nothing. Paperwork. Do not read them.', zoom: [50, 50, 1], pp: 'top center' },
+    ],
+  },
+  {
+    id: 'map', title: 'Trials map', img: 'map', teach: 'Fifteen Trials per era; bosses; the Era Key.',
+    beats: [
+      { say: 'The Trials. Fifteen per era, along one winding path.', zoom: [50, 50, 1] },
+      { say: 'Blue ones you have beaten. The glowing yellow one is next. Beaten Trials can be replayed for materials.', zoom: [40, 30, 1.45], spots: [[8.2, 19, 44.6, 15.5], [66.8, 19, 5.6, 15.5, 'yellow']], tags: [[30, 40, 'Cleared: replay for loot', 'cyan'], [69.6, 40, 'Next', 'yellow']], pp: 'left' },
+      { say: 'Skulls are mini-bosses: better loot, boss gear. They hit hard. That is the point of them.', zoom: [50, 40, 1.15], spots: [[86, 18.4, 6, 17, 'pink'], [7.5, 43.6, 6.6, 16.4, 'pink']], tags: [[89, 40, 'The Alpha', 'pink'], [11, 64, 'Sabretooth', 'pink']], pp: 'center' },
+      { say: 'At the end, the era boss. Beat it and you get the Era Key, your ticket to the next age.', zoom: [80, 72, 1.6], spots: [[84.6, 64, 9.4, 25, 'yellow']], tags: [[72, 66, 'Era boss + Era Key', 'orange']], pp: 'left' },
+    ],
+  },
+  {
+    id: 'mapcard', title: 'Picking a Trial', img: 'mapcard', teach: 'Scout before you fight.',
+    beats: [
+      { say: 'Tap a node to scout it: who you are fighting, the suggested level, and what you win.', zoom: [75, 70, 1.5], spots: [[60.8, 57.6, 37, 36.6]], tags: [[55, 50, 'Enemies, level, rewards', 'cyan']], pp: 'left' },
+      { say: 'Then press Fight. Bravely. Or at least quickly.', zoom: [79, 85, 1.8], spots: [[62.5, 81.5, 34, 11, 'pink']], pp: 'left' },
+    ],
+  },
+  {
+    id: 'combat', title: 'Combat', img: 'combat', teach: 'AP, skills, enemy intents, targeting, saving AP.',
+    beats: [
+      { say: 'Combat is turn based. You on the left, them on the right. Your health is top left.', zoom: [50, 50, 1], spots: [[1, 12.6, 20.6, 16]], tags: [[11, 34, 'Your health', 'green']], pp: 'top center' },
+      { say: 'Each turn you get 3 AP. Every skill shows its cost in the corner. Spend AP, use skills, hit things.', zoom: [50, 82, 1.6], spots: [[29, 77.4, 41.4, 21]], tags: [[33, 74, 'AP', 'cyan'], [55, 72, 'Skills · cost top-left', 'yellow']], pp: 'top center' },
+      { say: 'Enemies tell you what they are about to do. Bite 9. Gore 11. Read it, then decide. Shocking, I know: planning.', zoom: [56, 38, 1.7], spots: [[45.4, 33.8, 18.2, 10.2, 'pink']], tags: [[56, 29, 'Enemy intents', 'pink']], pp: 'right' },
+      { say: 'Tap an enemy to target it. Guard blocks, Roar stuns, Hurl Stone interrupts a wolf calling for backup.', zoom: [50, 50, 1.25], spots: [[43.4, 34, 21.6, 36, 'yellow']], tags: [[54, 75, 'Tap to target', 'yellow']], fx: 'shake', pp: 'top center' },
+      { say: 'Nothing left worth doing? Save AP ends your turn early and carries some over. Lose, and you lose nothing but pride.', zoom: [85, 85, 1.6], spots: [[79.8, 87.8, 18.8, 10]], tags: [[89, 78, 'Save AP', 'cyan']], pp: 'left' },
+    ],
+  },
+  {
+    id: 'hero', title: 'Hero: stats', img: 'hero-stats', teach: 'Levels, XP, training with Soles, attributes.',
+    beats: [
+      { say: 'The Hero screen. You get here by tapping yourself. Narcissism, rewarded.', zoom: [50, 50, 1], spots: [[42.2, 17, 41, 10.2]], tags: [[60, 31, 'Stats · Skills · Gear', 'cyan']], pp: 'left' },
+      { say: 'Win Trials for XP, or train: spend Soles to buy XP directly. This is where walking turns into muscle.', zoom: [62, 40, 1.45], spots: [[42.2, 28.8, 55, 20.4, 'yellow']], tags: [[66, 54, 'Train with Soles', 'yellow']], pp: 'left' },
+      { say: 'Every level gives you points for Strength, Vitality, Intelligence and Agility. Choose wisely. Or randomly. I will judge either way.', zoom: [70, 75, 1.4], spots: [[42, 58, 55, 36.5]], pp: 'left' },
+    ],
+  },
+  {
+    id: 'skills', title: 'Hero: skills', img: 'hero-skills', teach: 'Loadout and skill ranks.',
+    beats: [
+      { say: 'Skills: new ones unlock as you level. Pick which go in your loadout and spend points to rank them up.', zoom: [70, 60, 1.25], spots: [[42, 33, 55.6, 62]], tags: [[90, 26, 'Loadout', 'cyan']], pp: 'left' },
+    ],
+  },
+  {
+    id: 'gear', title: 'Hero: gear', img: 'hero-gear', teach: 'Five gear slots, inventory, the hero changes look.',
+    beats: [
+      { say: 'Gear: five slots. Weapon, armor, helm, off-hand, trinket. What you wear shows up on your hero.', zoom: [70, 36, 1.45], spots: [[42, 27, 55.8, 18.5, 'yellow'], [27, 27, 12, 46]], tags: [[70, 52, 'Five slots', 'yellow'], [33, 78, 'Your look changes', 'green']], pp: 'left' },
+      { say: 'Everything else waits in your inventory. "Equip best" exists for people who do not like decisions.', zoom: [70, 62, 1.45], spots: [[42, 53, 55.8, 20]], pp: 'left' },
+    ],
+  },
+  {
+    id: 'base', title: 'Base', img: 'base', teach: 'Five buildings, three tiers, real-world timers.',
+    beats: [
+      { say: 'Your Base. One plot of land that rebuilds itself every era. Five buildings, three tiers each.', zoom: [50, 45, 1] },
+      { say: 'Upgrades cost Soles and materials, then run on a real-world timer. Go for a walk while it builds. That was a hint.', zoom: [36, 30, 1.8], spots: [[31.2, 23.4, 7.8, 4.6, 'yellow']], tags: [[35, 38, 'Real-world timer', 'yellow']], pp: 'right' },
+      { say: 'The Workshop crafts: two items in, one better item out. The Hero Training Altar unlocks skill ranks and cheaper training.', zoom: [25, 45, 1.35], spots: [[10, 19.8, 17.8, 47.6, 'yellow'], [30, 13.3, 10.4, 48]], tags: [[19, 72, 'Workshop', 'yellow'], [35, 66, 'Altar', 'cyan']], pp: 'right' },
+      { say: 'Inventory holds more stuff. The Shrine improves your loot box odds. Yes, you can bribe fate. With walking.', zoom: [58, 42, 1.4], spots: [[43, 22.6, 14.4, 38.6], [59.2, 18.4, 11.8, 42, 'pink']], tags: [[50, 66, 'More slots', 'cyan'], [65, 66, 'Better box odds', 'pink']], pp: 'right' },
+      { say: 'And the Truth Board. It collects... fragments. Nothing important. Moving on.', zoom: [83, 42, 1.5], spots: [[74.8, 19.6, 16.6, 45.6, 'yellow']], pp: 'left' },
+    ],
+  },
+  {
+    id: 'shrine', title: 'Building upgrades', img: 'shrine', teach: 'What a building does at each tier and what the next tier costs.',
+    beats: [
+      { say: 'Tap any building to see what each tier does and what the next one costs.', zoom: [40, 42, 1.35], spots: [[14, 36.6, 19.6, 13]], tags: [[42, 43, 'What each tier unlocks', 'cyan']], pp: 'right' },
+      { say: 'Soles, flint, bone, and time. Mostly time. I designed that part out of spite.', zoom: [50, 58, 1.35], spots: [[14, 53.4, 72, 9]], pp: 'left' },
+    ],
+  },
+  {
+    id: 'workshop', title: 'Workshop', img: 'workshop', teach: 'Crafting slots and recipes.',
+    beats: [
+      { say: 'The Workshop. Put items in the slots, press Craft. Rock plus rock equals slightly better rock. Tens of thousands of years of progress.', zoom: [32, 30, 1.5], spots: [[7.8, 17.4, 47.6, 20, 'yellow']], pp: 'left' },
+      { say: 'Known recipes live on the right. Blueprints from bosses teach new ones. So does guessing.', zoom: [80, 50, 1.3], spots: [[63.4, 14.6, 34.4, 82]], pp: 'left' },
+    ],
+  },
+  {
+    id: 'truth', title: 'Truth Board', img: 'truth', teach: 'Story fragments; plants the mystery.',
+    beats: [
+      { say: 'Fragments pin themselves here. Upgrade the board and spend Soles to decode them.', zoom: [40, 45, 1.3], spots: [[2.6, 23.6, 70.6, 44]], pp: 'right' },
+      { say: 'they told you this was a game', glitch: true, fx: 'glitch', zoom: [45, 45, 1.5], spots: [[27, 23.6, 46, 44, 'pink']], pp: 'right' },
+      { say: 'Ignore that. Cosmic ray. Very common. Totally normal.', zoom: [50, 50, 1], pp: 'right' },
+    ],
+  },
+  {
+    id: 'shopgoals', title: 'Shop and goals', img: 'shop', teach: 'Basic gear for Soles; daily goals and weekly bonus.',
+    beats: [
+      { say: 'The Shop sells basic gear and materials for Soles. Boss gear and crafted gear are better. Obviously.', zoom: [50, 50, 1.05], spots: [[2.6, 16, 94.6, 72]], pp: 'top center' },
+      { say: 'Daily goals: three small jobs a day, with a bonus for all three. Plus a weekly bonus for walking on 4 days. Rest days are fine.', img: 'goals', zoom: [50, 50, 1.1], spots: [[56.2, 13.8, 37.4, 50]], pp: 'left' },
+    ],
+  },
+  {
+    id: 'settings', title: 'Settings', img: 'settings', teach: 'Where settings are and what is in them.',
+    beats: [
+      { say: 'Settings: fullscreen, combat difficulty, and your save. It saves after everything you do.', zoom: [50, 52, 1.2], spots: [[13, 31.6, 74, 53]], pp: 'right' },
+      { say: 'There is also a button that wipes everything. I would use it carefully. Or not. I am not your mother.', zoom: [50, 52, 1], pp: 'right' },
+    ],
+  },
+  {
+    id: 'outro', title: 'The loop, then: go', kind: 'outro', teach: 'Recap and the first call to action.',
+    beats: [
+      { say: 'Recap. Walk for Soles. Spend them on your hero and base. Win Trials. Grab the Era Key. Evolve.', show: 'recap' },
+      { say: 'Primal to Brick, Brick to Bronze, all the way to Aurum. Nobody remembers the last winner. Do not think about that.', show: 'eras' },
+      { say: 'Enough talking. A wolf has noticed you. Try not to die in the first minute; it ruins my numbers.', show: 'cta' },
+    ],
+  },
+];
+
+const ERAS = ['Primal', 'Brick', 'Bronze', 'Iron', 'Steel', 'Gunpowder', 'Steam', 'Chrome', 'Neon', 'Aurum'];
+
+// ---------------------------------------------------------------------------
+// Player
+// ---------------------------------------------------------------------------
+const frame = document.getElementById('frame');
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let si = 0, bi = 0, playing = true, timer = null, typer = null, typing = false, curScene = null;
+
+function fit() {
+  const ctrlH = innerHeight <= 520 && innerWidth > innerHeight ? 50 : 70;
+  const maxW = Math.min(innerWidth - 16, 1300);
+  const maxH = innerHeight - ctrlH - 12;
+  let w = maxW, h = w * 390 / 844;
+  if (h > maxH) { h = Math.max(200, maxH); w = h * 844 / 390; }
+  frame.style.width = `${w}px`; frame.style.height = `${h}px`;
+  frame.style.fontSize = `${Math.max(9, w / 62)}px`;
+  document.getElementById('controls').style.maxWidth = `${Math.max(w, 340)}px`;
+}
+addEventListener('resize', fit);
+
+function beatsOf(sc) {
+  if (sc.kind === 'term') return sc.lines.map(() => ({}));
+  return sc.beats;
+}
+
+function sceneEl(sc) {
+  const el = document.createElement('div');
+  el.className = 'scene';
+  if (sc.kind === 'term') {
+    el.innerHTML = `<div class="term">${sc.lines.map((l, i) => `<div class="ln ${i === 3 ? 'red' : ''}" data-ln="${i}"></div>`).join('')}<div class="scanlines"></div></div>`;
+  } else if (sc.kind === 'title' || sc.kind === 'outro' || sc.kind === 'loop') {
+    el.innerHTML = `<div class="card"><div class="slot"></div></div><div class="halftone"></div>`;
+  } else {
+    el.innerHTML = `<div class="cam"><img alt="" src="${SHOT(sc.img)}"><svg class="mask" viewBox="0 0 100 100" preserveAspectRatio="none"></svg><div class="spots"></div></div><div class="halftone"></div><div class="vignette"></div><div class="tags"></div>`;
+  }
+  el.insertAdjacentHTML('beforeend', `<div class="proctorwrap"></div><button class="skipbtn" data-skip>Skip intro ▸▸</button><div class="hud">${String(SCENES.indexOf(sc) + 1).padStart(2, '0')} · ${esc(sc.title)}</div>`);
+  return el;
+}
+
+function showScene(i, b = 0) {
+  si = Math.max(0, Math.min(SCENES.length - 1, i));
+  const sc = SCENES[si];
+  const old = curScene;
+  const el = sceneEl(sc);
+  frame.appendChild(el);
+  if (old) {
+    old.classList.add('leave');
+    el.classList.add('enter');
+    frame.insertAdjacentHTML('beforeend', '<div class="slash"></div>');
+    setTimeout(() => { old.remove(); frame.querySelectorAll('.slash').forEach((s) => s.remove()); }, 650);
+  }
+  curScene = el;
+  if (sc.kind !== 'term' && sc.kind !== 'title' && sc.kind !== 'outro' && sc.kind !== 'loop') {
+    el.insertAdjacentHTML('beforeend', `<div class="caption"><b>${String(si + 1).padStart(2, '0')}</b>${esc(sc.title)}</div>`);
+  }
+  showBeat(b);
+  updateControls();
+}
+
+function camApply(el, zoom) {
+  const [cx, cy, s] = zoom || [50, 50, 1];
+  const cam = el.querySelector('.cam');
+  if (!cam) return;
+  // keep the zoomed image covering the frame: clamp the focus point
+  const half = 50 / s;
+  const fx = Math.min(100 - half, Math.max(half, cx));
+  const fy = Math.min(100 - half, Math.max(half, cy));
+  const tx = (50 - fx) * s, ty = (50 - fy) * s;
+  cam.style.transform = `translate(${tx}%, ${ty}%) scale(${s})`;
+  cam.dataset.z = JSON.stringify([fx, fy, s]);
+}
+// where a point on the screenshot (in %) ends up on the frame after the camera move
+function project(el, x, y) {
+  const z = el.querySelector('.cam') && el.querySelector('.cam').dataset.z ? JSON.parse(el.querySelector('.cam').dataset.z) : [50, 50, 1];
+  const [fx, fy, s] = z;
+  return [50 + (x - fx) * s, 50 + (y - fy) * s];
+}
+
+function showBeat(b) {
+  clearTimeout(timer);
+  const sc = SCENES[si];
+  const beats = beatsOf(sc);
+  bi = Math.max(0, Math.min(beats.length - 1, b));
+  const bt = beats[bi];
+  const el = curScene;
+
+  if (sc.kind === 'term') return termBeat(el, sc, bi);
+
+  if (sc.kind === 'title' || sc.kind === 'outro' || sc.kind === 'loop') cardBeat(el, sc, bt);
+
+  // swap screenshot inside a scene (e.g. shop -> goals)
+  const img = el.querySelector('.cam img');
+  if (img) {
+    const want = SHOT(bt.img || sc.img);
+    if (!img.src.endsWith(want)) { img.src = want; frame.insertAdjacentHTML('beforeend', '<div class="flash" style="opacity:.25"></div>'); setTimeout(() => frame.querySelectorAll('.flash').forEach((f) => f.remove()), 400); }
+    camApply(el, bt.zoom);
+    // spotlight mask + outlines
+    const spots = bt.spots || [];
+    const svg = el.querySelector('svg.mask');
+    svg.innerHTML = spots.length ? `<defs><mask id="m${si}"><rect width="100" height="100" fill="#fff"/>${spots.map(([x, y, w, h]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.2" fill="#000"/>`).join('')}</mask></defs><rect width="100" height="100" fill="rgba(5,3,10,.68)" mask="url(#m${si})"/>` : '';
+    el.querySelector('.spots').innerHTML = spots.map(([x, y, w, h, c], k) => `<div class="spot ${c || ''}" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;animation-delay:${0.25 + k * 0.15}s, ${0.7 + k * 0.15}s"></div>`).join('');
+    // tags, placed after the camera move
+    const tags = el.querySelector('.tags');
+    tags.innerHTML = '';
+    setTimeout(() => {
+      if (curScene !== el || bi !== b) return;
+      tags.innerHTML = (bt.tags || []).map(([x, y, t, c, sub], k) => {
+        let [px, py] = project(el, x, y);
+        px = Math.min(92, Math.max(8, px)); py = Math.min(92, Math.max(8, py));
+        return `<div class="tag ${c || ''}" style="left:${px}%;top:${py}%;--rot:${k % 2 ? 2 : -2}deg;animation-delay:${k * 0.12}s">${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
+      }).join('');
+    }, bt.zoom ? 1000 : 200);
+  }
+
+  if (bt.fx === 'flash') frame.insertAdjacentHTML('beforeend', '<div class="flash"></div>');
+  if (bt.fx === 'glitch') frame.insertAdjacentHTML('beforeend', '<div class="glitchfx"></div>');
+  if (bt.fx === 'shake') { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+  setTimeout(() => frame.querySelectorAll('.flash,.glitchfx').forEach((f) => f.remove()), 800);
+
+  sayLine(el, bt);
+  updateControls();
+}
+
+function cardBeat(el, sc, bt) {
+  const slot = el.querySelector('.slot');
+  let html = '';
+  if (sc.kind === 'title') {
+    html = `<div class="logo">THE ASCENT<small>A WALKING GAME</small></div>`;
+    if (bt.show === 'eras') html += `<div class="eras" style="margin-top:1.2em">${ERAS.map((e, i) => `<div class="era ${i === 0 ? 'on' : i === 9 ? 'gold' : ''}" style="animation-delay:${i * 0.07}s">${e}</div>`).join('')}</div>`;
+  }
+  if (sc.kind === 'loop') {
+    const n = bt.show === 'loop0' ? 1 : bt.show === 'loop1' ? 2 : 3;
+    html = `<div class="pow" style="margin-bottom:.6em">${n === 3 ? 'NO SHORTCUTS!' : 'THE RULE'}</div><div class="loopline">
+      <span style="background:var(--green);color:var(--ink)">👟 Real steps</span>
+      ${n >= 2 ? `<i style="animation-delay:.1s">→</i><span style="background:var(--yellow);color:var(--ink);animation-delay:.2s">👣 Soles</span><i style="animation-delay:.3s">→</i><span style="background:var(--cyan);color:var(--ink);animation-delay:.4s">💪 Power</span>` : ''}
+    </div>${n >= 2 ? '<div style="margin-top:.8em;color:var(--muted);font-size:1.1em">10 steps = 1 Sole · 1,000 steps = 1 loot box</div>' : ''}`;
+  }
+  if (sc.kind === 'outro') {
+    if (bt.show === 'recap') html = `<div class="loopline" style="font-size:1.35em;flex-wrap:wrap;justify-content:center;max-width:90%">
+      ${[['👟 Walk', 'green'], ['👣 Spend', 'yellow'], ['⚔ Win Trials', 'pink'], ['🗝 Era Key', 'orange'], ['🧬 Evolve', 'cyan']].map(([t, c], i) => `${i ? `<i style="animation-delay:${i * 0.15 - 0.05}s">→</i>` : ''}<span style="background:var(--${c});color:var(--ink);animation-delay:${i * 0.15}s">${t}</span>`).join('')}</div>`;
+    if (bt.show === 'eras') html = `<div class="eras" style="font-size:1.25em;flex-wrap:wrap;justify-content:center;max-width:94%">${ERAS.map((e, i) => `<div class="era ${i === 0 ? 'on' : i === 9 ? 'gold' : ''}" style="animation-delay:${i * 0.1}s">${e}</div>`).join('<span style="align-self:center;color:var(--cyan)">›</span>')}</div>`;
+    if (bt.show === 'cta') html = `<div class="logo" style="font-size:3.2em">FIRST TRIAL</div><div style="color:var(--muted);font-size:1.2em;margin:.3em 0 .6em">One wolf. Two skills. No pressure.</div><div class="cta">Begin ⚔</div>`;
+  }
+  slot.innerHTML = html;
+  slot.style.display = 'flex'; slot.style.flexDirection = 'column'; slot.style.alignItems = 'center'; slot.style.marginBottom = '4.5em';
+}
+
+function termBeat(el, sc, i) {
+  sc.lines.forEach((l, k) => { const d = el.querySelector(`[data-ln="${k}"]`); if (k < i) d.textContent = l; else if (k > i) d.textContent = ''; });
+  const d = el.querySelector(`[data-ln="${i}"]`);
+  typeInto(d, sc.lines[i], 55, () => { d.classList.remove('caret'); schedule(i === sc.lines.length - 1 ? 1600 : 650); });
+  d.classList.add('caret');
+  updateControls();
+}
+
+function sayLine(el, bt) {
+  const wrap = el.querySelector('.proctorwrap');
+  const pp = bt.pp || 'left';
+  const cls = pp.split(' ').map((p) => (p === 'left' ? '' : p)).join(' ');
+  wrap.innerHTML = `<div class="proctor ${cls} ${bt.glitch ? 'glitch' : ''}"><div class="eye talk"></div><div class="bubble"><span class="who">${bt.glitch ? '??????' : 'PROCTOR'}</span><span class="tx"></span></div></div>`;
+  const tx = wrap.querySelector('.tx');
+  const eye = wrap.querySelector('.eye');
+  typeInto(tx, bt.say, bt.glitch ? 60 : 24, () => { eye.classList.remove('talk'); schedule(1500 + bt.say.length * 32); });
+}
+
+function typeInto(node, text, speed, done) {
+  clearInterval(typer);
+  typing = true;
+  let n = 0;
+  node.textContent = '';
+  node.classList.add('caret');
+  typer = setInterval(() => {
+    n++;
+    node.textContent = text.slice(0, n);
+    if (n >= text.length) { clearInterval(typer); typing = false; node.classList.remove('caret'); typer = null; finishTyping = null; done(); }
+  }, speed);
+  finishTyping = () => { clearInterval(typer); typing = false; node.textContent = text; node.classList.remove('caret'); typer = null; finishTyping = null; done(); };
+}
+let finishTyping = null;
+
+function schedule(ms) {
+  clearTimeout(timer);
+  if (playing) timer = setTimeout(next, ms);
+}
+
+function next() {
+  const beats = beatsOf(SCENES[si]);
+  if (bi < beats.length - 1) showBeat(bi + 1);
+  else if (si < SCENES.length - 1) showScene(si + 1);
+  else { playing = false; updateControls(); }
+}
+function prev() {
+  if (bi > 0) showBeat(bi - 1);
+  else if (si > 0) { showScene(si - 1); showBeat(beatsOf(SCENES[si]).length - 1); }
+}
+
+frame.addEventListener('click', (e) => {
+  if (e.target.closest('[data-skip]')) { showScene(SCENES.length - 1, 2); return; }
+  if (typing && finishTyping) { const f = finishTyping; clearTimeout(timer); f(); clearTimeout(timer); if (!playing) return; return; }
+  next();
+});
+addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (typing && finishTyping) finishTyping(); else next(); }
+  if (e.key === 'ArrowLeft') prev();
+});
+document.getElementById('next').onclick = () => { if (typing && finishTyping) finishTyping(); else next(); };
+document.getElementById('prev').onclick = prev;
+document.getElementById('restart').onclick = () => { playing = true; showScene(0); };
+document.getElementById('playpause').onclick = () => { playing = !playing; if (playing && !typing) next(); else clearTimeout(timer); updateControls(); };
+document.getElementById('toBoard').onclick = () => document.getElementById('board').scrollIntoView({ behavior: 'smooth' });
+
+const segs = document.getElementById('segs');
+segs.innerHTML = SCENES.map((s, i) => `<button data-i="${i}" data-t="${i + 1}. ${esc(s.title)}" aria-label="${esc(s.title)}"></button>`).join('');
+segs.onclick = (e) => { const b = e.target.closest('button'); if (b) showScene(+b.dataset.i); };
+
+function updateControls() {
+  [...segs.children].forEach((b, i) => { b.className = i < si ? 'done' : i === si ? 'cur' : ''; });
+  document.getElementById('playpause').textContent = playing ? '❚❚' : '▶ Play';
+  const sc = SCENES[si];
+  document.getElementById('now').innerHTML = `<b>${si + 1}/${SCENES.length}</b> ${esc(sc.title)} · beat ${bi + 1}/${beatsOf(sc).length}`;
+}
+
+// ---------------------------------------------------------------------------
+// Storyboard
+// ---------------------------------------------------------------------------
+document.getElementById('panels').innerHTML = SCENES.map((sc, i) => {
+  let th;
+  if (sc.kind === 'term') th = `<div class="th term" data-go="${i}"><div>${sc.lines.map(esc).join('<br>')}</div><span class="num">${i + 1}</span><span class="play">▶ play</span></div>`;
+  else if (sc.kind === 'title' || sc.kind === 'outro' || (sc.kind === 'loop')) th = `<div class="th cardth" data-go="${i}">${sc.kind === 'title' ? 'THE ASCENT' : sc.kind === 'loop' ? 'STEPS → SOLES' : 'FIRST TRIAL'}<span class="num">${i + 1}</span><span class="play">▶ play</span></div>`;
+  else th = `<div class="th" data-go="${i}" style="background-image:url(${SHOT(sc.img)})"><span class="num">${i + 1}</span><span class="play">▶ play</span></div>`;
+  const lines = sc.kind === 'term'
+    ? sc.lines.map((l) => `<li class="gl">${esc(l)}</li>`).join('')
+    : sc.beats.map((b) => `<li class="${b.glitch ? 'gl' : ''}">${b.glitch ? '[glitch] ' : ''}${esc(b.say)}${b.tags ? `<span class="shows">Callouts: ${b.tags.map((t) => esc(t[2])).join(' · ')}</span>` : ''}${b.img ? `<span class="shows">Cuts to: ${esc(b.img)} screen</span>` : ''}</li>`).join('');
+  return `<article class="pnl">${th}<div class="bd"><h2>${esc(sc.title)}</h2><div class="teach">Teaches: ${esc(sc.teach)}</div><ol>${lines}</ol>${sc.src ? `<div class="src">${esc(sc.src)}</div>` : ''}</div></article>`;
+}).join('');
+document.getElementById('panels').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-go]');
+  if (!t) return;
+  playing = true;
+  showScene(+t.dataset.go);
+  document.getElementById('player').scrollIntoView({ behavior: 'smooth' });
+});
+
+// preload screenshots
+[...new Set(SCENES.flatMap((s) => [s.img, ...(s.beats || []).map((b) => b.img)]).filter(Boolean))].forEach((n) => { const im = new Image(); im.src = SHOT(n); });
+
+fit();
+const start = new URLSearchParams(location.search).get('scene');
+showScene(start ? Math.max(0, SCENES.findIndex((s) => s.id === start)) : 0);
+</script>
+</body>
+</html>
