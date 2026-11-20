@@ -278,7 +278,7 @@ const SCREENS = {
           <span class="sp">${skillShort(id, b)}</span>${cd ? `<span class="cd">${cd}</span>` : ''}</div>`;
       }).join('')}
     </div>
-    <button class="btn pink endturn ${app.busy || b.over ? 'off' : ''} ${h.ap === 0 && !app.busy ? 'pulse' : ''}" data-a="endTurn">End turn ▶</button>`;
+    <button class="btn small ghost endturn ${app.busy || b.over ? 'off' : ''}" data-a="endTurn" title="End your turn early. Up to ${h.stats.apCarry} unspent AP carries over to next turn.">Save AP ▶<small style="display:block;font-size:10px;font-family:Rajdhani;text-transform:none;letter-spacing:0">end turn early</small></button>`;
   },
 
   reward() {
@@ -855,6 +855,13 @@ async function runAction(fn) {
   app.shown = null;
   app.busy = false;
   if (app.battle.over) return endBattle();
+  // nothing left to do this turn: end it automatically
+  const b = app.battle;
+  if (!b.loadout.some((id) => C.canUse(b, id))) {
+    render();
+    await wait(350);
+    return runAction(() => C.endTurn(b));
+  }
   render();
 }
 

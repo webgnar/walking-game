@@ -213,7 +213,7 @@ Turn-based strategy. Unlocks at hero level 5 (the first-session tutorial fights 
 | Era boss (Trial 15) | XP, loot box, boss gear, blueprint, Era Key | Crafting materials and low-level gear only |
 
 - **Enemies show their next move** with an intent icon (attack for 12, block, charging, calling backup).
-- **3 Action Points per turn**; a **loadout of 4 to 6 skills**.
+- **3 Action Points per turn**; a **loadout of 4 to 6 skills**. The turn ends on its own when no skill is affordable; a small "Save AP" button ends it early so unspent AP can carry over (for example, saving up for Roar or Firebrand).
 - **Skill vs. power:** smart play beats enemies up to about 20% stronger. Never a hard barrier: enough walking, XP and gear wins on strength.
 - **Each era adds a new skill branch.** Earlier skills stay available.
 
