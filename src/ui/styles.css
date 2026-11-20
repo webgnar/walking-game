@@ -656,3 +656,4 @@ body.proctor-on .obsfeed { visibility: hidden; }
 }
 @media (max-height: 360px) { .laurels { display: none; } }
 .node, .node.done, .node.open, .node.mini, .node.mini.done, .node.era, .node.era.done { background: none; border: 0; }
+.cutph .brief { background: rgba(10,8,7,.88); color: var(--muted); border-top: 1px solid var(--line2); font-family: var(--mono); }
