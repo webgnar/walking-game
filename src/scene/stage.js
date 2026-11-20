@@ -67,13 +67,38 @@ export class Stage {
     this.mode = 'home';
     this.t0 = performance.now();
     this.last = this.t0;
-    this.resize();
-    window.addEventListener('resize', () => this.resize());
+    this.watchSize();
     this.renderer.setAnimationLoop(() => this.frame());
   }
 
+  // iOS fires 'resize' and 'orientationchange' BEFORE it has laid the page out in its new shape, so reading the
+  // window size there gets the old shape, and nothing fires once it settles: the portrait picture got stretched over
+  // the landscape screen (and squished going back). So size from the canvas box itself, watched by a ResizeObserver
+  // (which only reports after layout), and check again a few times after every rotation. Ported from skate-rogue.
+  watchSize() {
+    let sized = '';
+    const check = () => {
+      const w = this.canvas.clientWidth, h = this.canvas.clientHeight;
+      if (!w || !h) return;
+      const now = `${w}x${h}`;
+      if (now === sized) return;
+      sized = now;
+      this.resize();
+    };
+    const settle = () => {
+      check();
+      requestAnimationFrame(check);
+      for (const ms of [100, 300, 700]) setTimeout(check, ms);
+    };
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(check).observe(this.canvas);
+    window.addEventListener('resize', settle);
+    window.addEventListener('orientationchange', settle);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', settle);
+    check();
+  }
+
   resize() {
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     // keep the scene readable in portrait-ish windows
@@ -287,7 +312,8 @@ export class Stage {
     if (who !== 'hero' && !BUILD_POS[who]) v.copy(this.actor(who).home);
     v.y += h + extra;
     v.project(this.camera);
-    return { x: (v.x * 0.5 + 0.5) * window.innerWidth, y: (-v.y * 0.5 + 0.5) * window.innerHeight };
+    const r = this.canvas.getBoundingClientRect();
+    return { x: r.left + (v.x * 0.5 + 0.5) * r.width, y: r.top + (-v.y * 0.5 + 0.5) * r.height };
   }
 
   frame() {
