@@ -7,7 +7,7 @@ const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
 };
 
-const HOME_SCALE = 1.3;
+const HOME_SCALE = 1.24;
 
 // Lunge timing: the hero is furthest forward at LUNGE_PEAK of LUNGE_MS; strikes connect then.
 const LUNGE_MS = 380, LUNGE_PEAK = 0.4;
@@ -15,7 +15,7 @@ export const STRIKE_MS = LUNGE_MS * LUNGE_PEAK;
 
 const CAMS = {
   intro: { pos: [0, 1.3, 3.2], look: [0, 1.4, 0] },
-  home: { pos: [0, 1.7, 5.6], look: [0, 1.1, 0] },
+  home: { pos: [0, 1.86, 5.6], look: [0, 1.26, 0] },
   hero: { pos: [0.5, 1.35, 6.2], look: [0.5, 1.05, 0] },
   base: { pos: [0, 3.4, 4.2], look: [0, 0.9, -6] },
   map: { pos: [0, 16, 8], look: [0, 0, -4] },
@@ -44,7 +44,8 @@ export class Stage {
 
     this.scene.add(buildCave());
     this.fire = buildFire();
-    this.fire.position.set(1.7, 0, 0.6);
+    this.fire.position.set(1.55, 0, -0.2);
+    this.fire.scale.setScalar(0.85);
     this.scene.add(this.fire);
 
     this.hero = buildHero();
