@@ -17,7 +17,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; background: #0d0b14; color: var(--paper); font-family: 'Rajdhani', system-ui, sans-serif; font-weight: 600; }
-body { min-height: 100vh; background-image: radial-gradient(rgba(255,255,255,.035) 1px, transparent 1.3px); background-size: 6px 6px; }
+body { min-height: 100vh; }
 button { font: inherit; color: inherit; }
 
 /* ---------- Player ---------- */
@@ -32,7 +32,7 @@ button { font: inherit; color: inherit; }
 .spot.yellow { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--ink), 0 0 16px var(--yellow); }
 @keyframes spotIn { from { transform: scale(1.25); opacity: 0; } }
 @keyframes spotPulse { 50% { filter: brightness(1.5); } }
-.halftone { position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(rgba(0,0,0,.5) 1px, transparent 1.4px); background-size: 4px 4px; opacity: .18; mix-blend-mode: multiply; }
+.halftone { display: none; }
 .vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 60%, rgba(5,3,10,.6) 100%); }
 
 /* tags (comic callouts) */

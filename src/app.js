@@ -368,7 +368,7 @@ const SCREENS = {
   truth() {
     const tier = s.base.truth.tier;
     return `${topbar('Truth Board', `Tier ${tier} · ${s.fragments.decoded.length}/${FRAGMENTS.length} decoded`, 'base')}
-    <div class="screen"><div class="col grow panel pad" style="background:#3b2a1a;background-image:radial-gradient(rgba(0,0,0,.25) 1px,transparent 1.3px);background-size:5px 5px">
+    <div class="screen"><div class="col grow panel pad" style="background:#3b2a1a">
       <div class="small" style="color:#e8d6b0">Fragments come from loot boxes and boss wins. Upgrade the Truth Board to decode deeper ones.</div>
       <div class="scroll grow" style="padding:10px 4px"><div class="frags">
       ${FRAGMENTS.map((f, i) => {
