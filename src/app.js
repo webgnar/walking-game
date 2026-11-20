@@ -50,6 +50,8 @@ export function start() {
   else { go('home'); say(pick(PROCTOR.home)); }
   stage.snapCamera();
   document.addEventListener('click', onClick);
+  // fullscreen: browsers only allow it from a tap, so ask on the first one
+  document.addEventListener('pointerdown', () => { if (!s.noFullscreen) enterFullscreen(); }, { once: true });
   // belt and braces: save when the app is backgrounded or closed
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(s); });
   window.addEventListener('pagehide', () => save(s));
@@ -160,6 +162,7 @@ const SCREENS = {
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
       ${sp || hint('hero') ? `<div class="herotag ${hint('hero') || 'pulse'}">${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</div>` : ''}
     </div>
+    ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip" style="${s.report ? 'top:calc(var(--st) + 150px)' : ''}"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
     <div class="home-bottom">
       <button class="btn stepbtn" data-hold="steps">+100 steps<small>hold to keep walking <span class="debugtag">TEST</span></small></button>
       <button class="iconbtn" data-a="modal" data-v="achievements" title="Achievements">🏆</button>
@@ -694,6 +697,10 @@ const MODALS = {
           <button class="btn small" data-a="finishTimers">Finish all timers</button>
         </div>
         <div class="sep"></div>
+        <h3 class="h">Fullscreen</h3>
+        <div class="small">${fullscreenHelp()}</div>
+        ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
+        <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>
         <div class="small muted">"Tuned" raises enemy health ×1.25 and damage ×1.5, and lets Guard be used once a turn. "GDD v1" uses the design document's table exactly.</div>
         <div class="row" style="margin:6px 0">${Object.keys(TUNING_PRESETS).map((k) => `<button class="tab ${(s.tuning || 'tuned') === k ? 'on' : ''}" data-a="tuning" data-v="${k}">${k === 'gdd' ? 'GDD v1' : 'Tuned'}</button>`).join('')}</div>
@@ -972,6 +979,8 @@ const ACTIONS = {
     closeModal();
     commit();
   },
+  fullscreen() { s.noFullscreen = false; enterFullscreen(); closeModal(); },
+  installTip() { s.installTipSeen = true; save(s); render(); },
   tuning(v) { s.tuning = v; setTuning(v); app.modal = { type: 'settings' }; commit(); },
   reset() {
     if (!app.modal.confirm) { app.modal.confirm = true; renderModal(); return; }
@@ -1105,6 +1114,26 @@ const ACTIONS = {
     endBattle();
   },
 };
+
+// ---------- Fullscreen ----------
+const isStandalone = () => window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const canFullscreen = () => !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+const isIOS = () => /iPhone|iPod/.test(navigator.userAgent);
+function enterFullscreen() {
+  if (isStandalone() || document.fullscreenElement || document.webkitFullscreenElement) return;
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) return;
+  try {
+    const p = req.call(el, { navigationUI: 'hide' });
+    if (p && p.then) p.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {});
+  } catch (e) { /* not allowed here */ }
+}
+function fullscreenHelp() {
+  if (isStandalone()) return '<span class="ok">Running fullscreen from your home screen.</span>';
+  if (isIOS() || !canFullscreen()) return 'iPhone Safari can\'t go fullscreen from a web page. Tap <b>Share → Add to Home Screen</b>, then open The Ascent from its icon: it runs fullscreen with no browser bars.';
+  return 'The game goes fullscreen on your first tap. If you left fullscreen, tap the button.';
+}
 
 function typeIntro() {
   app.introStarted = true;

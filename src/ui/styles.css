@@ -298,3 +298,6 @@ h3.h { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: va
 /* the hero on Home is the Hero button */
 .herotap { position: absolute; left: 50%; top: 22%; width: min(22vw, 190px); height: 62%; transform: translateX(-60%); cursor: pointer; }
 .herotag { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: var(--green); color: var(--ink); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); font-family: var(--display); font-weight: 800; font-size: 12px; padding: 2px 8px; }
+
+.installtip { position: absolute; top: calc(var(--st) + 100px); left: 50%; transform: translateX(-50%); width: min(420px, 50vw); font-size: 12.5px; line-height: 1.25; background: var(--panel); border-color: var(--cyan); cursor: pointer; z-index: 2; }
+html:fullscreen, body:fullscreen { background: #0d0b14; }
