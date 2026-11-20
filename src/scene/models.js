@@ -1,6 +1,70 @@
 // Placeholder 3D models built from primitives, in a cel-shaded comic style.
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { buildFlames } from './fire.js';
+
+// ---------- Imported props (zack's models) ----------
+const PROPS = {};
+// Loads held-item models. Until they arrive, the primitive stand-ins below are used.
+export async function loadProps() {
+  const g = await new GLTFLoader().loadAsync('/models/club.glb');
+  PROPS.club = normalizeHeld(g.scene, 0.82);
+}
+
+// Re-seat a held model so its thin (handle) end is at the origin and it points along +Y, `length` long.
+function normalizeHeld(scene, length) {
+  scene.updateMatrixWorld(true);
+  const pts = [];
+  scene.traverse((o) => {
+    if (!o.isMesh) return;
+    const a = o.geometry.attributes.position;
+    for (let i = 0; i < a.count; i += 3) pts.push(new THREE.Vector3().fromBufferAttribute(a, i).applyMatrix4(o.matrixWorld));
+    const map = o.material.map;
+    if (map) map.colorSpace = THREE.SRGBColorSpace;
+    o.material = new THREE.MeshToonMaterial({ map, color: map ? 0xffffff : C.wood, gradientMap: toonGradient() });
+  });
+  const c = pts.reduce((m, p) => m.add(p), new THREE.Vector3()).divideScalar(pts.length);
+  const far = (from) => pts.reduce((best, p) => (p.distanceToSquared(from) > best.distanceToSquared(from) ? p : best), pts[0]);
+  let a = far(c), b = far(a);
+  const axis = b.clone().sub(a);
+  const len = axis.length();
+  axis.normalize();
+  // which end is thinner? compare average distance from the axis near each end
+  const girth = (lo, hi) => {
+    let sum = 0, n = 0;
+    for (const p of pts) {
+      const d = p.clone().sub(a), t = d.dot(axis) / len;
+      if (t >= lo && t <= hi) { sum += d.addScaledVector(axis, -d.dot(axis)).length(); n++; }
+    }
+    return n ? sum / n : 0;
+  };
+  if (girth(0, 0.2) > girth(0.8, 1)) { [a, b] = [b, a]; axis.negate(); }
+  const k = length / len;
+  const inner = new THREE.Group();
+  inner.add(scene);
+  inner.quaternion.setFromUnitVectors(axis, new THREE.Vector3(0, 1, 0));
+  inner.scale.setScalar(k);
+  inner.position.copy(a).applyQuaternion(inner.quaternion).multiplyScalar(-k);
+  const out = new THREE.Group();
+  out.add(inner);
+  return out;
+}
+
+// A club held in the fist: grip a little up from the butt, pointing out past the thumb.
+function heldClub(extra) {
+  const g = new THREE.Group();
+  const club = PROPS.club.clone();
+  club.position.y = -0.1;
+  g.add(club);
+  if (extra) extra(g);
+  // Tipped toward the fingers and rolled outward around the forearm: it hangs head-down at his side
+  // in idle and still reads as a club through the swing.
+  g.rotation.x = Math.PI / 2 + 0.8;
+  const w = new THREE.Group();
+  w.rotation.y = -1.0;
+  w.add(g);
+  return w;
+}
 
 let gradient;
 export function toonGradient() {
@@ -95,8 +159,13 @@ export function buildHero() {
 }
 
 const LOOKS = {
-  club1: () => part(G.cyl(0.05, 0.09, 0.8), C.wood, [0, 0, 0.3], [Math.PI / 2.4, 0, 0]),
-  club2: () => { const w = new THREE.Group(); w.add(part(G.cyl(0.05, 0.07, 0.8), C.wood, [0, 0, 0.3], [Math.PI / 2.4, 0, 0])); w.add(part(G.cone(0.13, 0.3, 4), C.flint, [0, 0.1, 0.66], [Math.PI / 2.4, 0, 0])); return w; },
+  club1: () => (PROPS.club ? heldClub() : part(G.cyl(0.05, 0.09, 0.8), C.wood, [0, 0, 0.3], [Math.PI / 2.4, 0, 0])),
+  club2: () => {
+    // the starting club with a flint blade lashed into the head
+    if (PROPS.club) return heldClub((g) => {
+      g.add(part(G.cone(0.07, 0.24, 4), C.flint, [0.11, 0.6, 0], [0, 0, -Math.PI / 2], null, 0));
+      g.add(part(G.cone(0.07, 0.24, 4), C.flint, [-0.11, 0.6, 0], [0, 0, Math.PI / 2], null, 0));
+    }); const w = new THREE.Group(); w.add(part(G.cyl(0.05, 0.07, 0.8), C.wood, [0, 0, 0.3], [Math.PI / 2.4, 0, 0])); w.add(part(G.cone(0.13, 0.3, 4), C.flint, [0, 0.1, 0.66], [Math.PI / 2.4, 0, 0])); return w; },
   fang: () => part(G.cone(0.09, 0.9, 6), C.bone, [0, 0.05, 0.4], [Math.PI / 2.4, 0, 0]),
   tusk: () => { const t = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.08, 8, 16, Math.PI * 0.7), toon(0xfff3d6)); t.position.set(0, -0.35, 0.3); t.rotation.set(0, Math.PI / 2, 0.3); ink(t, 0.04); return t; },
   armor1: () => part(G.cap(0.33, 0.25), C.hide, [0, 1.12, 0], [0, 0, 0], [1, 0.9, 0.8]),
@@ -122,8 +191,8 @@ export function setHeroLook(hero, looks) {
     const k = looks[slot];
     if (k && LOOKS[k]) grp.add(LOOKS[k]());
   }
-  // bare-handed: a simple stick
-  if (!looks.weapon) into('weapon').add(part(G.cyl(0.04, 0.06, 0.6), C.wood, [0, 0, 0.22], [Math.PI / 2.4, 0, 0]));
+  // bare-handed: the starting club
+  if (!looks.weapon) into('weapon').add(PROPS.club ? heldClub() : part(G.cyl(0.04, 0.06, 0.6), C.wood, [0, 0, 0.22], [Math.PI / 2.4, 0, 0]));
 }
 
 // ---------- Enemies ----------

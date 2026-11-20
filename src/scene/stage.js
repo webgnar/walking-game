@@ -1,7 +1,7 @@
 // The single Three.js stage behind the UI. Modes move the camera; combat adds enemy actors.
 import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
-import { buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding } from './models.js';
+import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding } from './models.js';
 
 const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
@@ -49,6 +49,7 @@ export class Stage {
     this.looks = {};
     // swap the placeholder body for the rigged caveman once it has loaded
     this.hero.userData.body.visible = false;
+    loadProps().then(() => setHeroLook(this.hero, this.looks)).catch((e) => console.warn('[stage] props failed', e));
     loadCaveman().then((rig) => {
       const h = this.hero;
       h.add(rig.model);

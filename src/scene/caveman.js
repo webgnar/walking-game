@@ -257,11 +257,22 @@ class Rig {
       inner.scale.setScalar(sp.k);
       inner.position.set(0, 0, 0);
       if (sp.down) {
-        // weapons were built hanging from a straight-down arm; aim them along the real forearm
-        const fa = b(sp.bone.replace('Hand', 'ForeArm')).getWorldPosition(new THREE.Vector3()).applyMatrix4(inv);
-        const dir = bp.clone().sub(fa).normalize();
-        g.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
-        g.position.copy(bp);
+        // Held gear was built for a fist on a straight-down arm: -Y runs along the forearm into the
+        // fingers and +Z points out past the thumb. Build that frame from the hand's own finger and
+        // thumb bones so the grip follows every animation.
+        const side = sp.bone.replace('Hand', '');
+        const fingers = b(side + 'HandIndex1').position.clone().normalize();
+        const thumb = b(side + 'HandThumb1').position.clone();
+        thumb.addScaledVector(fingers, -thumb.dot(fingers)).normalize();
+        const ly = fingers.clone().negate(), lz = thumb, lx = ly.clone().cross(lz);
+        bn.add(g);
+        g.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(lx, ly, lz));
+        // undo the rig's centimetre scale so gear is sized in world units
+        const rel = bn.getWorldScale(new THREE.Vector3()).x / this.model.getWorldScale(new THREE.Vector3()).x;
+        g.scale.setScalar(1 / rel);
+        // sit the grip in the palm, a little past the wrist
+        g.position.copy(fingers).multiplyScalar(0.075 / rel);
+        continue;
       } else {
         g.position.copy(bp).add(sp.off);
         inner.position.copy(sp.ref).multiplyScalar(-sp.k);
