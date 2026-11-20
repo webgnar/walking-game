@@ -90,14 +90,16 @@ export function load() {
   }
 }
 
-// Wipes the save and stops any further saves (the page is about to reload; without this the
-// pagehide/visibilitychange autosave writes the old game straight back).
+// Wipes everything this game stored in the browser and blocks any further saves, so nothing still
+// running can write the old game back before the page reloads.
 let wiped = false;
 export function wipeSave() {
   wiped = true;
+  try { localStorage.clear(); } catch (e) { /* private mode */ }
+  try { sessionStorage.clear(); } catch (e) { /* private mode */ }
   try {
-    for (const k of Object.keys(localStorage)) if (k.startsWith('ascent')) localStorage.removeItem(k);
-  } catch (e) { /* private mode */ }
+    if (indexedDB.databases) indexedDB.databases().then((dbs) => dbs.forEach((d) => d.name && indexedDB.deleteDatabase(d.name)));
+  } catch (e) { /* not supported */ }
 }
 
 export function save(s) {

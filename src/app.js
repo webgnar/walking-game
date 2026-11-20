@@ -55,7 +55,7 @@ export function start() {
   // fullscreen: browsers only allow it from a tap, so ask on the first one
   // Auto-fullscreen on the first tap only on touch phones; desktop uses the Settings button.
   if (isPhone()) document.addEventListener('pointerdown', () => { if (!s.noFullscreen) enterFullscreen(); }, { once: true });
-  // belt and braces: save when the app is backgrounded or closed
+  // belt and braces: save when the app is backgrounded or closed (blocked after a reset)
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(s); });
   window.addEventListener('pagehide', () => save(s));
   bindHold();
@@ -803,6 +803,7 @@ const MODALS = {
         <div class="small"><span class="ok">✔ Autosaves after every action</span> <span class="muted">(in this browser only; no accounts yet).</span></div>
         <div class="small muted"> Total steps ${fmt(s.steps.total)} · Soles earned ${fmt(s.solesEarned)} · Trials won ${s.trials.wins}</div>
         <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything and restart' : '🗑 Reset game'}</button></div>
+        <div class="small muted" style="margin-top:8px">Version ${__BUILD__}</div>
       </div></div>`;
   },
 };
@@ -1118,7 +1119,8 @@ const ACTIONS = {
   reset() {
     if (!app.modal.confirm) { app.modal.confirm = true; renderModal(); return; }
     wipeSave();
-    location.reload();
+    // reload with a fresh URL so the browser can't hand back a cached page
+    location.replace(`${location.pathname}?fresh=${Date.now()}`);
   },
 
   // hero
