@@ -71,10 +71,17 @@ Font is Cinzel for titles and Saira for small caps. These stay as text: PRIMAL, 
 
 | File | Element | Type | Export size | Paint |
 |---|---|---|---|---|
-| `backdrop-home.png` | Sky, red moon, citadel on the cliff | fixed, **opaque** (no transparency) | 2560 x 1440 | Hazy crimson sky, huge red moon at about 80% across and 30% down, the dark citadel with lit windows and a crimson eagle banner on the cliff on the right. **The horizon (where the far ground meets the cliffs) must sit at 42% from the top**, because the 3D ground, rocks, hero and fire are drawn in front of it and end there. Below the horizon, plain dark ground. No hero, no fire, no rocks in the foreground: those are 3D. |
+| `backdrop-home.jpg` | Sky, red moon, citadel on the cliff | fixed, **opaque** (no transparency) | 2560 x 1440 | Hazy crimson sky, huge red moon at about 80% across and 30% down, the dark citadel with lit windows and a crimson eagle banner on the cliff on the right. **The horizon (where the far ground meets the cliffs) must sit at 42% from the top**, because the 3D ground, rocks, hero and fire are drawn in front of it and end there. Below the horizon, plain dark ground. No hero, no fire, no rocks in the foreground: those are 3D. |
 
 Until it exists, the game paints a placeholder version of the same scene (src/scene/backdrop.js). It sits behind every screen, cover-fitted, with the horizon kept in place on wider phones.
 
 ## Checking your art
 
 Drop the PNGs into `public/ui/`, push, and open the game. Any file that is missing just keeps its placeholder, so you can deliver pieces one at a time. Image prompts for each piece are in [ui-art-prompts.md](ui-art-prompts.md).
+
+## Delivered (2026-11-20)
+
+The first full set came from 8 ChatGPT sheets. They were cut on the green key, resized, and put in `public/ui/`.
+- **Right column plates** (TRIALS, BOXES) use mirrored copies `plate-dark-r.png` and `plate-crimson-r.png`, so their pointed ends face the hero.
+- **9-slice caps** come from each piece's real art, not the 64/40/24 defaults. They are listed in the "image slots" block of src/ui/styles.css. If you replace a piece with different proportions, its caps may need a tweak.
+- **Backdrop** is `backdrop-home.jpg`, with its horizon at 46.2% from the top (BACKDROP_HORIZON in src/scene/backdrop.js).

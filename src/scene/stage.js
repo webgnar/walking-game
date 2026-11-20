@@ -30,7 +30,7 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene = new THREE.Scene();
-    this.backdrop = buildBackdrop();
+    this.backdrop = buildBackdrop((tex) => { this.backdrop = tex; this.scene.background = tex; });
     this.scene.background = this.backdrop;
     this.scene.fog = new THREE.Fog(0x3a1d17, 14, 34);
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
@@ -109,7 +109,6 @@ export class Stage {
     const w = this.canvas.clientWidth || window.innerWidth, h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    this.backdrop.userData.lastAspect = w / h;
     this.backdrop.userData.fit(w / h);
     // keep the scene readable in portrait-ish windows
     this.camera.fov = w / h < 1.3 ? 58 : 42;
