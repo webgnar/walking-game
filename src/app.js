@@ -1,6 +1,6 @@
 // The game app: screens, actions and the combat controller. Renders HTML over the Three.js stage.
 import { Stage } from './scene/stage.js';
-import { env, load, save, newState, toast, pick, SAVE_KEY, dayKey } from './logic/state.js';
+import { env, load, save, wipeSave, newState, toast, pick, SAVE_KEY, dayKey } from './logic/state.js';
 import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
   INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS,
@@ -802,7 +802,7 @@ const MODALS = {
         <h3 class="h">Progress</h3>
         <div class="small"><span class="ok">✔ Autosaves after every action</span> <span class="muted">(in this browser only; no accounts yet).</span></div>
         <div class="small muted"> Total steps ${fmt(s.steps.total)} · Soles earned ${fmt(s.solesEarned)} · Trials won ${s.trials.wins}</div>
-        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything' : '🗑 Reset progress (start over)'}</button></div>
+        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything and restart' : '🗑 Reset game'}</button></div>
       </div></div>`;
   },
 };
@@ -1117,7 +1117,7 @@ const ACTIONS = {
   tuning(v) { s.tuning = v; setTuning(v); app.modal = { type: 'settings' }; commit(); },
   reset() {
     if (!app.modal.confirm) { app.modal.confirm = true; renderModal(); return; }
-    localStorage.removeItem(SAVE_KEY);
+    wipeSave();
     location.reload();
   },
 

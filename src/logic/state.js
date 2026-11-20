@@ -90,7 +90,18 @@ export function load() {
   }
 }
 
+// Wipes the save and stops any further saves (the page is about to reload; without this the
+// pagehide/visibilitychange autosave writes the old game straight back).
+let wiped = false;
+export function wipeSave() {
+  wiped = true;
+  try {
+    for (const k of Object.keys(localStorage)) if (k.startsWith('ascent')) localStorage.removeItem(k);
+  } catch (e) { /* private mode */ }
+}
+
 export function save(s) {
+  if (wiped) return;
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(s));
   } catch (e) {
