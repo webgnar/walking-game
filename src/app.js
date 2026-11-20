@@ -139,7 +139,6 @@ function topbar(title, sub, back = 'home', backLabel = '') {
 function applyUiStyle() {
   const retro = s.uiStyle === 'retro';
   document.body.classList.toggle('retro', retro);
-  stage.setRetro(retro);
 }
 
 const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev';
@@ -839,7 +838,7 @@ const MODALS = {
         ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
         <div class="sep"></div>
         <h3 class="h">UI style</h3>
-        <div class="small muted">Retro dither is a mockup: pixel type, dithered shading and a dithered 3D scene.</div>
+        <div class="small muted">Retro dither is a UI mockup: pixel type and dithered shading on the interface. The 3D scene is unchanged.</div>
         <div class="row" style="margin:6px 0">${[['current', 'Current'], ['retro', 'Retro dither']].map(([k, l]) => `<button class="tab ${(s.uiStyle || 'current') === k ? 'on' : ''}" data-a="uiStyle" data-v="${k}">${l}</button>`).join('')}</div>
         <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>

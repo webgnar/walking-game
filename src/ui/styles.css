@@ -653,7 +653,7 @@ body.proctor-on .obsfeed { visibility: hidden; }
 
 /* =====================================================================
    RETRO DITHER STYLE (Settings > UI style). Same palette; Bayer-dithered shading,
-   pixel type for small labels, stepped pixel corners. The big titles stay crisp.
+   pixel type for small labels, stepped pixel corners. UI only: the 3D scene is untouched.
    ===================================================================== */
 body.retro {
   --shade: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAYCAYAAADd5VyeAAAAMElEQVR4nGNgYGCYxkAswK1yGq1UoAjiV8GIJpNF0IxpGCrQzSBsCxEqmNCVEhYAAMl5EXOz1FevAAAAAElFTkSuQmCC");
@@ -662,8 +662,6 @@ body.retro {
   --pix: 'Silkscreen', var(--display);
   --mono: 'VT323', 'JetBrains Mono', monospace;
 }
-body.retro #stage { image-rendering: pixelated; }
-body.retro #halftone::before { background: var(--half) 0 0 / 4px 4px; opacity: .35; }
 
 /* plates: stepped corners, dithered shadow band along the bottom */
 body.retro .btn { clip-path: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
