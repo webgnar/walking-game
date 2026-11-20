@@ -26,7 +26,7 @@ Progress is saved in the browser (localStorage). **Settings → Reset progress**
 | Hero: levels, 2 attribute + 1 skill point per level, training at 2 Soles per XP, era cap at level 10 | Done |
 | Five gear slots, shop, crafted and boss gear with GDD numbers | Done |
 | Base: five buildings, three tiers, GDD costs and timers, speed-up at 1 Sole a minute, first building free | Done |
-| Crafting Studio: two-item crafts, three-item after tier 2, blueprints, learn-by-experimenting | Done |
+| Workshop: two-item crafts, three-item after tier 2, blueprints, learn-by-experimenting | Done |
 | All 15 Era 1 Trials, mini-bosses, Great Mammoth, Era Key, first-win vs replay rewards | Done |
 | Combat: 3 AP + carry-over, intents, block, crit, dodge, stun, burn, bleed, fire fear, interrupts, veterans | Done |
 | PROCTOR lines, glitches (first after Trial 4), 19 achievements | Done |

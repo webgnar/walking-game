@@ -165,7 +165,7 @@ export const BOOSTERS = {
 // ---------- Crafting (MVP guess: recipes) ----------
 // Put one item type in each slot. A recipe matches the exact set of item types;
 // the amounts are what one craft consumes. Materials: 'flint','bone'; anything else is a gear key.
-// studio: minimum Crafting Studio tier. Unknown recipes can still be found by experimenting.
+// studio: minimum Workshop tier. Unknown recipes can still be found by experimenting.
 export const RECIPES = [
   { id: 'r_flint_club', out: { gear: 'flint_club' }, inputs: { flint: 5, bone: 2 }, studio: 1, known: true },
   { id: 'r_bone_mail', out: { gear: 'bone_mail' }, inputs: { hide_wrap: 1, bone: 6 }, studio: 1, known: true },
@@ -179,7 +179,7 @@ export const RECIPES = [
 
 // ---------- Base ----------
 export const BUILDINGS = {
-  studio: { name: 'Crafting Studio', short: 'Studio', icon: '⚒', unlocks: ['Two-item crafts', 'Three-item crafts', 'Master recipes'] },
+  studio: { name: 'Workshop', short: 'Workshop', icon: '⚒', unlocks: ['Two-item crafts', 'Three-item crafts', 'Master recipes'] },
   altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Loadout 5 skills, skill rank 2', 'Skill rank 3', 'Loadout 6 skills, training 25% cheaper'] },
   inventory: { name: 'Inventory', short: 'Inventory', icon: '🧺', unlocks: ['30 slots', '40 slots', '50 slots'] },
   shrine: { name: 'Shrine', short: 'Shrine', icon: '⛩', unlocks: ['Better loot box odds', 'Even better odds', 'Best odds'] },

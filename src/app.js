@@ -322,15 +322,15 @@ const SCREENS = {
     const items = B.craftables(s);
     const known = RECIPES.filter((r) => s.recipes.includes(r.id));
     let preview = '❔';
-    let note = studio < 1 ? '<span class="bad">Build the Crafting Studio first.</span>' : 'Put items in the slots. Matching a recipe you don\'t know teaches it.';
+    let note = studio < 1 ? '<span class="bad">Build the Workshop first.</span>' : 'Put items in the slots. Matching a recipe you don\'t know teaches it.';
     if (rec && keys.filter(Boolean).length >= 2) {
       const knownR = s.recipes.includes(rec.id);
       preview = rec.out.gear ? gearIcon(rec.out.gear) : ICON[rec.out.booster];
       if (rec.blueprint && !knownR) note = '<span class="warn">Something is here, but you need its blueprint.</span>';
-      else if (rec.studio > studio) note = `<span class="warn">Needs Crafting Studio tier ${rec.studio}.</span>`;
+      else if (rec.studio > studio) note = `<span class="warn">Needs Workshop tier ${rec.studio}.</span>`;
       else note = `${knownR ? '' : '<b class="ok">New recipe! </b>'}${esc(B.recipeName(rec))}: needs ${Object.entries(rec.inputs).map(([k, n]) => `${n} ${itemName(k)}`).join(' + ')}${B.hasInputs(s, rec) ? '' : ' <span class="bad">(not enough)</span>'}`;
     }
-    return `${topbar('Crafting Studio', `Tier ${studio} · ${slots}-item crafts`, 'base')}
+    return `${topbar('Workshop', `Tier ${studio} · ${slots}-item crafts`, 'base')}
     <div class="screen">
       <div class="col grow panel halftone pad">
         <div class="row" style="justify-content:center;gap:10px;margin:4px 0 8px">
@@ -1026,7 +1026,7 @@ const ACTIONS = {
       say(`${r.learned ? 'New recipe learned! ' : ''}${pick(PROCTOR.craft)}`);
       app.craft = [null, null, null];
     } else {
-      const msg = { studio: 'Build the Crafting Studio first.', empty: 'Put at least two items in.', nothing: 'That makes nothing. Well, it makes a mess.', blueprint: 'There is a recipe here, but you need its blueprint. Bosses and rare boxes drop them.', tier: `This needs Crafting Studio tier ${r.need}.`, amount: 'Not enough of something. Check the recipe amounts.' }[r.why];
+      const msg = { studio: 'Build the Workshop first.', empty: 'Put at least two items in.', nothing: 'That makes nothing. Well, it makes a mess.', blueprint: 'There is a recipe here, but you need its blueprint. Bosses and rare boxes drop them.', tier: `This needs Workshop tier ${r.need}.`, amount: 'Not enough of something. Check the recipe amounts.' }[r.why];
       say(msg);
     }
     commit();

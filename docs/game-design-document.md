@@ -189,7 +189,7 @@ One plot of land that changes in place each era; old layers stay visible underne
 
 | Building | Upgrading it unlocks |
 | --- | --- |
-| Crafting Studio | More complex recipes (three-item crafts) and higher-tier crafting |
+| Workshop | More complex recipes (three-item crafts) and higher-tier crafting |
 | Hero Training Altar | New skills for the hero; also where Soles are spent on training (XP) |
 | Inventory | More storage slots |
 | Shrine | Better loot box odds |
@@ -198,7 +198,7 @@ One plot of land that changes in place each era; old layers stay visible underne
 ## Shop and crafting
 
 - **Shop:** basic gear and materials for Soles.
-- **Crafting Studio:** two-item crafts at first; three-item crafts and higher tiers after upgrades.
+- **Workshop:** two-item crafts at first; three-item crafts and higher tiers after upgrades.
 - **Blueprints teach recipes.** Once crafted, an item can be crafted again without another blueprint.
 - **Inventory:** a simple grid of equal squares.
 
@@ -375,8 +375,8 @@ Sketches: [Home and Trials map](sketches/home-trials-map.jpg), [Combat and rewar
 | Trials map | A winding path of Trial nodes over an era background; two mini-bosses and the era boss with the Era Key | Combat |
 | Combat | Hero vs. enemies, enemy intents, skill bar | Reward |
 | Reward | First win: a loot box opens. Replay: materials and gear | Back to the Trials map |
-| Base | Crafting Studio, Hero Training Altar, Inventory, Shrine, Truth Board | Each building |
-| Crafting Studio | Item + item = new item (three slots after upgrade), known recipes, inventory strip | Back to Base |
+| Base | Workshop, Hero Training Altar, Inventory, Shrine, Truth Board | Each building |
+| Workshop | Item + item = new item (three slots after upgrade), known recipes, inventory strip | Back to Base |
 | Hero | Stats and Skills tabs, the hero, gear slots, an equal-square inventory grid, a Train button | Back to Home |
 
 Sketch questions answered: blueprints aren't a slot (they teach recipes); the inventory is equal squares; training happens at the altar or the Hero screen.
