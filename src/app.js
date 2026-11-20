@@ -152,7 +152,7 @@ const SCREENS = {
     <div class="home-right">
       <button class="btn big pink ${hint('trials')}" data-a="go" data-v="map">⚔ Trials</button>
       <button class="btn ${hint('hero')}" data-a="hero" data-v="gear">🎒 Hero${sp ? `<span class="badge">${sp}</span>` : ''}</button>
-      <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Loot boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
+      <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
     </div>
     ${s.report ? `<div class="reportbtn"><button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button></div>` : ''}
     <div class="home-bottom">
