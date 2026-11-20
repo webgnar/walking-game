@@ -375,3 +375,17 @@ html:fullscreen, body:fullscreen { background: #0d0b14; }
 .cutdots i { width: 16px; height: 3px; background: #333; } .cutdots i.on { background: #fff; }
 .cutskip { position: absolute; top: calc(var(--st) + 8px); right: calc(var(--sr) + 10px); }
 @media (prefers-reduced-motion: reduce) { .cutpanel, .cut.title .tt, .cutico.glow::after { animation: none; } }
+
+/* Transmissions from 7,301,223 (former tribute): green terminal text, sigil pulse */
+.homecenter { position: absolute; z-index: 5; top: calc(var(--st) + 92px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.homecenter > * { pointer-events: auto; }
+.homecenter .btn { font-size: calc(var(--u) * 4); white-space: nowrap; }
+.signal { display: flex; align-items: center; gap: 8px; max-width: min(520px, 60vw); background: #05060a; color: var(--green); border: 2px solid var(--green); box-shadow: 0 0 12px rgba(77,255,154,.35); padding: 4px 12px; font: 12px/1.3 ui-monospace, Menlo, monospace; cursor: pointer; text-align: left; }
+.signal .sig { font-size: 18px; text-shadow: 0 0 8px var(--green); animation: sigil 1.1s steps(2) infinite; }
+.txmsg { background: #05060a; color: var(--green); border: 2px solid var(--green); padding: 8px 10px; margin-top: 8px; font-family: ui-monospace, Menlo, monospace; }
+.txmsg .txh { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.txmsg p { margin: 4px 0; font-size: 14px; line-height: 1.45; }
+.txmsg .mbar { height: 6px; background: #12301f; border: 1px solid var(--green); margin: 4px 0; }
+.txmsg .mbar i { display: block; height: 100%; background: var(--green); }
+.txmsg.cleared { margin: 8px 0 2px; }
+.tx .body { overflow-y: auto; }

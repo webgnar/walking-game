@@ -31,6 +31,7 @@ Progress is saved in the browser (localStorage). **Settings → Reset progress**
 | Combat: 3 AP + carry-over, intents, block, crit, dodge, stun, burn, bleed, fire fear, interrupts, veterans | Done |
 | PROCTOR lines, glitches (first after Trial 4), 19 achievements | Done |
 | Story fragments and Truth Board decoding | Done: 9 Act 1 fragments read in order as a story; decoding all 9 plays the Era 1 flashback cutscene |
+| First-hour story beats | Done: transmissions from 7,301,223 (former tribute) after Trials 4, 10 and 14 clear with 1,000 / 2,000 / 3,000 steps (signal panel on Home, cleared message in the expedition report, log on the Truth Board); memory flicker after Trial 7; PROCTOR's slip after Trial 12. Saves that already passed those Trials get their transmissions on next launch |
 | Open all loot boxes | Done: on Home (with 2+ boxes) and in the loot box window; shows one merged summary |
 | Evolve: Era Key + base tier 3 + level 10, pick 1 of 3 Boons, free respec, materials to Soles | Done. Era 2 shows an "under construction" screen |
 | 3D comic look: toon shading, ink outlines, halftone overlay; cyberpunk comic UI | Placeholder shapes, as agreed |

@@ -360,7 +360,7 @@ Still open: text only or voiced.
 
 The sigils on his hands are a new story thread: they're how the Ascent marks and tracks a tribute (in the full story, how it draws on their effort). They should glow when he walks and react to things from 7,301,223.
 
-## The first hour (proposed)
+## The first hour (built; tune after playtests)
 
 **Goal:** after about 20 minutes, the player wants to go for a walk, because the story stopped at a cliffhanger they can only get past by walking. Across the first hour of play (three sessions with walks in between), every session ends with three open loops:
 
@@ -368,7 +368,7 @@ The sigils on his hands are a new story thread: they're how the Ascent marks and
 - **A power loop:** a Trial they can't beat yet.
 - **A timer loop:** a base upgrade finishing while they're out.
 
-### New mechanic: transmissions (proposed)
+### New mechanic: transmissions (built)
 
 Messages from 7,301,223 (former tribute) arrive broken. The signal only gets stronger while you walk: "Signal 12%. Walk 1,000 steps to clear it." Each one reads as a cliffhanger, and the expedition report shows the cleared message when you come back. The sigils on the hero's hands pulse as the signal grows.
 

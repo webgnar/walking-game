@@ -5,7 +5,8 @@ import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
   INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS,
 } from './data/era1.js';
-import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS } from './data/story.js';
+import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
+import * as ST from './logic/story.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
 import * as B from './logic/base.js';
@@ -45,6 +46,7 @@ export function start() {
   B.tickBase(s);
   syncLook();
   stage.setBase(tiers());
+  for (const t of TRANSMISSIONS) if (s.trials.cleared[t.trial]) ST.startTransmission(s, t.id);
   if (!s.intro) go('intro');
   else if (s.tutorial === 'fight') startBattle(0);
   else { go('home'); say(pick(PROCTOR.home)); }
@@ -87,7 +89,7 @@ function go(screen, opts = {}) {
 }
 
 function say(text, opts = {}) {
-  const p = { text, glitch: !!opts.glitch, wide: !!opts.wide, then: opts.then || null };
+  const p = { text, glitch: !!opts.glitch, wide: !!opts.wide, then: opts.then || null, who: opts.who || null };
   app.proctor = p;
   renderProctor();
   // PROCTOR gets out of the way on its own unless the line matters
@@ -150,6 +152,10 @@ const SCREENS = {
     return `${topbar(s.era === 1 ? 'Primal' : 'Brick', `Subject 7,301,224 · Level ${s.hero.level}`, null)}
     <div class="walkmeter">Today <b>${fmt(today)}</b> steps · next loot box in ${fmt(toBox)}${stride ? ' · <span class="ok">Stride Brew: 2 steps per Sole</span>' : ''}
       <div class="bar"><i style="width:${(s.steps.towardBox / 10).toFixed(1)}%"></i></div></div>
+    <div class="homecenter">
+      ${s.report ? `<button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
+      ${signalChip()}
+    </div>
     <div class="home-left">
       <button class="btn big cyan ${hint('base')}" data-a="go" data-v="base">🏕 Base${jobs ? `<span class="badge">${jobs}</span>` : ''}</button>
       <button class="btn" data-a="go" data-v="shop">🛒 Shop</button>
@@ -160,7 +166,6 @@ const SCREENS = {
       <button class="btn yellow ${hint('boxes')}" data-a="modal" data-v="boxes">📦 Boxes${s.boxes.length ? `<span class="badge">${s.boxes.length}</span>` : ''}</button>
       ${s.boxes.length > 1 ? '<button class="btn orange openall" data-a="openAll">Open all</button>' : ''}
     </div>
-    ${s.report ? `<div class="reportbtn"><button class="btn orange ${hint('report')}" data-a="modal" data-v="report">📜 Expedition report · ${fmt(s.report.steps)} steps</button></div>` : ''}
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero">
       ${sp || hint('hero') ? `<div class="herotag ${hint('hero') || 'pulse'}">${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</div>` : ''}
     </div>
@@ -381,6 +386,7 @@ const SCREENS = {
           ${ready ? '<div class="small">Every piece decoded. The memory is whole.</div>' : `<div class="small">Decode all ${list.length} pieces of this era to recover the memory.</div><div class="mbar"><i style="width:${(done / list.length) * 100}%"></i></div>`}</div>
         <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? '▶ Watch again' : '▶ Play memory') : `🔒 ${done}/${list.length}`}</button>
       </div>
+      ${s.transmissions.cleared.length || s.transmissions.active ? `<button class="btn tiny ghost" style="align-self:flex-start" data-a="modal" data-v="transmission">📡 Transmissions (${s.transmissions.cleared.length} cleared${s.transmissions.active ? ', 1 incoming' : ''})</button>` : ''}
       <div class="scroll grow story">
       ${list.map((f, i) => {
         const st = B.fragmentState(s, f);
@@ -409,22 +415,28 @@ const SCREENS = {
 
 // One shot of the opening cutscene. Real art when shot.art is set; otherwise a
 // black-and-white manga placeholder that shows the art brief.
-function cutShot(sh, i, n) {
+function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
   const dots = `<div class="cutdots">${Array.from({ length: n }, (_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>`;
-  const skip = '<button class="btn tiny ghost cutskip" data-a="introSkip">Skip</button>';
+  const skip = `<button class="btn tiny ghost cutskip" data-a="${skipA}">Skip</button>`;
   if (sh.style === 'title') {
-    return `<div class="cut title" data-a="introTap"><div class="speed"></div><div class="tt"><small>${esc(sh.title)}</small>${esc(sh.text)}</div>${dots}</div>`;
+    return `<div class="cut title" data-a="${tapA}"><div class="speed"></div><div class="tt"><small>${esc(sh.title)}</small>${esc(sh.text)}</div>${dots}</div>`;
   }
   const pic = sh.art
     ? `<img class="cutart" src="${esc(sh.art)}" alt="">`
     : `<div class="cutph"><div class="speed"></div>${sh.icon ? `<div class="cutico ${sh.glow ? 'glow' : ''}">${sh.icon}</div>` : ''}<div class="brief">ART: ${esc(sh.brief)}</div></div>`;
-  return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="introTap" key="${i}">
+  return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="${tapA}" key="${i}">
     <div class="cutpanel">${pic}
       ${sh.caption ? `<div class="cap">${esc(sh.caption)}</div>` : ''}
       ${sh.sfx ? `<div class="sfx">${esc(sh.sfx)}</div>` : ''}
       ${sh.thought ? `<div class="thought">${esc(sh.thought)}</div>` : ''}
       ${sh.voice ? `<div class="voice"><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
     </div>${dots}${skip}</div>`;
+}
+
+function signalChip() {
+  const a = ST.activeTransmission(s);
+  if (!a) return '';
+  return `<button class="signal" data-a="modal" data-v="transmission"><span class="sig">✦</span><span><b>Signal ${Math.floor(a.frac * 100)}%</b> · ${esc(FORMER_TRIBUTE)} · walk ${fmt(a.left)} steps to clear it</span></button>`;
 }
 
 function card(icon, title, sub = '', cls = '') {
@@ -559,6 +571,8 @@ const MODALS = {
     return `<div class="dialog panel halftone">
       <h2 class="h">📜 Expedition report</h2>
       <div class="muted small">While you were out</div>
+      <div class="body">
+      ${(r.transmissions || []).map((id) => `<div class="txmsg cleared"><div class="txh">📡 Signal cleared · ${esc(FORMER_TRIBUTE)}</div><p>${esc(ST.txById(id).text)}</p></div>`).join('')}
       <div class="loot" style="margin:10px 0">
         ${card('🚶', `${fmt(r.steps)} steps`)}
         ${card('👣', `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
@@ -567,6 +581,7 @@ const MODALS = {
         ${r.mats.bone ? card('🦴', `${r.mats.bone} Bone`, 'found on the way') : ''}
       </div>
       ${r.lost ? `<div class="small warn">${r.lost} loot box${r.lost > 1 ? 'es' : ''} lost: you can hold ${E.BOX_LIMIT} unopened. Open them more often.</div>` : ''}
+      </div>
       <div class="proctor wide" style="position:static;margin-top:8px"><div class="eye"></div><div class="bubble"><span class="who">PROCTOR</span>${esc(comment)}</div></div>
       <div class="actions"><button class="btn yellow" data-a="collect">Collect</button></div>
     </div>`;
@@ -706,6 +721,24 @@ const MODALS = {
       <h2 class="h" style="color:#1a1408;text-shadow:none">${esc(f.title)}</h2>
       <p style="font-size:16px">${esc(f.text)}</p>
       ${m.flashback ? `<div class="actions" style="justify-content:space-between;align-items:center"><span class="small" style="color:#8a2a20">The last piece. Something is surfacing…</span><button class="btn yellow" data-a="flashback" data-v="${m.flashback}">▶ Play memory</button></div>` : ''}</div>`;
+  },
+
+  cut(m) {
+    return cutShot(m.shots[m.i], m.i, m.shots.length, 'cutNext', 'cutSkip');
+  },
+
+  transmission() {
+    const a = ST.activeTransmission(s);
+    const log = s.transmissions.cleared;
+    return `<div class="dialog panel halftone tx">
+      <button class="x" data-a="closeModal">✕</button>
+      <h2 class="h">📡 Transmissions</h2>
+      <div class="small muted">From ${esc(FORMER_TRIBUTE)}. The signal only gets stronger while you walk.</div>
+      <div class="body">
+        ${a ? `<div class="txmsg live"><div class="txh">Incoming · signal ${Math.floor(a.frac * 100)}%</div><p>${esc(ST.signalText(a, a.frac))}</p>
+          <div class="mbar"><i style="width:${a.frac * 100}%"></i></div><div class="small">Walk ${fmt(a.left)} more steps to clear it.</div></div>` : '<div class="small muted">No signal right now.</div>'}
+        ${log.slice().reverse().map((id) => `<div class="txmsg"><div class="txh">Cleared</div><p>${esc(ST.txById(id).text)}</p></div>`).join('')}
+      </div></div>`;
   },
 
   flashback(m) {
@@ -949,8 +982,28 @@ function endBattle() {
   commit();
   if (result === 'win' && b.trial > 0) say(r.first ? pick(PROCTOR.win) : pick(PROCTOR.replayWin));
   if (r.glitch) setTimeout(() => glitch(), 900);
+  if (r.transmission) setTimeout(() => incoming(r.transmission), 900);
+  if (r.slip) setTimeout(() => say(PROCTOR_SLIP[0], { sticky: true, then: () => say(PROCTOR_SLIP[1]) }), 900);
+  if (r.flicker) setTimeout(() => playCut(FLICKERS[r.flicker].shots, () => { s.flickersSeen.push(r.flicker); commit(); say('A corrupted frame. Someone else\'s footage. Happens. Moving on.'); }), 1200);
   if (r.n === 5 && r.first) app.pendingWall = true;
   syncLook();
+}
+
+// A broken transmission arrives from 7,301,223 (former tribute).
+function incoming(id) {
+  const def = ST.txById(id);
+  say(`${ST.signalText(def, 0)}  [signal 0%: walk ${fmt(def.steps)} steps to clear it]`, {
+    glitch: true, sticky: true, who: FORMER_TRIBUTE,
+    then: () => say('Cosmic ray. Ignore it. Definitely do not go for a walk to hear the rest.'),
+  });
+}
+
+// Play a short black-and-white cutscene in the modal layer.
+function playCut(shots, done) {
+  app.proctor = null;
+  app.modal = { type: 'cut', shots, i: 0, done };
+  renderModal();
+  renderProctor();
 }
 
 function glitch() {
@@ -980,7 +1033,7 @@ const ACTIONS = {
   settings() { openModal('settings'); },
   modal(v) { openModal(v); },
   closeModal() { closeModal(); render(); },
-  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
+  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback', 'cut'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
   dismissProctor() { const then = app.proctor && app.proctor.then; app.proctor = null; renderProctor(); if (then) then(); },
   dismissToast(v) { app.toastQ = (app.toastQ || []).filter((t) => t.id !== v); renderToasts(); },
 
@@ -1148,6 +1201,19 @@ const ACTIONS = {
     commit();
   },
   readFrag(v) { openModal('frag', { id: v }); },
+  cutNext() {
+    const m = app.modal;
+    if (!m || m.type !== 'cut') return;
+    if (m.i < m.shots.length - 1) { m.i++; renderModal(); return; }
+    ACTIONS.cutSkip();
+  },
+  cutSkip() {
+    const m = app.modal;
+    if (!m || m.type !== 'cut') return;
+    closeModal();
+    render();
+    if (m.done) m.done();
+  },
   flashback(v) {
     const era = Number(v);
     if (!B.flashbackReady(s, era)) return;

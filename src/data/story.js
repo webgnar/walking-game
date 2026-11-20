@@ -106,7 +106,7 @@ export const PROCTOR = {
     'Who said that? Nobody. Static. Next.',
   ],
   wall: [
-    "Out of Soles and Trial 6 has three wolves. Here is a novel idea: walk 2,000 steps. Two loot boxes and your upgrade will be waiting. It's called your front door.",
+    "Out of Soles, and Trial 6 has three wolves. Here is a novel idea: walk 1,000 steps. A loot box, your upgrade, and that annoying signal will all be waiting. It's called your front door.",
   ],
   boxOpen: [
     'Ooh, a box. Everybody loves a box.',
@@ -155,6 +155,37 @@ export const FRAGMENTS = [
     text: 'SOLE (n.): unit of contestant effort. Original source term redacted by order of the Conclave. Translation flagged "approximate." Do not correct.' },
   { id: 'f9', era: 1, level: 3, cost: 200, kind: 'Message', from: FORMER_TRIBUTE, title: 'Still in here',
     text: 'I am still in here. Pieces of me. I broke something on my way out and it is the only reason you can read this. Do not finish the Ascent. Not yet. Not until you know.' },
+];
+
+// Transmissions: broken messages from 7,301,223 (former tribute). The signal only
+// gets stronger while you walk; words fill in as it does. Started by first wins.
+// steps = steps needed to clear. start = share of words readable at 0% signal.
+export const TRANSMISSIONS = [
+  { id: 't1', trial: 4, steps: 1000, start: 0.3,
+    text: "they told you this was a game. it isn't. i was 7,301,223. i was a miner too. the tower lit my hands the same way it lit yours. watch your hands when you walk." },
+  { id: 't2', trial: 10, steps: 2000, start: 0.25,
+    text: 'count the jokes. when PROCTOR stops joking, run. mine stopped in the ninth era. i did not run.' },
+  { id: 't3', trial: 14, steps: 3000, start: 0.2,
+    text: 'the mammoth is a door. on the other side, they are watching you. read the whole board before you walk through it. all of it.' },
+];
+
+// Memory flickers: 2-shot black-and-white glimpses, shorter than a flashback.
+export const FLICKERS = {
+  m1: {
+    trial: 7,
+    shots: [
+      { art: null, icon: '✋', glow: true, caption: 'Memory flicker', thought: "Those aren't my hands.",
+        brief: "Another miner's hands: older, scarred, the same sigils flashing. Not the hero's." },
+      { art: null, icon: '🗼', voice: { who: 'Voice from the spire', text: 'Subject 7,301,223. You have been selected for the Ascent.' },
+        brief: 'The same gold spire, seen from a different quarry, years earlier. Same light, different miner.' },
+    ],
+  },
+};
+
+// The first time PROCTOR forgets to joke (Trial 12), then covers it up.
+export const PROCTOR_SLIP = [
+  'You are progressing faster than projected. The Conclave will be informed.',
+  '...That was a joke. Laugh. I said laugh.',
 ];
 
 // Flashbacks: when every fragment of an era is decoded, the Truth Board plays that era's

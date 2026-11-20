@@ -2,6 +2,7 @@
 import { GEAR, BOOSTERS, RECIPES, INVENTORY_SLOTS } from '../data/era1.js';
 import { FRAGMENTS, GLITCHES } from '../data/story.js';
 import { env, dayKey, weekKey, pick, randInt, chance, uid, toast } from './state.js';
+import { feedTransmission } from './story.js';
 
 export const STEPS_PER_BOX = 1000;
 export const STEPS_PER_MAT = 500; // MVP guess
@@ -83,6 +84,8 @@ export function ingestSteps(s, n, source = 'debug') {
     s.steps.towardMat -= STEPS_PER_MAT;
     r.mats[chance(0.5) ? 'flint' : 'bone']++;
   }
+  const cleared = feedTransmission(s, n);
+  if (cleared.length) r.transmissions = [...(r.transmissions || []), ...cleared];
   updateWeekly(s);
   goalEvent(s, 'steps', 0);
 }

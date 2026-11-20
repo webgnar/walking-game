@@ -3,6 +3,8 @@ import { TRIALS, RECIPES } from '../data/era1.js';
 import { env, randInt, chance, pick } from './state.js';
 import { addXp } from './hero.js';
 import { addBox, addGear, rollTier, giveFragment, goalEvent, grantReward, STARTER } from './economy.js';
+import { startTransmission } from './story.js';
+import { TRANSMISSIONS, FLICKERS } from '../data/story.js';
 
 export function trialUnlocked(s, n) {
   if (n === 0) return true;
@@ -58,7 +60,12 @@ export function finishTrial(s, n, result, battle) {
       const bp = RECIPES.find((r) => r.blueprint && !s.recipes.includes(r.id));
       if (bp) { s.recipes.push(bp.id); s.blueprints.push(bp.id); out.blueprint = bp.id; }
     }
-    if (n === 4) out.glitch = true;
+    // First-hour story beats (GDD "The first hour")
+    const t0 = TRANSMISSIONS.find((x) => x.trial === n);
+    if (t0 && startTransmission(s, t0.id)) out.transmission = t0.id;
+    const fl = Object.entries(FLICKERS).find(([, f]) => f.trial === n);
+    if (fl && !s.flickersSeen.includes(fl[0])) out.flicker = fl[0];
+    if (n === 12 && !s.proctorSlipped) { s.proctorSlipped = true; out.slip = true; }
     if (n === 5 || n === 10 || n === 15) { const fr = giveFragment(s); if (fr) out.fragment = fr.id; }
   } else {
     s.trials.replays++;

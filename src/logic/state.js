@@ -60,6 +60,9 @@ export function newState() {
     evolved: false,
     fragments: { found: [], decoded: [] },
     flashbacksSeen: [], // eras whose Truth Board flashback has played
+    transmissions: { active: null, queue: [], cleared: [] }, // messages from 7,301,223
+    flickersSeen: [],
+    proctorSlipped: false,
     glitches: 0,
     achievements: {},
     toasts: [],
