@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
 import { buildBackdrop } from './backdrop.js';
 import { attachBeast } from './beasts.js';
-import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding, loadBuildingModel } from './models.js';
+import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildTrialSet, buildFire, buildBuilding, loadBuildingModel } from './models.js';
 
 const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
@@ -24,6 +24,21 @@ const CAMS = {
   combat: { pos: [0.7, 2.6, 10.6], look: [0.7, 1.4, 0] },
 };
 
+// Soft contact shadow: a dark ellipse that fades out from the centre (worked out in the shader, no texture).
+let blobMat;
+function blobShadow(size) {
+  blobMat ||= new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'varying vec2 vUv; void main() { float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(0.03, 0.01, 0.0, 0.9 * pow(1.0 - smoothstep(0.0, 1.0, d), 0.9)); }',
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size * 0.7), blobMat);
+  m.rotation.x = -Math.PI / 2;
+  m.renderOrder = 1;
+  return m;
+}
+
 export class Stage {
   constructor(canvas) {
     this.canvas = canvas;
@@ -40,10 +55,19 @@ export class Stage {
     this.camera.position.copy(this.camPos);
     this.lookNow = this.camLook.clone();
 
-    this.scene.add(new THREE.HemisphereLight(0xffd2b0, 0x2a1612, 1.2));
+    this.hemi = new THREE.HemisphereLight(0xffd2b0, 0x2a1612, 1.2);
+    this.scene.add(this.hemi);
     const sun = new THREE.DirectionalLight(0xffd8b8, 1.6);
     sun.position.set(4, 8, 6);
     this.scene.add(sun);
+    this.sun = sun;
+    // the Trial's own dressing and dusk lighting (cliffs, firelight, moon rim), shown in combat only
+    this.trialSet = buildTrialSet();
+    this.trialSet.visible = false;
+    this.scene.add(this.trialSet);
+    // soft contact shadows so the fighters sit on the textured ground
+    this.heroBlob = blobShadow(1.7);
+    this.scene.add(this.heroBlob);
 
     this.scene.add(buildCave());
     this.fire = buildFire();
@@ -158,6 +182,12 @@ export class Stage {
     this.clearFx();
     this.timeScale = 1;
     this.fire.visible = mode !== 'combat';
+    const trial = mode === 'combat';
+    this.trialSet.visible = trial;
+    // dusk in the Trial: dimmer sky fill and key so the firelight and the moon's rim light carry the scene
+    this.hemi.intensity = trial ? 0.6 : 1.2;
+    this.hemi.color.set(trial ? 0xd8b8b0 : 0xffd2b0);
+    this.sun.intensity = trial ? 0.75 : 1.6;
     for (const b of Object.values(this.buildings)) b.visible = mode === 'base';
   }
 
@@ -202,7 +232,7 @@ export class Stage {
 
   // ---------- Combat actors ----------
   clearEnemies() {
-    for (const e of this.enemies.values()) this.scene.remove(e.obj);
+    for (const e of this.enemies.values()) { this.scene.remove(e.obj); this.scene.remove(e.blob); }
     this.enemies.clear();
   }
 
@@ -216,7 +246,8 @@ export class Stage {
         const obj = buildEnemy(e.id);
         this.scene.add(obj);
         attachBeast(obj, e.id); // rigged model replaces the stand-in when there is one
-        a = { obj, id: e.id, uid: e.uid, home: new THREE.Vector3() };
+        a = { obj, id: e.id, uid: e.uid, home: new THREE.Vector3(), blob: blobShadow(Math.min(3.2, enemyHeight(e.id) * 1.7)) };
+        this.scene.add(a.blob);
         this.enemies.set(e.uid, a);
         obj.userData.baseScale = obj.scale.x;
         obj.scale.multiplyScalar(0.01);
@@ -230,7 +261,7 @@ export class Stage {
       a.home.set(x, 0, z);
       a.obj.position.copy(a.home);
     });
-    for (const [uid, a] of this.enemies) if (!seen.has(uid)) { this.scene.remove(a.obj); this.enemies.delete(uid); }
+    for (const [uid, a] of this.enemies) if (!seen.has(uid)) { this.scene.remove(a.obj); this.scene.remove(a.blob); this.enemies.delete(uid); }
     this.frameFight(list);
   }
 
@@ -535,6 +566,9 @@ export class Stage {
     } else { this.shakeOff.set(0, 0, 0); this.shakeAmp = 0; }
     this.camera.position.add(this.shakeOff);
     this.updateParticles(gdt);
+    this.heroBlob.visible = this.mode === 'combat' && this.hero.visible;
+    this.heroBlob.position.set(this.hero.position.x, 0.02, this.hero.position.z);
+    for (const a of this.enemies.values()) { a.blob.position.set(a.obj.position.x, 0.02, a.obj.position.z); a.blob.visible = a.obj.visible; }
     // idle
     const hb = this.hero.userData.body;
     hb.position.y = Math.sin(t * 2) * 0.02;

@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { buildFlames } from './fire.js';
+import { groundMaterial, rockMaterial, boulderGeometry } from './terrain.js';
 
 // ---------- Imported props (zack's models) ----------
 const PROPS = {};
@@ -377,10 +378,10 @@ export function enemyHeight(id) {
 // ---------- Environment ----------
 export function buildCave() {
   const g = new THREE.Group();
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 40), toon(0x5a3528));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 48), groundMaterial());
   ground.rotation.x = -Math.PI / 2;
   g.add(ground);
-  // rocks around
+  // boulders around, textured with zack's rock wall (scene/terrain.js)
   const rng = mulberry(7);
   for (let i = 0; i < 26; i++) {
     const a = Math.PI * 0.9 + (i / 26) * Math.PI * 1.2 + rng() * 0.1;
@@ -391,10 +392,37 @@ export function buildCave() {
     const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
     // behind-right stays low so the citadel and moon in the backdrop show over it (Home mockup)
     const low = x > 1 && z < 0 ? 0.45 : 1;
-    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x3e2824 : 0x4a302a, [x, s * 0.4 * low, z], [rng() * 3, rng() * 3, rng() * 3], [low, low, low], 0.1);
+    const m = new THREE.Mesh(boulderGeometry(s, i + 1, 0.8), rockMaterial());
+    m.position.set(x, s * 0.3 * low, z);
+    m.rotation.set(rng() * 0.4 - 0.2, rng() * 6.28, rng() * 0.4 - 0.2);
+    m.scale.setScalar(low);
     g.add(m);
   }
   // (distant mountains, moon and citadel are painted in the backdrop: scene/backdrop.js)
+  return g;
+}
+
+// Trial dressing: tall cliffs behind-left (the citadel side stays open), a warm firelight off to the
+// front-left and a red rim light from the moon behind the fighters.
+export function buildTrialSet() {
+  const g = new THREE.Group();
+  const rng = mulberry(23);
+  const cliffs = [[-15, -15, 5.5, 1.9], [-9.5, -17, 4.6, 2.3], [-19, -9, 4.8, 1.7], [-4, -19, 4, 1.6], [-21, -2, 4.2, 1.5]];
+  cliffs.forEach(([x, z, s, tall], i) => {
+    const m = new THREE.Mesh(boulderGeometry(s, 40 + i, tall), rockMaterial());
+    m.position.set(x, s * tall * 0.55, z);
+    m.rotation.y = rng() * 6.28;
+    g.add(m);
+  });
+  const fire = new THREE.PointLight(0xffa860, 24, 18, 1.4);
+  fire.position.set(-6, 1.4, 5);
+  g.add(fire);
+  const rim = new THREE.DirectionalLight(0xff6a48, 3.2);
+  rim.position.set(5, 1.6, -9);
+  g.add(rim);
+  const fill = new THREE.PointLight(0xffc08a, 8, 12, 1.6);
+  fill.position.set(3, 2.2, 4);
+  g.add(fill);
   return g;
 }
 
