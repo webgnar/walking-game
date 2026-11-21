@@ -238,7 +238,7 @@ Era 1 climbs the food chain in three acts. No human enemies. Each act teaches on
 
 Every Trial has a one-line setup card, and the Trial card lists the enemies' traits so the 4-skill loadout can be chosen for the fight ahead.
 
-**Skills (8 in Era 1, bring 4):** Club Strike, Guard, Roar (stun, 4-turn cooldown), Hurl Stone (stops a call for backup or a pounce; 2-turn cooldown), Flint Jab (ignores block and armor), Firebrand (burn; scares beasts once, then they resist for 2 turns), Sweep (hits every enemy), Second Wind (heal and stop bleeding). Stunned enemies shrug off the next stun.
+**Skills (8 in Era 1, bring 4):** He starts knowing Club Strike and Guard. Every other skill becomes available at its level and costs 1 skill point to learn (Roar and Hurl Stone at level 2, so the first point after Trial 0 is a choice); further points raise ranks. A respec refunds learned skills too. Club Strike, Guard, Roar (stun, 4-turn cooldown), Hurl Stone (stops a call for backup or a pounce; 2-turn cooldown), Flint Jab (ignores block and armor), Firebrand (burn; scares beasts once, then they resist for 2 turns), Sweep (hits every enemy), Second Wind (heal and stop bleeding). Stunned enemies shrug off the next stun.
 
 **Fury and finishers (in combat, no cutscene):**
 

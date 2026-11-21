@@ -82,24 +82,39 @@ export function equipFinisher(s, id) {
   return true;
 }
 
-// Unlock skills by level (GDD v1 table). Returns newly unlocked ids.
+// He starts knowing Club Strike and Guard. Every other skill becomes available at its level
+// and costs a skill point to learn (then a point per rank after that).
+export const STARTING_SKILLS = ['club', 'guard'];
+
+export function canLearn(s, id) {
+  const h = s.hero;
+  return !h.ranks[id] && h.level >= SKILLS[id].unlock && h.freeSkill > 0;
+}
+export function learnSkill(s, id) {
+  if (!canLearn(s, id)) return false;
+  const h = s.hero;
+  h.ranks[id] = 1;
+  h.freeSkill--;
+  if (h.loadout.length < loadoutSize(s)) h.loadout.push(id);
+  return true;
+}
+
+// Skills that became available between two levels (for the "new skill available" note).
+export function newlyAvailable(fromLevel, toLevel) {
+  return Object.keys(SKILLS).filter((id) => SKILLS[id].unlock > fromLevel && SKILLS[id].unlock <= toLevel);
+}
+
+// Keeps the loadout within the cap. (Skills are no longer granted automatically.)
 export function syncSkills(s) {
-  const newly = [];
   if (s.hero.loadout.length > LOADOUT_MAX) s.hero.loadout = s.hero.loadout.slice(0, LOADOUT_MAX);
-  for (const id of Object.keys(SKILLS)) {
-    if (s.hero.level >= SKILLS[id].unlock && !s.hero.ranks[id]) {
-      s.hero.ranks[id] = 1;
-      newly.push(id);
-      if (s.hero.loadout.length < loadoutSize(s)) s.hero.loadout.push(id);
-    }
-  }
-  return newly;
+  return [];
 }
 
 export function addXp(s, amount) {
   const h = s.hero;
   const cap = levelCap(s);
   let levels = 0;
+  const startLevel = h.level;
   if (h.level >= cap) return { levels, wasted: amount };
   h.xp += amount;
   while (h.level < cap && h.xp >= xpToNext(h.level)) {
@@ -110,9 +125,10 @@ export function addXp(s, amount) {
     levels++;
   }
   if (h.level >= cap) h.xp = 0;
-  const unlocked = syncSkills(s);
+  syncSkills(s);
+  const unlocked = newlyAvailable(startLevel, h.level);
   if (levels) toast(s, { kind: 'level', title: `Level ${h.level}!`, text: `+${2 * levels} attribute points, +${levels} skill point${levels > 1 ? 's' : ''}` });
-  for (const id of unlocked) toast(s, { kind: 'skill', title: 'New skill', text: `${SKILLS[id].name}: ${SKILLS[id].desc(SKILLS[id].power)}` });
+  if (unlocked.length) toast(s, { kind: 'skill', title: `New skill${unlocked.length > 1 ? 's' : ''} to learn`, text: `${unlocked.map((id) => SKILLS[id].name).join(' or ')}. Spend a skill point on the Hero screen.` });
   return { levels, unlocked };
 }
 
@@ -167,10 +183,12 @@ export function respec(s, free = false) {
   const spentA = Object.keys(HERO_START).reduce((t, k) => t + h.attrs[k] - HERO_START[k], 0);
   h.attrs = { ...HERO_START };
   h.freeAttr += spentA;
+  // refund every skill point: ranks, and learned skills (the two starting skills are free)
   for (const id of Object.keys(h.ranks)) {
-    h.freeSkill += h.ranks[id] - 1;
-    h.ranks[id] = 1;
+    h.freeSkill += h.ranks[id] - (STARTING_SKILLS.includes(id) ? 1 : 0);
+    if (STARTING_SKILLS.includes(id)) h.ranks[id] = 1; else delete h.ranks[id];
   }
+  h.loadout = h.loadout.filter((id) => h.ranks[id]);
   return true;
 }
 

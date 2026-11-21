@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { env, newState } from '../src/logic/state.js';
 import { createBattle, autoPlay } from '../src/logic/combat.js';
-import { addXp, spendAttr, autoEquipBest, grantFinisher } from '../src/logic/hero.js';
+import { addXp, spendAttr, autoEquipBest, grantFinisher, learnSkill } from '../src/logic/hero.js';
+import { SKILLS } from '../src/data/era1.js';
 import { addGear } from '../src/logic/economy.js';
 import { TRIALS } from '../src/data/era1.js';
 
@@ -17,6 +18,8 @@ function heroAt(level, gear = [], loadout = ['club', 'guard', 'roar', 'hurl']) {
   let i = 0; while (s.hero.freeAttr > 0) spendAttr(s, order[i++ % order.length]);
   for (const g of gear) addGear(s, g);
   autoEquipBest(s);
+  // learn the loadout's skills with skill points, as a player would
+  for (const k of loadout) if (!s.hero.ranks[k] && s.hero.level >= SKILLS[k].unlock) { s.hero.freeSkill = Math.max(1, s.hero.freeSkill); learnSkill(s, k); }
   s.hero.loadout = loadout.filter((k) => s.hero.ranks[k]);
   if (level >= 4) grantFinisher(s, 'skull');
   return s;

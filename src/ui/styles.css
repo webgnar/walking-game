@@ -1131,3 +1131,5 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 
 /* Trackers use the same game icons as the rest of the game */
 .cur .gimg, .ui-res .gimg { width: 1.35em; height: 1.35em; vertical-align: middle; }
+.skill.learnable { opacity: 1; border-style: dashed; }
+.skill.learnable .sname { color: #ffd27a; }
