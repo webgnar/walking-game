@@ -261,7 +261,7 @@ Three finishers per era.
 
 **Difficulty:** each Trial has a difficulty dial on enemy health and damage, set with a balance bot so a hero at the suggested level with sensible gear and loadout ends regular Trials with about 40% health, mini-bosses about 25% and the Mammoth about 20%, and two levels under loses most of the later Trials. The bot plays well, so real players will find these harder: tune after playtests.
 
-**Art:** the new beasts (mangy and beta wolves, hyena, mountain lion, elk, woolly rhino) are stand-ins built from simple shapes until real models arrive. Until gear is modeled in the hero's style, the hero always holds zack's club model (weapon stats still apply) and the blocky armor, helm, shield and trinket shapes are hidden.
+**Art:** the wolves are zack's rigged models; the hyenas reuse the rigged wolf, repainted sandy and spotted, until they get their own. The mountain lion, sabretooth, elk, woolly rhino and mammoth are still stand-ins built from simple shapes until real models arrive. Every Era 1 item shows on the hero: first-pass Blender models for wearables (docs/wearables.md) and weapons (tools/weapons/; the Worn Club is zack's club).
 
 ## Loot boxes and crafting, v2 (built)
 

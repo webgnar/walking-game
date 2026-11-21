@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
-// Items that have a wearable model. Weapons still use zack's club (see stage.shownLooks).
+// Items that have a wearable model. Weapons are held models (models.js loadWeapon).
 export const WEARABLES = new Set([
   'torn_hide', 'hide_wrap', 'bone_mail', 'wolf_pelt', 'sabre_hide',
   'skull_cap', 'bone_helm', 'lion_mask', 'storm_crown',

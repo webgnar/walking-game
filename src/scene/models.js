@@ -13,6 +13,34 @@ export async function loadProps() {
   PROPS.club = normalizeHeld(g.scene, 0.82);
 }
 
+// ---------- Weapons (first-pass Blender models, tools/weapons/) ----------
+// public/models/weapons/<itemId>.glb: grip end at the origin, pointing +Y, zack's club = 1.0 long.
+// The Worn Club (starter) is zack's club.glb itself. Items without a file fall back to it.
+export const WEAPON_FILES = new Set(['cracked_club', 'stone_club', 'flint_club', 'alpha_fang', 'tusk_club']);
+const CLUB_LEN = 0.82; // world length of zack's club in the hand
+const weaponCache = {};
+export function loadWeapon(id) {
+  if (!WEAPON_FILES.has(id)) return Promise.resolve(null);
+  if (!(id in weaponCache)) {
+    if (!gltf) { gltf = new GLTFLoader(); gltf.setMeshoptDecoder(MeshoptDecoder); }
+    weaponCache[id] = gltf.loadAsync(`/models/weapons/${id}.glb`).then((g) => {
+      g.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        const m = o.material;
+        if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+        m.metalness = 0;
+      });
+      const out = new THREE.Group();
+      g.scene.scale.setScalar(CLUB_LEN);
+      out.add(g.scene);
+      PROPS[`w:${id}`] = out;
+      return out;
+    }).catch((e) => { console.warn('[weapons] failed', id, e); return null; });
+  }
+  return weaponCache[id];
+}
+export const weaponLoaded = (id) => !WEAPON_FILES.has(id) || !!PROPS[`w:${id}`];
+
 // ---------- Base buildings (zack's models) ----------
 // public/models/base/<file>-t<tier>.glb, meshopt + webp, ~1 unit across with the base at y=0.
 // A tier without its own model uses the best lower tier's model, a bit bigger, until that art arrives.
@@ -88,9 +116,9 @@ function normalizeHeld(scene, length) {
 }
 
 // A club held in the fist: grip a little up from the butt, pointing out past the thumb.
-function heldClub(extra) {
+function heldClub(extra, model = PROPS.club) {
   const g = new THREE.Group();
-  const club = PROPS.club.clone();
+  const club = model.clone();
   club.position.y = -0.1;
   g.add(club);
   if (extra) extra(g);
@@ -202,7 +230,8 @@ export function setHeroLook(hero, looks) {
     const grp = into(slot);
     grp.clear();
     const k = looks[slot];
-    if (k && LOOKS[k]) grp.add(LOOKS[k]());
+    if (k && k.startsWith('w:')) grp.add(PROPS[k] ? heldClub(null, PROPS[k]) : PROPS.club ? heldClub() : LOOKS.club1());
+    else if (k && LOOKS[k]) grp.add(LOOKS[k]());
   }
   // bare-handed: the starting club
   if (!looks.weapon) into('weapon').add(PROPS.club ? heldClub() : part(G.cyl(0.04, 0.06, 0.6), C.wood, [0, 0, 0.22], [Math.PI / 2.4, 0, 0]));

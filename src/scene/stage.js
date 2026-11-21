@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
 import { buildBackdrop } from './backdrop.js';
 import { attachBeast } from './beasts.js';
-import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildTrialSet, buildFire, buildBuilding, loadBuildingModel } from './models.js';
+import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildTrialSet, buildFire, buildBuilding, loadBuildingModel, loadWeapon, weaponLoaded, WEAPON_FILES } from './models.js';
 
 const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
@@ -210,16 +210,23 @@ export class Stage {
   }
 
   // The rigged hero wears the fitted gear models (scene/wear.js) for armor, helm, offhand and
-  // trinket; the old placeholder shapes are only for the stand-in body. The weapon is always
-  // zack's club model for now: the other weapon looks are placeholder shapes.
+  // trinket; the old placeholder shapes are only for the stand-in body. The weapon is its own model
+  // from public/models/weapons (the Worn Club is zack's club.glb).
   // With no weapon equipped he is bare-handed ('none' draws nothing).
-  shownLooks() { return this.rig ? { weapon: this.looks.weapon ? 'club1' : 'none' } : { ...this.looks, weapon: this.looks.weapon || 'none' }; }
+  shownLooks() {
+    if (!this.rig) return { ...this.looks, weapon: this.looks.weapon || 'none' };
+    const w = this.gearIds.weapon;
+    return { weapon: !w ? 'none' : WEAPON_FILES.has(w) ? `w:${w}` : 'club1' };
+  }
   // looks: slot -> placeholder look key; ids: slot -> gear item id
   setHeroLook(looks, ids = {}) {
     this.looks = looks;
     this.gearIds = ids;
     setHeroLook(this.hero, this.shownLooks());
     if (this.rig) this.rig.wardrobe.wearAll(ids);
+    // weapon models load on first use; redraw the hand once this one arrives (if still equipped)
+    const w = ids.weapon;
+    if (w && !weaponLoaded(w)) loadWeapon(w).then(() => { if (this.gearIds.weapon === w) setHeroLook(this.hero, this.shownLooks()); });
   }
 
   setBase(tiers) {

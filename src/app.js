@@ -1452,7 +1452,7 @@ const ACTIONS = {
     renderModal();
   },
   forgeSkip() { finishForge('fine'); },
-  equipNew(v) { H.equip(s, v); closeModal(); commit(); },
+  equipNew(v) { H.equip(s, v); syncLook(); closeModal(); commit(); },
   reinforce(v) {
     const r = B.reinforce(s, v);
     if (!r.ok) say(r.why === 'max' ? 'It is as strong as it gets.' : 'Not enough materials to reinforce it.');

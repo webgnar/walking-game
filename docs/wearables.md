@@ -1,6 +1,6 @@
 # Wearables on the caveman hero
 
-The 19 Era 1 wearables (armor, helm, offhand, trinket) now show on zack's rigged caveman. This first pass was modelled in Blender from code (`tools/wearables/`) to fit his body exactly; the plan is to replace each one with zack's own art (ChatGPT reference, then Tripo) using the prompts below. Weapons are not in this pass: the hero still always holds zack's club.
+The 19 Era 1 wearables (armor, helm, offhand, trinket) now show on zack's rigged caveman. This first pass was modelled in Blender from code (`tools/wearables/`) to fit his body exactly; the plan is to replace each one with zack's own art (ChatGPT reference, then Tripo) using the prompts below. Weapons have their own first pass in `tools/weapons/weapons.py` (see the Weapons section at the end).
 
 ![In game](art/wearables/in-game.jpg)
 
@@ -138,3 +138,9 @@ A leather cord necklace with a small carved bone totem figure, banded with two r
 ```
 A leather cord necklace with a teardrop of clear honey amber glowing a pale ghostly gold, capped in bone, with small bone beads along the cord. Rare and mystic. Fit: around the neck, the amber hanging to the middle of the chest.
 ```
+
+## Weapons
+
+Each weapon is `public/models/weapons/<itemId>.glb`, held in the right hand (`loadWeapon` in `src/scene/models.js`). The Worn Club is zack's `club.glb`. The file space: grip end (butt) at the origin, pointing up +Y (glTF; +Z in Blender), sized so zack's club is 1.0 long. A replacement only needs to follow that. Cracked, Knapped and Flint Clubs are built on zack's club mesh; Alpha Fang and Mammoth Tusk Club are modelled from scratch.
+
+Rebuild: `python tools/weapons/weapons.py [-- item_id ...]`, then for each file `npx @gltf-transform/cli optimize <f> <f> --compress meshopt --texture-compress webp --texture-size 512 --simplify false`. A new weapon id must also go in `WEAPON_FILES` in models.js.
