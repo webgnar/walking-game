@@ -1112,3 +1112,9 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .proctor.glitch .who::before { background: #e2574a !important; box-shadow: 0 0 6px #e2574a; }
 .proctor.glitch .bubble { min-width: min(300px, 70vw); text-transform: none !important; font-size: 16px; animation: none; }
 .proctor.glitch .eye { background: #0d0505 !important; border-color: #7a1a14 !important; box-shadow: 0 0 12px rgba(226,87,74,.6) !important; }
+
+/* Hand-lettered manga SFX over the cutscene art: slam in, then a small shake. */
+.cutpanel .sfxart { position: absolute; height: auto; pointer-events: none; transform: rotate(var(--r)); filter: drop-shadow(0 3px 6px rgba(0,0,0,.6)); animation: sfxSlam .45s cubic-bezier(.2,1.6,.4,1) both, sfxShake .3s ease-out; animation-delay: var(--d), calc(var(--d) + .45s); }
+@keyframes sfxSlam { from { opacity: 0; transform: rotate(var(--r)) scale(1.9); } to { opacity: 1; transform: rotate(var(--r)) scale(1); } }
+@keyframes sfxShake { 30% { translate: -4px 2px; } 60% { translate: 3px -2px; } }
+@media (prefers-reduced-motion: reduce) { .cutpanel .sfxart { animation: none; } }

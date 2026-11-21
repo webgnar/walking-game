@@ -16,17 +16,22 @@ export const INTRO_LINES = [
 // glows: points on the art that pulse gold (the sigils). strong: bigger and brighter.
 // at: optional placement for the text over the art, so it doesn't cover the subject
 // (CSS positions in % of the frame, for sfx / thought / caption / voice).
+// sfxArt: hand-lettered SFX images (public/cutscenes/sfx/) shown instead of the sfx text;
+// x / y / w are % of the frame, r a tilt. Each one slams in a beat after the last.
 // style: 'panel' (default), 'flash' (white-out), 'title' (big title card).
 export const INTRO_CUTSCENE = [
   { art: '/cutscenes/intro-01.webp', icon: '🏗', sfx: 'CLANK… CLANK…', caption: 'Lowborn Quarry 9. Third shift.',
     at: { sfx: { left: '38%', top: '30%', right: 'auto' } },
+    sfxArt: [{ src: '/cutscenes/sfx/clank-a.webp', x: '1%', y: '34%', w: '21%', r: '-6deg' }, { src: '/cutscenes/sfx/clank-b.webp', x: '40%', y: '26%', w: '16%', r: '5deg' }],
     brief: 'Wide shot: a vast quarry under a gleaming gold spire. Hundreds of lowborn workers, ore carts, smog.' },
   { art: '/cutscenes/intro-02.webp', icon: '⛏', sfx: 'KRAK', thought: 'Same rock. Same quota. Same tower watching.',
     at: { sfx: { left: '4%', top: '14%', right: 'auto' }, thought: { left: 'auto', right: '4%', bottom: '8%' } },
+    sfxArt: [{ src: '/cutscenes/sfx/krak.webp', x: '2%', y: '22%', w: '25%', r: '-4deg' }],
     brief: 'Mid shot: our hero swinging a pick. Long hair, stubble, sweat and dust. Tired eyes.' },
   { art: '/cutscenes/intro-03.webp', icon: '✋', sfx: 'VMMMM', glow: true, thought: 'What…?',
     glows: [{ x: '22.5%', y: '50%' }, { x: '80.4%', y: '35.8%' }], // the sigils flash
     at: { sfx: { left: '38%', top: '6%', right: 'auto' }, thought: { left: '40%', bottom: '7%' } },
+    sfxArt: [{ src: '/cutscenes/sfx/vmmmm.webp', x: '36%', y: '2%', w: '27%', r: '-3deg' }],
     brief: 'Extreme close-up: his hands on the pick handle. The sigils burned into the backs of his hands start to flash.' },
   { art: '/cutscenes/intro-04.webp', icon: '😨', glow: true, thought: "The marks… they've never done that.",
     glows: [{ x: '44.1%', y: '56.4%', strong: true }, { x: '69.2%', y: '66.5%', strong: true }], // burning brighter now
@@ -39,6 +44,7 @@ export const INTRO_CUTSCENE = [
   { art: '/cutscenes/intro-06.webp', style: 'flash', sfx: 'FSSSHHHH',
     glows: [{ x: '46.9%', y: '50%', dust: true }], // what's left of him, drifting up
     at: { sfx: { left: '33%', top: '18%', right: 'auto' } },
+    sfxArt: [{ src: '/cutscenes/sfx/fsssh.webp', x: '31%', y: '12%', w: '36%', r: '-5deg' }],
     brief: 'White flash: his body breaks apart into a swirl of dust. The pick falls and clatters.' },
   { art: '/cutscenes/intro-07.webp', icon: '🕯', caption: 'Somewhere. Somewhen.', thought: 'Where… am I?',
     glows: [{ x: '84.2%', y: '58%', fire: true }], // the campfire flickers
@@ -47,6 +53,7 @@ export const INTRO_CUTSCENE = [
   { art: '/cutscenes/intro-08.webp', icon: '🐺', sfx: 'GRRRR',
     glows: [{ x: '21.1%', y: '47.9%', eye: true }, { x: '27.9%', y: '47.1%', eye: true }], // the eyes catch the firelight
     at: { sfx: { left: '58%', right: 'auto', top: '74%' } },
+    sfxArt: [{ src: '/cutscenes/sfx/grrrr.webp', x: '2%', y: '60%', w: '22%', r: '-7deg' }],
     brief: 'His view: yellow eyes in the dark. A wolf steps into the firelight, snarling.' },
   { style: 'title', title: 'Trial 0', text: 'Fight to the death' },
 ];
