@@ -1,6 +1,7 @@
 // Placeholder 3D models built from primitives, softly lit (no outlines or toon bands).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { buildFlames } from './fire.js';
 
 // ---------- Imported props (zack's models) ----------
@@ -9,6 +10,41 @@ const PROPS = {};
 export async function loadProps() {
   const g = await new GLTFLoader().loadAsync('/models/club.glb');
   PROPS.club = normalizeHeld(g.scene, 0.82);
+}
+
+// ---------- Base buildings (zack's models) ----------
+// public/models/base/<file>-t<tier>.glb, meshopt + webp, ~1 unit across with the base at y=0.
+// A tier without its own model uses the best lower tier's model, a bit bigger, until that art arrives.
+const BASE_FILE = { studio: 'workshop', altar: 'altar', inventory: 'inventory', shrine: 'shrine', truth: 'truth' };
+const BASE_SCALE = { studio: 2.1, altar: 2.4, inventory: 1.7, shrine: 2.0, truth: 2.1 }; // world size of the tier-1 model
+const baseCache = {};
+let gltf;
+function loadBaseFile(id, tier) {
+  const key = `${BASE_FILE[id]}-t${tier}`;
+  if (!(key in baseCache)) {
+    if (!gltf) { gltf = new GLTFLoader(); gltf.setMeshoptDecoder(MeshoptDecoder); }
+    baseCache[key] = gltf.loadAsync(`/models/base/${key}.glb`).then((g) => {
+      g.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        const m = o.material;
+        if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+        m.roughness = 0.9; m.metalness = 0;
+      });
+      return g.scene;
+    }).catch(() => null);
+  }
+  return baseCache[key];
+}
+export async function loadBuildingModel(id, tier) {
+  for (let t = tier; t >= 1; t--) {
+    const scene = await loadBaseFile(id, t);
+    if (scene) {
+      const m = scene.clone();
+      m.scale.setScalar((BASE_SCALE[id] || 2) * (1 + (tier - t) * 0.15));
+      return m;
+    }
+  }
+  return null;
 }
 
 // Re-seat a held model so its thin (handle) end is at the origin and it points along +Y, `length` long.
