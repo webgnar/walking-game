@@ -396,6 +396,7 @@ export function buildCave() {
     m.position.set(x, s * 0.3 * low, z);
     m.rotation.set(rng() * 0.4 - 0.2, rng() * 6.28, rng() * 0.4 - 0.2);
     m.scale.setScalar(low);
+    m.userData.ringRock = true;
     g.add(m);
   }
   // (distant mountains, moon and citadel are painted in the backdrop: scene/backdrop.js)
@@ -407,7 +408,8 @@ export function buildCave() {
 export function buildTrialSet() {
   const g = new THREE.Group();
   const rng = mulberry(23);
-  const cliffs = [[-15, -15, 5.5, 1.9], [-9.5, -17, 4.6, 2.3], [-19, -9, 4.8, 1.7], [-4, -19, 4, 1.6], [-21, -2, 4.2, 1.5]];
+  // only the left flank: the painted Trial backdrop (stage.js) is the far view, so nothing tall stands behind the fight
+  const cliffs = [[-19, -9, 4.8, 1.7], [-21, -2, 4.2, 1.5]];
   cliffs.forEach(([x, z, s, tall], i) => {
     const m = new THREE.Mesh(boulderGeometry(s, 40 + i, tall), rockMaterial());
     m.position.set(x, s * tall * 0.55, z);

@@ -123,7 +123,8 @@ function spire(g, x, baseY, w, h) {
 
 // Returns a texture with a .fit(aspect) method that cover-fits it to the screen with the painting's horizon
 // pinned at HORIZON on screen (where the 3D ground ends), zooming in a little if it has to.
-export function buildBackdrop(onSwap) {
+// url/horizon: which painting fills the slot (the Trial uses its own backdrop, see stage.js).
+export function buildBackdrop(onSwap, url = '/ui/backdrop-home.jpg', horizon = BACKDROP_HORIZON) {
   let tex = new THREE.CanvasTexture(paint());
   tex.colorSpace = THREE.SRGBColorSpace;
   let imgAspect = W / H, hz = HORIZON;
@@ -148,11 +149,11 @@ export function buildBackdrop(onSwap) {
     tex.needsUpdate = true;
     tex.userData.fit = fit;
     imgAspect = img.width / img.height;
-    hz = BACKDROP_HORIZON;
+    hz = horizon;
     if (last) fit(last);
     if (onSwap) onSwap(tex);
   };
-  img.src = '/ui/backdrop-home.jpg';
+  img.src = url;
   return tex;
 }
 

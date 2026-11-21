@@ -10,6 +10,7 @@ const BUILD_POS = {
 };
 
 const HOME_SCALE = 1.24;
+const TRIAL_HORIZON = 0.64; // public/backdrops/trial-wolf-ridge.jpg
 
 // Lunge timing: the hero is furthest forward at LUNGE_PEAK of LUNGE_MS; strikes connect then.
 const LUNGE_MS = 380, LUNGE_PEAK = 0.4;
@@ -46,7 +47,10 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.scene = new THREE.Scene();
-    this.backdrop = buildBackdrop((tex) => { this.backdrop = tex; this.scene.background = tex; });
+    this.backdrop = buildBackdrop((tex) => { this.backdrop = tex; if (this.mode !== 'combat') this.scene.background = tex; });
+    // the Trial has its own painted backdrop (horizon = where its flat ground meets the far valley)
+    this.trialBackdrop = buildBackdrop((tex) => { this.trialBackdrop = tex; if (this.mode === 'combat') this.scene.background = tex; },
+      '/backdrops/trial-wolf-ridge.jpg', TRIAL_HORIZON);
     this.scene.background = this.backdrop;
     this.scene.fog = new THREE.Fog(0x3a1d17, 14, 34);
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
@@ -69,7 +73,8 @@ export class Stage {
     this.heroBlob = blobShadow(1.7);
     this.scene.add(this.heroBlob);
 
-    this.scene.add(buildCave());
+    this.cave = buildCave();
+    this.scene.add(this.cave);
     this.fire = buildFire();
     this.fire.position.set(1.55, 0, -0.2);
     this.fire.scale.setScalar(0.85);
@@ -149,6 +154,7 @@ export class Stage {
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.backdrop.userData.fit(w / h);
+    this.trialBackdrop.userData.fit(w / h);
     // keep the scene readable in portrait-ish windows
     this.camera.fov = w / h < 1.3 ? 58 : 42;
     this.camera.updateProjectionMatrix();
@@ -184,6 +190,13 @@ export class Stage {
     this.fire.visible = mode !== 'combat';
     const trial = mode === 'combat';
     this.trialSet.visible = trial;
+    this.scene.background = trial ? this.trialBackdrop : this.backdrop;
+    // fog to the painting's horizon colour so the 3D ground melts into the painted valley
+    this.scene.fog.color.set(trial ? 0x5a412c : 0x3a1d17);
+    this.scene.fog.near = trial ? 10 : 14;
+    this.scene.fog.far = trial ? 30 : 34;
+    // in the Trial the painted valley is the far view: drop the camp's ring rocks that stand behind the fight
+    for (const r of this.cave.children) if (r.userData.ringRock) r.visible = !(trial && r.position.z < -2 && Math.abs(r.position.x) < 14);
     // dusk in the Trial: dimmer sky fill and key so the firelight and the moon's rim light carry the scene
     this.hemi.intensity = trial ? 0.6 : 1.2;
     this.hemi.color.set(trial ? 0xd8b8b0 : 0xffd2b0);
