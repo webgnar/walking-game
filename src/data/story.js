@@ -13,6 +13,7 @@ export const INTRO_LINES = [
 // Opening, part 2: the cutscene, black-and-white anime style. Tap to advance.
 // art: image path under public/ (for example '/cutscenes/intro-01.webp'). While art is
 // null the game draws a manga-style placeholder and shows the brief for the artist.
+// glows: points on the art that pulse gold (the sigils).
 // at: optional placement for the text over the art, so it doesn't cover the subject
 // (CSS positions in % of the frame, for sfx / thought / caption / voice).
 // style: 'panel' (default), 'flash' (white-out), 'title' (big title card).
@@ -23,7 +24,9 @@ export const INTRO_CUTSCENE = [
   { art: '/cutscenes/intro-02.webp', icon: '⛏', sfx: 'KRAK', thought: 'Same rock. Same quota. Same tower watching.',
     at: { sfx: { left: '4%', top: '14%', right: 'auto' }, thought: { left: 'auto', right: '4%', bottom: '8%' } },
     brief: 'Mid shot: our hero swinging a pick. Long hair, stubble, sweat and dust. Tired eyes.' },
-  { art: null, icon: '✋', sfx: 'VMMMM', glow: true, thought: 'What…?',
+  { art: '/cutscenes/intro-03.webp', icon: '✋', sfx: 'VMMMM', glow: true, thought: 'What…?',
+    glows: [{ x: '22.5%', y: '50%' }, { x: '80.4%', y: '35.8%' }], // the sigils flash
+    at: { sfx: { left: '38%', top: '6%', right: 'auto' }, thought: { left: '40%', bottom: '7%' } },
     brief: 'Extreme close-up: his hands on the pick handle. The sigils burned into the backs of his hands start to flash.' },
   { art: null, icon: '😨', glow: true, thought: "The marks… they've never done that.",
     voice: { who: 'Voice from the spire', text: 'Subject 7,301,224. Caste: Primal. You have been selected for the Ascent.' },
