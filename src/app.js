@@ -1092,7 +1092,7 @@ async function playEvents(ev) {
         const it = en && ENEMIES[en.id].intents[e.key];
         if (it && (it.kind === 'attack' || it.kind === 'bleed')) stage.anim(e.who, 'attack', { dist: en.id === 'mammoth' ? 1.6 : 2.2 });
         else if (it && it.kind === 'block') { stage.anim(e.who, 'block'); floatText(e.who, it.label.toUpperCase(), 'info'); }
-        else if (it) floatText(e.who, it.label.toUpperCase() + '!', 'info');
+        else if (it) { stage.anim(e.who, 'cast', { skill: e.key }); floatText(e.who, it.label.toUpperCase() + '!', 'info'); }
         await wait(it && (it.kind === 'attack' || it.kind === 'bleed') ? 200 : 400);
         break;
       }

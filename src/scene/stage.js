@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
 import { buildBackdrop } from './backdrop.js';
+import { attachBeast } from './beasts.js';
 import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding, loadBuildingModel } from './models.js';
 
 const BUILD_POS = {
@@ -209,6 +210,7 @@ export class Stage {
       if (!a) {
         const obj = buildEnemy(e.id);
         this.scene.add(obj);
+        attachBeast(obj, e.id); // rigged model replaces the stand-in when there is one
         a = { obj, id: e.id, uid: e.uid, home: new THREE.Vector3() };
         this.enemies.set(e.uid, a);
         obj.userData.baseScale = obj.scale.x;
@@ -265,11 +267,13 @@ export class Stage {
           o.position.y = home.y + Math.sin(k * Math.PI) * 0.25;
         });
         if (who === 'hero') this.swing(opts.skill === 'hurl' ? 'throw' : 'attack', STRIKE_MS);
+        else if (o.userData.beast) o.userData.beast.bite(STRIKE_MS);
         break;
       }
       case 'hit': {
         this.flash(o, 0xff2030);
         if (who === 'hero' && this.rig) this.rig.play('hurt');
+        if (o.userData.beast) o.userData.beast.play('hurt', { fade: 0.05 });
         const dir = who === 'hero' ? -1 : 1;
         this.tween(300, (p) => { o.position.x = home.x + dir * 0.25 * Math.sin(p * Math.PI); });
         break;
@@ -282,6 +286,7 @@ export class Stage {
         this.flash(o, 0xff8a3d);
         // Roar thumps the chest; Firebrand is thrown
         if (who === 'hero' && this.rig && opts.skill === 'roar' && this.rig.play('roar')) break;
+        if (o.userData.beast) { o.userData.beast.play('snarl'); break; }
         if (who === 'hero') this.swing('throw', STRIKE_MS);
         break;
       case 'stun':
@@ -407,8 +412,10 @@ export class Stage {
     const o = a.obj;
     const r0 = o.rotation.z, base = o.scale.x;
     this.stain(o.position.x, o.position.z, 0.3 + enemyHeight(a.id) * 0.12);
-    this.tween(420, (p) => { o.rotation.z = r0 - p * 1.35; o.position.y = -p * 0.15; });
-    this.after(520, () => {
+    // rigged beasts collapse with their death clip; the rest tip over
+    const rigged = o.userData.beast && o.userData.beast.play('death', { fade: 0.08 });
+    if (!rigged) this.tween(420, (p) => { o.rotation.z = r0 - p * 1.35; o.position.y = -p * 0.15; });
+    this.after(rigged ? 1300 : 520, () => {
       this.spawn('gold', this.actorPoint(who, 0.4), 26, { dir: new THREE.Vector3(0, 1, 0), speed: 0.9, spread: 1.1, life: 1.6 });
       this.tween(650, (p) => { o.scale.setScalar(base * (1 - p * 0.92)); if (p >= 1) o.visible = false; });
     });
@@ -529,6 +536,7 @@ export class Stage {
     this.hero.userData.hairBack.rotation.x = 0.12 + Math.sin(t * 1.7) * 0.04;
     if (this.rig) this.rig.update(gdt, t);
     for (const a of this.enemies.values()) {
+      if (a.obj.userData.beast) { a.obj.userData.beast.update(dt); continue; }
       const b = a.obj.userData.body;
       if (b) b.position.y = Math.sin(t * 2.4 + a.uid) * 0.03;
     }
