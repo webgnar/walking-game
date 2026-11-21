@@ -63,6 +63,7 @@ export function start() {
   else { go('home'); say(pick(PROCTOR.home)); }
   stage.snapCamera();
   document.addEventListener('click', onClick);
+  bindSpin();
   // fullscreen: browsers only allow it from a tap, so ask on the first one
   // Auto-fullscreen on the first tap only on touch phones; desktop uses the Settings button.
   if (isPhone()) document.addEventListener('pointerdown', () => { if (!s.noFullscreen) enterFullscreen(); }, { once: true });
@@ -121,7 +122,17 @@ function tick() {
 // ---------- Rendering ----------
 function render() {
   const fn = SCREENS[app.screen] || SCREENS.home;
+  // keep each scrolling list where it was when the same screen redraws (e.g. spending points)
+  const keep = app.lastRendered === app.screen ? [...$('#ui').querySelectorAll('.scroll')].map((el) => el.scrollTop) : [];
   $('#ui').innerHTML = fn();
+  if (keep.length) {
+    // restore now, and again once icons have loaded and the list is full height
+    const restore = () => $('#ui').querySelectorAll('.scroll').forEach((el, i) => { if (keep[i] && el.scrollTop < keep[i]) el.scrollTop = keep[i]; });
+    restore();
+    requestAnimationFrame(restore);
+    $('#ui').querySelectorAll('.scroll img').forEach((img) => { if (!img.complete) img.addEventListener('load', restore, { once: true }); });
+  }
+  app.lastRendered = app.screen;
   renderModal();
   renderProctor();
   renderToasts();
@@ -1606,7 +1617,47 @@ function typeIntro() {
   }, 28);
 }
 
+// Swipe across the hero (Home, Hero screen) to spin him. A drag isn't a tap: it doesn't open anything.
+function bindSpin() {
+  let st = null;
+  document.addEventListener('pointerdown', (ev) => {
+    if (app.modal || (app.screen !== 'home' && app.screen !== 'hero')) return;
+    const onHero = app.screen === 'home' ? ev.target.closest('.herotap') : !ev.target.closest('.panel, button, .topbar, .proctor, .toast');
+    if (!onHero) return;
+    st = { x: ev.clientX, lastX: ev.clientX, moved: false, samples: [] };
+  });
+  document.addEventListener('pointermove', (ev) => {
+    if (!st) return;
+    if (!st.moved && Math.abs(ev.clientX - st.x) > 8) { st.moved = true; stage.spinStart(); }
+    if (!st.moved) return;
+    stage.spinMove(ev.clientX - st.lastX);
+    st.lastX = ev.clientX;
+    const now = performance.now();
+    st.samples.push([now, ev.clientX]);
+    while (st.samples.length > 2 && now - st.samples[0][0] > 150) st.samples.shift();
+  });
+  const end = () => {
+    if (!st) return;
+    if (st.moved) {
+      // speed over the last ~150ms of movement (px/s -> rad/s); a long pause before letting go = no flick
+      const sm = st.samples;
+      let v = 0;
+      if (sm.length >= 2 && performance.now() - sm[sm.length - 1][0] < 250) {
+        const dt = (sm[sm.length - 1][0] - sm[0][0]) / 1000;
+        if (dt > 0) v = ((sm[sm.length - 1][1] - sm[0][1]) * 0.012) / dt;
+      }
+      stage.spinEnd(Math.max(-25, Math.min(25, v)));
+      app.justSpun = performance.now();
+    }
+    st = null;
+  };
+  document.addEventListener('pointerup', end);
+  document.addEventListener('pointercancel', end);
+}
+
 function onClick(ev) {
+  // the click that ends a swipe shouldn't also open the hero
+  if (app.justSpun && performance.now() - app.justSpun < 250) { app.justSpun = 0; ev.stopPropagation(); return; }
   const el = ev.target.closest('[data-a]');
   if (!el) {
     // On the Base, tapping a building's model opens it, same as its label
