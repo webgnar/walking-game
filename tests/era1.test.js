@@ -38,6 +38,7 @@ function playEra1(stepsPerDay, seedN) {
     const order = ['str', 'vit', 'str', 'vit', 'agi', 'int'];
     let i = 0;
     while (s.hero.freeAttr > 0) H.spendAttr(s, order[i++ % order.length]);
+    for (const id of ['hurl', 'roar', 'firebrand', 'jab', 'secondwind', 'sweep']) H.learnSkill(s, id);
     for (const id of ['club', 'jab', 'firebrand', 'hurl', 'roar', 'secondwind', 'guard']) while (H.rankUp(s, id));
     // pick 4 skills for the act ahead, like a player reading the Trial card
     const nt = T.nextTrial(s);

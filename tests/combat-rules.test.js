@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { env, newState } from '../src/logic/state.js';
 import { createBattle, useSkill, endTurn, useFinisher, canFinish, executable, living } from '../src/logic/combat.js';
-import { addXp, syncSkills, grantFinisher, toggleLoadout, buyFinisher } from '../src/logic/hero.js';
+import { addXp, syncSkills, grantFinisher, toggleLoadout, buyFinisher, learnSkill, canLearn } from '../src/logic/hero.js';
+import { SKILLS } from '../src/data/era1.js';
 import { finishTrial, totalStars } from '../src/logic/trials.js';
 import { FURY, LOADOUT_MAX } from '../src/data/era1.js';
 
@@ -11,8 +12,23 @@ function hero(level = 9) {
   const s = newState();
   let need = 0; for (let l = 1; l < level; l++) need += 50 * l;
   addXp(s, need); syncSkills(s);
+  for (const k of Object.keys(SKILLS)) { if (s.hero.level >= SKILLS[k].unlock && !s.hero.ranks[k]) { s.hero.freeSkill++; learnSkill(s, k); } }
   return s;
 }
+
+test('you start with Club Strike and Guard; other skills cost a point to learn', () => {
+  env.rand = () => 0.5;
+  const s = newState();
+  assert.deepEqual(Object.keys(s.hero.ranks).sort(), ['club', 'guard']);
+  addXp(s, 50); // level 2 after the tutorial
+  assert.equal(s.hero.level, 2);
+  assert.ok(!s.hero.ranks.roar && !s.hero.ranks.hurl, 'not granted for free');
+  assert.ok(canLearn(s, 'roar') && canLearn(s, 'hurl'));
+  assert.ok(learnSkill(s, 'hurl'));
+  assert.equal(s.hero.freeSkill, 0);
+  assert.ok(!canLearn(s, 'roar'), 'one point, one choice');
+  assert.ok(s.hero.loadout.includes('hurl'));
+});
 
 test('loadout is capped at 4 skills', () => {
   const s = hero(9);

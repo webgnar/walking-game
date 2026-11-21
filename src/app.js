@@ -663,7 +663,12 @@ function heroSkillsTab() {
     const sk = SKILLS[id];
     const rank = h.ranks[id];
     const inL = h.loadout.includes(id);
-    if (!rank) return `<div class="skill locked"><div class="si">${gi(`skill-${sk.id}`)}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span></div><div class="small">Unlocks at level ${sk.unlock}</div></div></div>`;
+    if (!rank) {
+      const avail = h.level >= sk.unlock;
+      return `<div class="skill ${avail ? 'learnable' : 'locked'}"><div class="si">${gi(`skill-${sk.id}`)}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span></div>
+        <div class="small">${avail ? sk.desc(H.skillPower(s, id)) : `Available at level ${sk.unlock}`}</div></div>
+        ${avail ? `<button class="btn tiny ${h.freeSkill ? 'yellow' : 'off'}" data-a="learn" data-v="${id}">Learn · 1 point</button>` : ''}</div>`;
+    }
     return `<div class="skill"><div class="si">${gi(`skill-${sk.id}`)}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span> <span class="rank">${'◆'.repeat(rank)}<span style="opacity:.35">${'◇'.repeat(3 - rank)}</span></span></div>
       <div class="small">${sk.desc(H.skillPower(s, id))}</div></div>
       ${h.freeSkill && rank < max && sk.power ? `<button class="btn tiny green" data-a="rank" data-v="${id}">+2</button>` : ''}
@@ -1388,6 +1393,11 @@ const ACTIONS = {
     commit();
   },
   rank(v) { H.rankUp(s, v); commit(); },
+  learn(v) {
+    if (!H.learnSkill(s, v)) { nudge(s.hero.freeSkill ? 'Not available yet.' : 'You need a skill point. Level up: win a Trial for the first time, or train at the Hero Training Altar.'); return; }
+    say(`${SKILLS[v].name} learned.${s.hero.loadout.includes(v) ? ' It is in your loadout.' : ' Add it to your loadout to bring it into a Trial.'}`);
+    commit();
+  },
   loadout(v) { if (!H.toggleLoadout(s, v)) say(`Your loadout is full (${H.loadoutSize(s)}). Remove a skill first, or upgrade the Hero Training Altar.`); commit(); },
   train() {
     const need = xpToNext(s.hero.level) - s.hero.xp;

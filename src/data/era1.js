@@ -69,7 +69,7 @@ export const SKILLS = {
   },
   hurl: {
     id: 'hurl', name: 'Hurl Stone', ap: 1, kind: 'physical', power: 4, target: 'enemy', interrupts: true, stunChance: 0.15, cooldown: 2,
-    unlock: 3, icon: '🪨', desc: (p) => `${p} physical damage. Stops a call for backup or a stalking pounce. 15% chance to stun. 2-turn cooldown`,
+    unlock: 2, icon: '🪨', desc: (p) => `${p} physical damage. Stops a call for backup or a stalking pounce. 15% chance to stun. 2-turn cooldown`,
   },
   firebrand: {
     id: 'firebrand', name: 'Firebrand', ap: 2, kind: 'fire', power: 8, target: 'enemy', burn: 3, burnTurns: 2,
