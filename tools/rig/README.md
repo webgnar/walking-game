@@ -32,3 +32,15 @@ The clips are at 30 fps, and each is keyed as offsets from a neutral stance (leg
 ## Rigging another beast
 
 To rig a new beast (beta, alpha, hyena, later lion and sabretooth), copy `wolf_rig.py`. Move the joint positions in `B` onto the new mesh, keeping the same names, then run `wolf_anim.py` unchanged. To add it to the game, list the enemy in BEASTS in src/scene/beasts.js.
+
+## Any canine, automatically (wolf, beta, alpha)
+
+1. Dump the mesh vertices to `<name>.npy` (Blender coords). See `dims.py` in the history, or run
+   `import_scene.gltf` and save the world-space vertex positions.
+2. `python fit_canine.py <name>.npy fit-<name>.json` places the joints. It finds the 4 paws, traces each leg upward,
+   follows the back line for the spine, and uses the snout and tail tip for the head and tail.
+3. `python beast_rig.py -- <name>.glb fit-<name>.json <name>`, then `python beast_anim.py -- <name>` and
+   `python beast_export.py -- <name>`. After that, optimize with gltf-transform as above.
+4. `python beast_frames.py -- attack,death q <name>` renders check frames.
+
+Vertices the heat solve misses are blended over their 3 nearest bones.
