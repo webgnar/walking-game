@@ -145,8 +145,8 @@ const MAT_SCREENS = ['base', 'craft', 'shop'];
 function curPlate() {
   const mats = MAT_SCREENS.includes(app.screen);
   return `<div class="cur">
-      <span class="c soles" title="Soles">${IC.sole}<span class="sv">${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span></span>
-      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span><i>/</i><span class="c" title="Wood">${ICON.wood}${s.mats.wood || 0}</span>` : ''}
+      <span class="c soles" title="Soles">${SOLE}<span class="sv">${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span></span>
+      ${mats ? `<i>/</i><span class="c" title="Flint">${ICON.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${ICON.bone}${s.mats.bone}</span><i>/</i><span class="c" title="Wood">${ICON.wood}${s.mats.wood || 0}</span>` : ''}
     </div>`;
 }
 
@@ -179,7 +179,7 @@ function homeTop() {
     <div class="ui-steps ${s.soles < 100 && !s.report ? 'needwalk' : ''}" data-a="walkHint"><div class="lbl">Today <b>${fmt(today)}</b> steps <span>·</span> next loot box in <b>${fmt(toBox)}</b>${stride ? ' <span>·</span> <em>Stride Brew</em>' : ''}</div>
       <div class="segs">${Array.from({ length: 10 }, (_, i) => `<i class="${i < seg ? 'on' : ''}"></i>`).join('')}</div></div>
     <div class="ui-res">
-      <span class="c" title="Soles"><span class="uicon ic-sole">${IC.sole}</span>${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span>
+      <span class="c" title="Soles">${SOLE}${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span>
     </div>`;
 }
 
@@ -393,7 +393,7 @@ const SCREENS = {
     if (r.box) cards.push(card(TIER_ICON[r.box], `${E.TIER_NAMES[r.box]} loot box`, 'Added to your boxes'));
     cards.push(...matCards(r.mats));
     cards.push(...matCards(r.parts, 'Beast part'));
-    for (const g of r.gear) cards.push(card(gearIcon(g), GEAR[g].name, statText(GEAR[g].stats), GEAR[g].tier === 'boss' ? 'boss' : ''));
+    for (const g of r.gear) cards.push(card(gearIcon(g), GEAR[g].name, statText(GEAR[g].stats), `${GEAR[g].tier === 'boss' ? 'boss' : ''} ${GEAR[g].set ? 'set' : ''}`));
     if (r.respec) cards.push(card(gi('cur-respec'), 'Respec token', 'Reset your points once'));
     for (const id of r.blueprints || []) cards.push(card(gi('cur-blueprint'), 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === id)), 'rare'));
     if (r.fragment) cards.push(card(gi('cur-fragment'), 'Story fragment', 'Pinned to the Truth Board', 'frag'));
@@ -430,7 +430,7 @@ const SCREENS = {
       const src = Object.entries({ 5: 'the Alpha', 10: 'the Sabretooth' }).find(([n]) => (['r_wolf_pelt', 'r_fang_charm'].includes(x.id) && n === '5') || (['r_lion_mask', 'r_claw_buckler'].includes(x.id) && n === '10'));
       return `<div class="recipe ${x.id === r.id ? 'on' : ''} ${k ? '' : 'locked'}" data-a="pickRecipe" data-v="${x.id}">
         <span class="ri">${xg ? gearIcon(x.out.gear) : ICON[x.out.booster]}</span>
-        <span class="grow"><span class="rn">${k ? esc(B.recipeName(x)) : 'Unknown blueprint'}</span>
+        <span class="grow"><span class="rn ${k && xg && xg.set ? 'setname' : ''}">${k ? esc(B.recipeName(x)) : 'Unknown blueprint'}</span>
         <span class="small muted">${k ? (xg && xg.set ? `${esc(SETS[xg.set].name)} set` : xg ? SLOT_NAMES[xg.slot] : 'Booster') : src ? `Dropped by ${src[1]}` : 'Found in Gold+ loot boxes'}</span></span>
         ${k && B.canForge(s, x).ok ? '<span class="ok small">✔</span>' : ''}</div>`;
     }).join('');
@@ -442,7 +442,7 @@ const SCREENS = {
       </div>
       <div class="col grow panel halftone pad forgepanel">
         ${known ? `<div class="row"><span style="font-size:40px">${g ? gearIcon(r.out.gear) : ICON[r.out.booster]}</span><div class="grow">
-          <h2 class="h" style="margin:0">${esc(B.recipeName(r))}</h2>
+          <h2 class="h ${set ? 'setname' : ''}" style="margin:0">${esc(B.recipeName(r))}</h2>
           <div class="small">${g ? `${SLOT_NAMES[g.slot]} · ${statText(g.stats)}` : esc(BOOSTERS[r.out.booster].desc)}</div>
           ${set ? `<div class="small setline">${esc(set.name)} set · ${Object.entries(set.bonus).map(([n, b]) => `${n}: ${esc(b.text)}`).join(' · ')}</div>` : ''}</div>
           <button class="btn yellow ${check.ok ? 'pulse' : 'off'}" data-a="forgeStart">${gi('bld-studio')} Forge</button></div>
@@ -679,7 +679,7 @@ function heroGearTab() {
   const junk = E.junkGear(s);
   const slots = `<div class="slots">${SLOTS.map((sl) => {
     const g = H.gearOf(s, s.hero.equip[sl]);
-    return `<div class="slot ${g ? 'full' : ''} ${g && g.q ? `q-${g.q}` : ''}" ${g ? `data-a="item" data-v="${g.uid}"` : ''}><span class="sn">${SLOT_NAMES[sl]}</span>${g ? `<span style="font-size:20px">${gearIcon(g.key)}</span>${esc(GR.itemName(g))}` : `<span style="font-size:20px;opacity:.3">${ICON[sl]}</span>`}</div>`;
+    return `<div class="slot ${g ? 'full' : ''} ${g && g.set ? 'set' : ''} ${g && g.q ? `q-${g.q}` : ''}" ${g ? `data-a="item" data-v="${g.uid}"` : ''}><span class="sn">${SLOT_NAMES[sl]}</span>${g ? `<span style="font-size:20px">${gearIcon(g.key)}</span>${esc(GR.itemName(g))}` : `<span style="font-size:20px;opacity:.3">${ICON[sl]}</span>`}</div>`;
   }).join('')}</div>
   ${GR.setStatus(s).filter((x) => x.n > 0).map((x) => `<div class="small setline">${esc(x.set.name)} ${x.n}/3 · ${Object.entries(x.set.bonus).map(([n, b]) => `<span class="${x.n >= Number(n) ? 'ok' : 'muted'}">${n}: ${esc(b.text)}</span>`).join(' · ')}</div>`).join('')}`;
   const tabs = `<div class="invtabs">
@@ -697,7 +697,7 @@ function heroGearTab() {
   const junkIds = new Set(junk.map((it) => it.uid));
   const cells = s.inv.map((it) => {
     const g = GEAR[it.key];
-    return `<div class="cell t-${g.tier} ${it.q ? `q-${it.q}` : ''} ${H.isEquipped(s, it.uid) ? 'eq' : ''} ${junkIds.has(it.uid) ? 'junk' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(GR.itemName(it))}</div>`;
+    return `<div class="cell t-${g.tier} ${g.set ? 'set' : ''} ${it.q ? `q-${it.q}` : ''} ${H.isEquipped(s, it.uid) ? 'eq' : ''} ${junkIds.has(it.uid) ? 'junk' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(GR.itemName(it))}</div>`;
   });
   while (cells.length < cap) cells.push('<div class="cell empty"></div>');
   return `${slots}${tabs}<div class="grid">${cells.join('')}</div>`;
@@ -857,10 +857,10 @@ const MODALS = {
     const rc = B.reinforceCost(it);
     return `<div class="dialog panel halftone" style="width:min(460px,92vw)">
       <button class="x" data-a="closeModal">✕</button>
-      <div class="row"><span style="font-size:44px">${gearIcon(it.key)}</span><div><h2 class="h">${esc(GR.itemName(it))}</h2><div class="small muted">${SLOT_NAMES[g.slot]} · ${esc(QUALITY[it.q || 'fine'].name)} · ${g.tier}</div></div></div>
+      <div class="row"><span style="font-size:44px">${gearIcon(it.key)}</span><div><h2 class="h ${set ? 'setname' : ''}">${esc(GR.itemName(it))}</h2><div class="small muted">${SLOT_NAMES[g.slot]} · ${esc(QUALITY[it.q || 'fine'].name)} · ${g.tier}</div></div></div>
       <div style="margin:8px 0">${statText(GR.itemStats(it))}</div>
       ${it.affix ? `<div class="small ok">${esc(AFFIXES[it.affix].name)}: ${esc(AFFIXES[it.affix].desc)}</div>` : ''}
-      ${set ? `<div class="small setline">${esc(set.name)} set: ${owned.map((o) => `${o.eq ? '✔' : '·'} ${esc(GEAR[o.k].name)}`).join(', ')}<br>${Object.entries(set.bonus).map(([n, b]) => `${n} pieces: ${esc(b.text)}`).join(' · ')}</div>` : ''}
+      ${set ? `<div class="small setline">${esc(set.name)} set: ${owned.map((o) => `<span class="${o.eq ? 'ok' : 'muted'}">${o.eq ? '✔' : '·'} ${esc(GEAR[o.k].name)}</span>`).join(', ')}<br>${Object.entries(set.bonus).map(([n, b]) => `<span class="${owned.filter((o) => o.eq).length >= Number(n) ? 'ok' : 'muted'}">${n} pieces: ${esc(b.text)}</span>`).join(' · ')}</div>` : ''}
       ${cur && !eq ? `<div class="small muted">Equipped now: ${esc(GR.itemName(cur))} (${statText(cur.stats)})</div>` : ''}
       ${rc ? `<div class="small" style="margin-top:6px">Reinforce to +${rc.plus}: ${matList(rc.mats)}</div>` : '<div class="small muted" style="margin-top:6px">Fully reinforced (+5).</div>'}
       <div class="actions">
@@ -1016,7 +1016,7 @@ function lootCard(it, i) {
   switch (it.type) {
     case 'mat': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${MATERIALS[it.key].name}</div>`;
     case 'part': return `<div class="lootcard part" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${PARTS[it.key].name}<small>Beast part</small></div>`;
-    case 'gear': { const g = GEAR[it.key]; const inst = it.inst || { key: it.key }; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(GR.itemName(inst))}<small>${statText(GR.itemStats(inst))}${inst.affix ? ` · ${esc(AFFIXES[inst.affix].name)}` : ''}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
+    case 'gear': { const g = GEAR[it.key]; const inst = it.inst || { key: it.key }; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''} ${g.set ? 'set' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(GR.itemName(inst))}<small>${statText(GR.itemStats(inst))}${inst.affix ? ` · ${esc(AFFIXES[inst.affix].name)}` : ''}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
     case 'frag': return `<div class="lootcard frag" ${d}><div class="li">${gi('cur-fragment')}</div>Story fragment<small>Pinned to the Truth Board</small></div>`;
     case 'booster': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n > 1 ? `${it.n} × ` : ''}${esc(BOOSTERS[it.key].name)}<small>${esc(BOOSTERS[it.key].desc)}</small></div>`;
     case 'blueprint': return `<div class="lootcard rare" ${d}><div class="li">${gi('cur-blueprint')}</div>Blueprint<small>${esc(B.recipeName(RECIPES.find((r) => r.id === it.id)))}</small></div>`;

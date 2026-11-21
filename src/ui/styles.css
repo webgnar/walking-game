@@ -1118,3 +1118,13 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 @keyframes sfxSlam { from { opacity: 0; transform: rotate(var(--r)) scale(1.9); } to { opacity: 1; transform: rotate(var(--r)) scale(1); } }
 @keyframes sfxShake { 30% { translate: -4px 2px; } 60% { translate: 3px -2px; } }
 @media (prefers-reduced-motion: reduce) { .cutpanel .sfxart { animation: none; } }
+
+/* Set items: green, like Diablo. Names and set bonuses; bonuses you haven't unlocked are a dimmer green */
+:root { --set: #3fd34a; --set-dim: #2c8a33; }
+.setname, .recipe .rn.setname, .cell.set, .slot.set, .lootcard.set { color: var(--set) !important; }
+.lootcard.set small { color: var(--set-dim) !important; }
+.setline, .setline .ok { color: var(--set) !important; }
+.setline .muted { color: var(--set-dim) !important; }
+
+/* Trackers use the same game icons as the rest of the game */
+.cur .gimg, .ui-res .gimg { width: 1.35em; height: 1.35em; vertical-align: middle; }
