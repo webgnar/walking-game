@@ -233,6 +233,7 @@ const CHECKS = {
   fashion: (s) => Object.values(s.hero.equip).every(Boolean),
   crafter: (s) => s.crafted >= 1,
   builder: (s) => BUILDING_ORDER.some((b) => s.base[b].tier >= 1),
+  skull_crusher: (s) => s.hero.finishers.includes('skull'),
   alpha_down: (s) => !!s.trials.cleared[5],
   sabre_down: (s) => !!s.trials.cleared[10],
   mammoth_down: (s) => !!s.trials.cleared[15],

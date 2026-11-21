@@ -380,7 +380,7 @@ const SCREENS = {
         <div class="tierlabel" style="color:var(--red);font-size:44px">DEFEAT</div>
         <p class="defline">"${esc(r.line)}"</p>
         ${lossAdvice(t)}
-        <div class="actions" style="justify-content:center"><button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to the map</button>
+        <div class="actions" style="justify-content:center"><button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to Trials</button>
         <button class="btn pink" data-a="fight" data-v="${r.n}">Try again</button></div>
       </div></div>`;
     }
@@ -406,10 +406,10 @@ const SCREENS = {
       ${r.starList ? `<div class="stars">${[0, 1, 2].map((i) => `<span class="${i < r.stars ? 'on' : ''}">★</span>`).join('')}${r.newBest && r.stars > 1 ? '<em>new best</em>' : ''}</div>
         <div class="small muted">${['Win', 'Above half health', `Within ${t.par} turns`].map((l, i) => `${r.starList[i] ? '✔' : '✖'} ${l}`).join(' · ')}</div>` : ''}
       <div class="sep"></div>
-      <div class="loot compact">${(cards.length > 6 ? cards.slice(0, 5) : cards).join('')}${cards.length > 6 ? `<div class="lootcard more"><div class="li">+${cards.length - 5}</div>more<small>in your inventory</small></div>` : ''}${cards.length ? '' : '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
+      <div class="loot compact ${app.allLoot ? 'all' : ''}">${(cards.length > 6 && !app.allLoot ? cards.slice(0, 5) : cards).join('')}${cards.length > 6 && !app.allLoot ? `<div class="lootcard more" data-a="allLoot"><div class="li">+${cards.length - 5}</div>more<small>tap to see</small></div>` : ''}${cards.length ? '' : '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
       <div class="actions" style="justify-content:center">
         ${r.box ? `<button class="btn yellow" data-a="openLatest">Open the loot box</button>` : ''}
-        ${r.n === 0 ? `<button class="btn cyan pulse" data-a="afterTutorial">Continue</button>` : `<button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to the map</button>`}
+        ${r.n === 0 ? `<button class="btn cyan pulse" data-a="afterTutorial">Continue</button>` : `<button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to Trials</button>`}
       </div>
     </div></div>`;
   },
@@ -918,6 +918,18 @@ const MODALS = {
     </div>`;
   },
 
+  finisherUnlocked(m) {
+    const f = FINISHERS[m.id];
+    return `<div class="dialog panel finunlock" style="text-align:center">
+      <div class="tierlabel">NEW FINISHER</div>
+      <div class="finicon">${gi(`fin-${f.id}`)}</div>
+      <h2 class="h">${esc(f.name)}</h2>
+      <p>${esc(f.desc)}</p>
+      <div class="small muted">${s.hero.finisher === f.id ? 'Equipped. ' : ''}Land hits to fill your Fury bar. When an enemy is marked 💀 and Fury is full, tap the finisher to kill it outright.</div>
+      <div class="actions" style="justify-content:center"><button class="btn yellow" data-a="finisherOk">Got it</button></div>
+    </div>`;
+  },
+
   salvageJunk() {
     const junk = E.junkGear(s);
     const soles = junk.reduce((a, it) => a + E.soleValue(it.key), 0);
@@ -1213,6 +1225,7 @@ function endBattle() {
     if (b.trial === 6 && !s.wallShown) { s.wallShown = true; r.line = PROCTOR.wall[0]; }
   }
   app.lastReward = r;
+  app.allLoot = false;
   app.battle = null;
   stage.setMode('combat');
   app.screen = 'reward';
@@ -1224,6 +1237,7 @@ function endBattle() {
   if (r.slip) setTimeout(() => say(PROCTOR_SLIP[0], { sticky: true, then: () => say(PROCTOR_SLIP[1]) }), 900);
   if (r.flicker) setTimeout(() => playCut(FLICKERS[r.flicker].shots, () => { s.flickersSeen.push(r.flicker); commit(); say('A corrupted frame. Someone else\'s footage. Happens. Moving on.'); }), 1200);
   if (r.n === 5 && r.first) app.pendingWall = true;
+  if (r.finisher) setTimeout(() => { app.proctor = null; openModal('finisherUnlocked', { id: r.finisher }); }, 1400);
   syncLook();
 }
 
@@ -1295,7 +1309,7 @@ const ACTIONS = {
   settings() { openModal('settings'); },
   modal(v) { openModal(v); },
   closeModal() { closeModal(); render(); },
-  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback', 'cut', 'forge'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
+  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback', 'cut', 'forge', 'finisherUnlocked'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
   dismissProctor() { const then = app.proctor && app.proctor.then; app.proctor = null; renderProctor(); if (then) then(); },
   dismissToast(v) { app.toastQ = (app.toastQ || []).filter((t) => t.id !== v); renderToasts(); },
 
@@ -1360,6 +1374,8 @@ const ACTIONS = {
   closeSignal() { s.signal = null; closeModal(); commit(); setTimeout(() => say(pick(PROCTOR.glitchDismiss)), 300); },
   signalTruth() { s.signal = null; closeModal(); go('truth'); commit(); },
   walkHint() { say(`Walk to earn Soles and loot boxes: every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. Soles train your hero, forge gear and grow your Base. Tap to close.`, { sticky: true }); },
+  allLoot() { app.allLoot = true; render(); },
+  finisherOk() { closeModal(); render(); },
   claimGoal(v) { E.claimGoal(s, Number(v)); commit(); },
   claimBonus() { E.claimAllGoalsBonus(s); commit(); },
   claimWeekly() { E.claimWeekly(s); commit(); },

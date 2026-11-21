@@ -1133,3 +1133,14 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .cur .gimg, .ui-res .gimg { width: 1.35em; height: 1.35em; vertical-align: middle; }
 .skill.learnable { opacity: 1; border-style: dashed; }
 .skill.learnable .sname { color: #ffd27a; }
+
+/* New finisher unlocked */
+.dialog.finunlock { width: min(420px, 90vw); }
+.finunlock .tierlabel { color: #ff8a6a; letter-spacing: .3em; font-size: 14px; }
+.finunlock .finicon { font-size: 64px; margin: 6px auto; animation: finIn .6s cubic-bezier(.2,1.6,.4,1); filter: drop-shadow(0 0 14px rgba(255,90,60,.7)); }
+.finunlock .finicon .gimg { width: 96px; height: 96px; }
+.finunlock h2 { margin: 2px 0; color: #ffd27a; }
+@keyframes finIn { from { transform: scale(2.2); opacity: 0; } }
+/* "+N more": the whole list, scrolling if needed */
+.loot.compact.all { max-height: 46vh; overflow-y: auto; }
+.lootcard.more { cursor: pointer; }

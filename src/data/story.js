@@ -236,6 +236,7 @@ export const ACHIEVEMENTS = [
   { id: 'fashion', name: 'Dressed to Kill', text: 'All five gear slots filled. The wolves rate your look a solid 4/10.', reward: { soles: 50 } },
   { id: 'crafter', name: 'Rock + Rock', text: 'You crafted something. Engineers everywhere felt a disturbance.', reward: { soles: 25 } },
   { id: 'builder', name: 'Property Owner', text: 'You built a building. In a cave. Inside a simulation. Real estate is wild.', reward: { soles: 25 } },
+  { id: 'skull_crusher', name: 'Skull Crusher', text: 'You earned your first finishing move. The Alpha did not get a vote.', reward: { box: 'silver' } },
   { id: 'alpha_down', name: 'Pack Leader', text: 'You defeated the Alpha Wolf. The pack is under new management.', reward: null, rewardText: 'Respect (not redeemable)' },
   { id: 'sabre_down', name: 'Dentist', text: 'You beat the Sabretooth. Its teeth were bigger than your argument, and still.', reward: { box: 'silver' } },
   { id: 'mammoth_down', name: 'Extinction Event', text: 'You killed the Great Mammoth. Historians will blame climate change.', reward: { box: 'gold' } },
