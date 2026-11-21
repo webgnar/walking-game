@@ -1026,3 +1026,7 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .cutpanel .sglow.fire { width: 20%; background: radial-gradient(circle, rgba(255,200,110,.7) 0%, rgba(255,140,40,.35) 30%, rgba(255,110,20,0) 65%); animation: fireFlicker 1.7s steps(9) infinite; }
 @keyframes fireFlicker { 0% { opacity: .55; } 11% { opacity: .9; } 22% { opacity: .6; } 33% { opacity: 1; } 44% { opacity: .7; } 55% { opacity: .85; } 66% { opacity: .5; } 77% { opacity: .95; } 88% { opacity: .65; } 100% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .cutpanel .sglow.fire { animation: none; opacity: .7; } }
+/* eye: a small, steady amber shine that breathes */
+.cutpanel .sglow.eye { width: 4.5%; background: radial-gradient(circle, rgba(255,215,120,.95) 0%, rgba(255,170,60,.55) 30%, rgba(255,140,40,0) 70%); animation: eyeShine 2.2s ease-in-out infinite; }
+@keyframes eyeShine { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cutpanel .sglow.eye { animation: none; opacity: .85; } }

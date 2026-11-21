@@ -44,7 +44,9 @@ export const INTRO_CUTSCENE = [
     glows: [{ x: '84.2%', y: '58%', fire: true }], // the campfire flickers
     at: { caption: { left: '3%', top: '4%' }, thought: { left: '3%', bottom: 'auto', top: '42%', 'max-width': '24%' } },
     brief: 'He lands on cold stone in a cave, coughing up dust. Firelight. He is wearing furs now.' },
-  { art: null, icon: '🐺', sfx: 'GRRRR',
+  { art: '/cutscenes/intro-08.webp', icon: '🐺', sfx: 'GRRRR',
+    glows: [{ x: '21.1%', y: '47.9%', eye: true }, { x: '27.9%', y: '47.1%', eye: true }], // the eyes catch the firelight
+    at: { sfx: { left: '58%', right: 'auto', top: '74%' } },
     brief: 'His view: yellow eyes in the dark. A wolf steps into the firelight, snarling.' },
   { style: 'title', title: 'Trial 0', text: 'Fight to the death' },
 ];
