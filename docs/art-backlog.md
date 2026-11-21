@@ -4,7 +4,7 @@ What the game still needs drawn or modeled. Everything in the build today that i
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 1 | **Opening cutscene**, black-and-white anime style: 8 shots | 5 of 8 done (shots 1 quarry, 2 pick swing, 3 sigils, 4 workers back away, 5 the beam) | Shot list and a brief per shot in `INTRO_CUTSCENE` (`src/data/story.js`); also the 2-shot memory flicker (`FLICKERS`) and the Era 1 flashback (`FLASHBACKS`). Files go in `public/cutscenes/` (about 1600x900, landscape). |
+| 1 | **Opening cutscene**, black-and-white anime style: 8 shots | 6 of 8 done (shots 1 quarry, 2 pick swing, 3 sigils, 4 workers back away, 5 the beam, 6 gone in a flash) | Shot list and a brief per shot in `INTRO_CUTSCENE` (`src/data/story.js`); also the 2-shot memory flicker (`FLICKERS`) and the Era 1 flashback (`FLASHBACKS`). Files go in `public/cutscenes/` (about 1600x900, landscape). |
 | 2 | **Wearable gear**, first drafts for the 5 slots: weapon, armor, helm, offhand, trinket | To do | One base design per slot, then variations per tier (shop, crafted, boss, rare). Must match the hero's sculpted style and fit his rig. Until then the hero shows only zack's club. |
 | 3 | **Icons** for all gear, materials, boosters, blueprints, crafting items | To do | Replaces the emoji in the inventory, shop, Workshop and loot reveals. One consistent style, matching the imperial UI. |
 | 4 | **Base buildings**: Workshop (Crafting Studio), Hero Training Altar, Inventory, Shrine, Truth Board | Tier 1 done (zack) | Three tiers each for the Primal era. |

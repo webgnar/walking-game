@@ -481,12 +481,12 @@ function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
     return `<div class="cut title" data-a="${tapA}"><div class="speed"></div><div class="tt"><small>${esc(sh.title)}</small>${esc(sh.text)}</div>${dots}</div>`;
   }
   const pic = sh.art
-    ? `<img class="cutart" src="${esc(sh.art)}" alt="">${(sh.glows || []).map((g, k) => `<i class="sglow ${g.strong ? 'strong' : ''}" style="left:${g.x};top:${g.y};animation-delay:${k * 0.13}s"></i>`).join('')}`
+    ? `<img class="cutart" src="${esc(sh.art)}" alt="">${(sh.glows || []).map((g, k) => `<i class="sglow ${g.strong ? 'strong' : ''} ${g.dust ? 'dust' : ''}" style="left:${g.x};top:${g.y};animation-delay:${k * 0.13}s"></i>`).join('')}`
     : `<div class="cutph"><div class="speed"></div>${sh.icon ? `<div class="cutico ${sh.glow ? 'glow' : ''}">${sh.icon}</div>` : ''}<div class="brief">ART: ${esc(sh.brief)}</div></div>`;
   // per-shot text placement over real art
   const at = (k) => (sh.at && sh.at[k] ? ` style="${Object.entries(sh.at[k]).map(([p, v]) => `${p}:${v}`).join(';')}"` : '');
   return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="${tapA}" key="${i}">
-    <div class="cutpanel ${sh.art ? 'art' : ''}">${pic}
+    <div class="cutpanel ${sh.art ? 'art' : ''}">${pic}${sh.style === 'flash' && sh.art ? '<i class="whiteout"></i>' : ''}
       ${sh.caption ? `<div class="cap"${at('caption')}>${esc(sh.caption)}</div>` : ''}
       ${sh.sfx ? `<div class="sfx"${at('sfx')}>${esc(sh.sfx)}</div>` : ''}
       ${sh.thought ? `<div class="thought"${at('thought')}>${esc(sh.thought)}</div>` : ''}

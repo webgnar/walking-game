@@ -36,7 +36,9 @@ export const INTRO_CUTSCENE = [
   { art: '/cutscenes/intro-05.webp', icon: '🙇', voice: { who: 'Voice from the spire', text: 'Projected survival: 0.003%.' },
     at: { voice: { left: '3%', right: 'auto', top: '6%', bottom: 'auto', 'max-width': '34%' } },
     brief: 'Wide: every worker kneels. A beam of light from the spire falls on him alone.' },
-  { art: null, style: 'flash', sfx: 'FSSSHHHH',
+  { art: '/cutscenes/intro-06.webp', style: 'flash', sfx: 'FSSSHHHH',
+    glows: [{ x: '46.9%', y: '50%', dust: true }], // what's left of him, drifting up
+    at: { sfx: { left: '33%', top: '18%', right: 'auto' } },
     brief: 'White flash: his body breaks apart into a swirl of dust. The pick falls and clatters.' },
   { art: null, icon: '🕯', caption: 'Somewhere. Somewhen.', thought: 'Where… am I?',
     brief: 'He lands on cold stone in a cave, coughing up dust. Firelight. He is wearing furs now.' },
