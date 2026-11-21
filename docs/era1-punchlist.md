@@ -10,9 +10,9 @@ Priority: **P0** blocks a good playtest with outside players · **P1** needed be
 | --- | --- | --- |
 | P0 | After being hit, the hero could stay tinted solid red (into later fights and on Home): a hit flash cut off by a screen change never cleared | **Fixed** |
 | P1 | Base showed "Build free!" on all five buildings; only the first build is free | **Fixed** (now "First one free") |
-| P1 | Trial 15's long title ("The Great Woolly Mammoth") wraps onto two lines on phones and overlaps the Mammoth's intent badge and name | To do |
-| P1 | Level-up and "new skill to learn" notes stack on top of the Victory header | To do |
-| P2 | Evolve window says "leftover flint and bone turn into Soles"; wood and beast parts convert too | To do |
+| P1 | Trial 15's long title ("The Great Woolly Mammoth") wraps onto two lines on phones and overlaps the Mammoth's intent badge and name | **Fixed** (long titles stay on one line at a smaller size; enemy plates stay below the title) |
+| P1 | Level-up and "new skill to learn" notes stack on top of the Victory header | **Fixed** (level-up, new-skill and achievement notes now show inside the Victory and Defeat windows) |
+| P2 | Evolve window says "leftover flint and bone turn into Soles"; wood and beast parts convert too | **Fixed** ("leftover materials and beast parts turn into Soles") |
 | P2 | Boss and star-reward loot boxes ignore the 18-box limit (the limit only applies to walking). Decide: intended, or cap everything | Decide |
 | P2 | All six Boon cards use the same icon | Art |
 
@@ -31,7 +31,7 @@ Priority: **P0** blocks a good playtest with outside players · **P1** needed be
 
 **Hero animations** (the rig has idle, walk, attack, block, hurt, roar, throw, death, victory):
 
-- P1 **Jump attack** clip: to redo Skull Crusher as a crouch, leap, land in front and drive the club down. It was reverted because faking it without a clip looked wrong.
+- ~~P1 **Jump attack** clip~~ **Done** (2026-11-21): Skull Crusher now leaps with the new jumpattack clip and lands in front of the beast.
 - P1 **Firebrand** (cast or throw a burning brand), **Sweep** (wide arc), **Second Wind** (catch breath, glow). These currently reuse attack and throw.
 - P2 **Terror** (run through, lift, roar) and **Bloodrush** (three-hit flurry) are built from the generic attack; dedicated clips would sell them.
 
@@ -131,6 +131,6 @@ The first two matter most: right now the strongest moments (finishers, Gold boxe
 1. **Art (zack):** Mountain Lion, Sabretooth, Elk, Woolly Rhino, Mammoth models and clips; building tiers 2–3.
 2. **Audio:** a first pass of combat, loot and forge sound effects plus one music bed.
 3. **Story:** the Era 1 → 2 evolution cutscene (outline above), then the flicker and flashback art.
-4. **Bugs:** Mammoth title overlap, toast overlap, evolve text.
+4. ~~**Bugs:** Mammoth title overlap, toast overlap, evolve text.~~ Done 2026-11-21.
 5. **Systems:** Apple Health + notifications (the iPhone app), then cloud save.
 6. **Era 2** design and build.

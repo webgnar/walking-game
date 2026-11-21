@@ -151,6 +151,8 @@ h3.h { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: va
 /* ---------- Combat ---------- */
 .combat-top { position: absolute; top: calc(var(--st) + 6px); left: 50%; transform: translateX(-50%); text-align: center; }
 .combat-top .comic { font-size: calc(var(--u) * 5); color: var(--yellow); text-shadow: 2px 2px 0 var(--ink); }
+.combat-top .comic { white-space: nowrap; }
+.combat-top .comic.long { font-size: calc(var(--u) * 3.6); }
 .hpbox { position: absolute; transform: translate(-50%, -100%); min-width: 96px; text-align: center; pointer-events: auto; cursor: pointer; }
 .hpbox .nm { font-size: 12px; font-weight: 700; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; white-space: nowrap; }
 .hp { height: 10px; background: #300; border: 2px solid var(--ink); position: relative; margin-top: 2px; }
@@ -1143,3 +1145,9 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 /* one box per tier, with a count */
 .lbox .cnt { position: absolute; top: -8px; right: -8px; min-width: 24px; padding: 1px 6px; background: #ffd27a; color: #1a1008; font-family: var(--display); font-weight: 800; font-size: 13px; border-radius: 12px; box-shadow: 0 0 0 2px #1a1008; letter-spacing: 0; }
 .boxes { padding-top: 10px; }
+
+/* Level-up and new-skill notes inside the Victory window */
+.vnotes { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin-top: 4px; font-size: 12px; line-height: 1.25; }
+.vnote b { font-family: var(--display); letter-spacing: .1em; text-transform: uppercase; color: var(--gold2, var(--yellow)); margin-right: 3px; }
+.vnote.n-skill b { color: #9fd8c8; }
+.vnote i { font-style: normal; color: var(--gold2, var(--yellow)); }
