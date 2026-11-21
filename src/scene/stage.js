@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { loadCaveman } from './caveman.js';
 import { buildBackdrop } from './backdrop.js';
-import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding } from './models.js';
+import { loadProps, buildHero, setHeroLook, buildEnemy, enemyHeight, buildCave, buildFire, buildBuilding, loadBuildingModel } from './models.js';
 
 const BUILD_POS = {
   studio: [-5.2, -5.4], altar: [-2.6, -6.4], inventory: [0, -6.8], shrine: [2.6, -6.4], truth: [5.2, -5.4],
@@ -185,6 +185,12 @@ export class Stage {
       this.buildings[id] = b;
       this.buildingTiers[id] = tier;
       if (this.mode === 'base' && tier > 0) this.pop(b);
+      // swap the primitive stand-in for zack's model once it has loaded (same group, so position/taps stay)
+      if (tier > 0) loadBuildingModel(id, tier).then((m) => {
+        if (!m || this.buildings[id] !== b) return;
+        b.clear();
+        b.add(m);
+      });
     }
   }
 
