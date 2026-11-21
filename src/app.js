@@ -8,6 +8,7 @@ import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRI
 import * as ST from './logic/story.js';
 import * as GR from './logic/gear.js';
 import { IC, WREATH } from './ui/icons.js';
+import { gi, gearGi } from './ui/gameIcons.js';
 import { loadUiAssets } from './ui/assets.js';
 import * as H from './logic/hero.js';
 import * as E from './logic/economy.js';
@@ -25,9 +26,16 @@ const app = {
 const $ = (sel) => document.querySelector(sel);
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(n).toLocaleString('en-US');
-const ICON = { weapon: '🏏', armor: '🦺', helm: '⛑️', offhand: '🛡️', trinket: '📿', flint: '🪨', bone: '🦴', wood: '🪵', stride_brew: '🧪', lucky_knot: '🪢', warpaint: '🎨', fang: '🦷', claw: '🐾', tine: '🦌', hide: '🟫', ember: '🔥' };
-const TIER_ICON = { bronze: '📦', silver: '🎁', gold: '💰', platinum: '💎', legendary: '🔥', celestial: '🌌' };
-const gearIcon = (key) => ICON[GEAR[key].slot];
+// Icons: emoji placeholders until a PNG is dropped into src/icons/ (see docs/icon-list.md).
+const ICON_ID = {
+  weapon: 'slot-weapon', armor: 'slot-armor', helm: 'slot-helm', offhand: 'slot-offhand', trinket: 'slot-trinket',
+  flint: 'mat-flint', bone: 'mat-bone', wood: 'mat-wood', stride_brew: 'boost-stride-brew', lucky_knot: 'boost-lucky-knot', warpaint: 'boost-warpaint',
+  fang: 'part-fang', claw: 'part-claw', tine: 'part-tine', hide: 'part-hide', ember: 'part-ember',
+};
+const ICON = Object.fromEntries(Object.entries(ICON_ID).map(([k, id]) => [k, gi(id)]));
+const TIER_ICON = Object.fromEntries(['bronze', 'silver', 'gold', 'platinum', 'legendary', 'celestial'].map((t) => [t, gi(`box-${t}`)]));
+const gearIcon = gearGi;
+const SOLE = gi('cur-soles');
 const statText = (st) => Object.entries(st).map(([k, v]) => (k === 'dmg' ? `+${v} damage` : k === 'hp' ? `+${v} health` : `+${v} ${ATTRS[k].short}`)).join(', ');
 
 export function start() {
@@ -127,7 +135,7 @@ function curPlate() {
   const mats = MAT_SCREENS.includes(app.screen);
   return `<div class="cur">
       <span class="c soles" title="Soles">${IC.sole}<span class="sv">${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span></span>
-      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span><i>/</i><span class="c" title="Wood">🪵${s.mats.wood || 0}</span>` : ''}
+      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span><i>/</i><span class="c" title="Wood">${ICON.wood}${s.mats.wood || 0}</span>` : ''}
     </div>`;
 }
 
@@ -205,7 +213,7 @@ const SCREENS = {
       ${s.boxes.length > 1 ? '<button class="btn small openall" data-a="openAll">Open all</button>' : ''}
     </div>
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero"></div>
-    ${sp || hint('hero') ? `<button class="ui-points ${hint('hero') || ''}" data-a="hero" data-v="${sp ? 'stats' : 'gear'}"><span>✦</span>${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</button>` : ''}
+    ${sp || hint('hero') ? `<button class="ui-points ${hint('hero') || ''}" data-a="hero" data-v="${sp ? 'stats' : 'gear'}"><span>${gi('act-points')}</span>${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</button>` : ''}
     <button class="ui-stepbtn" data-hold="steps"><span class="medal"><span class="uicon ic-steps">${IC.sole}</span></span><span class="tx"><span class="l">+100 Steps</span><span class="sub">Hold to keep walking</span></span><span class="test">Test</span></button>
     <button class="ui-trophy sq" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
     ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
@@ -231,15 +239,15 @@ const SCREENS = {
     ${BUILDING_ORDER.map((b) => {
       const st = s.base[b];
       return `<div class="bldg" data-anchor="${b}" data-a="building" data-v="${b}">
-        <div class="bn">${BUILDINGS[b].icon} ${BUILDINGS[b].short}</div>
+        <div class="bn">${gi(`bld-${b}`)} ${BUILDINGS[b].short}</div>
         <div class="tiers">${[1, 2, 3].map((t) => `<i class="${st.tier >= t ? 'on' : ''}"></i>`).join('')}</div>
-        ${st.job ? `<div class="timer">⏳ <span data-timer="${b}">${timeLeft(st.job)}</span></div>` : st.tier === 0 ? `<div class="timer">${s.firstBuildFree ? 'Build free!' : 'Not built'}</div>` : ''}
+        ${st.job ? `<div class="timer">${gi('act-timer')} <span data-timer="${b}">${timeLeft(st.job)}</span></div>` : st.tier === 0 ? `<div class="timer">${s.firstBuildFree ? 'Build free!' : 'Not built'}</div>` : ''}
       </div>`;
     }).join('')}
     <div style="position:absolute;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 10px)" class="row">
-      <button class="btn small ${evolveReady ? 'yellow pulse' : 'ghost'}" data-a="modal" data-v="evolve">🧬 Evolve</button>
-      <button class="btn small ghost" data-a="go" data-v="truth">📌 Truth Board</button>
-      <button class="btn small ghost" data-a="go" data-v="craft">⚒ Craft</button>
+      <button class="btn small ${evolveReady ? 'yellow pulse' : 'ghost'}" data-a="modal" data-v="evolve">${gi('act-evolve')} Evolve</button>
+      <button class="btn small ghost" data-a="go" data-v="truth">${gi('bld-truth')} Truth Board</button>
+      <button class="btn small ghost" data-a="go" data-v="craft">${gi('bld-studio')} Craft</button>
     </div>`;
   },
 
@@ -253,7 +261,7 @@ const SCREENS = {
         return `<div class="panel pad" style="background:var(--panel2)">
           <div class="row"><span style="font-size:28px">${g ? gearIcon(it.key) : ICON[it.key]}</span><div class="grow"><div class="comic" style="font-size:18px">${g ? g.name : `${it.n} ${MATERIALS[it.key].name}`}</div>
           <div class="small muted">${g ? `${SLOT_NAMES[g.slot]} · ${statText(g.stats)}` : 'Crafting and building material'}${owned ? ` · owned ${owned}` : ''}</div></div></div>
-          <button class="btn small ${s.soles >= it.price ? 'yellow' : 'off'}" style="width:100%;margin-top:6px" data-a="buy" data-v="${i}">👣 ${it.price}</button>
+          <button class="btn small ${s.soles >= it.price ? 'yellow' : 'off'}" style="width:100%;margin-top:6px" data-a="buy" data-v="${i}">${SOLE} ${it.price}</button>
         </div>`;
       }).join('')}
       </div></div>
@@ -272,7 +280,7 @@ const SCREENS = {
     const pts = nodes.map((t) => pos(t.n));
     const nt = T.nextTrial(s);
     return `<div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
-    ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared · ★ ${T.totalStars(s)}/45${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', '🏠 Home')}
+    ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared · ★ ${T.totalStars(s)}/45${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', `${gi('act-home')} Home`)}
     <div class="map">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#c9a24c" stroke-width="0.35" stroke-dasharray="1.2 1.2" opacity=".6"/></svg>
       ${nodes.map((t) => {
@@ -281,7 +289,7 @@ const SCREENS = {
         const open = T.trialUnlocked(s, t.n);
         const cls = [t.boss === 'mini' ? 'mini' : t.boss === 'era' ? 'era' : '', done ? 'done' : open ? 'open' : 'lock'].join(' ');
         const st = s.trials.stars[t.n] || 0;
-        return `<div class="node ${cls}" style="left:${p.x}%;top:${p.y}%" data-a="trial" data-v="${t.n}">${t.boss === 'era' ? '🦣' : t.boss === 'mini' ? '💀' : t.n}<span class="lbl">${t.boss ? esc(t.name) : `Lv ${t.level}`}${done ? `<b class="nstars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</b>` : ''}</span></div>`;
+        return `<div class="node ${cls}" style="left:${p.x}%;top:${p.y}%" data-a="trial" data-v="${t.n}">${t.boss === 'era' ? gi('node-era-boss') : t.boss === 'mini' ? gi('node-mini-boss') : t.n}<span class="lbl">${t.boss ? esc(t.name) : `Lv ${t.level}`}${done ? `<b class="nstars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</b>` : ''}</span></div>`;
       }).join('')}
       ${ACTS.map((a, i) => `<div class="actlbl" style="top:${14 + i * 30}%">Act ${roman(a.n)} · ${esc(a.name)}</div>`).join('')}
     </div>
@@ -301,22 +309,22 @@ const SCREENS = {
     return `<div class="combat-top"><div class="comic">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}</div><div class="small muted">Turn ${b.turn}${s.trials.cleared[t.n] && t.n ? ' · replay' : ''}</div></div>
     <div class="combat-hero panel pad">
       <div class="row"><span class="comic" style="font-size:18px">You</span><span class="grow"></span><span class="small muted">Lv ${s.hero.level}</span></div>
-      <div class="hp hero"><i style="width:${(hp('hero', h.hp) / h.maxHp) * 100}%"></i><span class="tx">${hp('hero', h.hp)}/${h.maxHp}</span>${bl('hero', h.block) ? `<span class="bl">🛡${bl('hero', h.block)}</span>` : ''}</div>
+      <div class="hp hero"><i style="width:${(hp('hero', h.hp) / h.maxHp) * 100}%"></i><span class="tx">${hp('hero', h.hp)}/${h.maxHp}</span>${bl('hero', h.block) ? `<span class="bl">${gi('st-block')}${bl('hero', h.block)}</span>` : ''}</div>
       ${h.finisher ? `<div class="fury ${h.fury >= FURY.max ? 'full' : ''}" title="Fury: fills as you hit and get hit. Full Fury lets you finish a marked enemy."><i style="width:${(h.fury / FURY.max) * 100}%"></i><span>Fury</span></div>` : ''}
-      ${h.bleed ? `<div class="status bad">🩸 Bleeding ${h.bleed.dmg} × ${h.bleed.turns}</div>` : ''}
-      ${h.warpaint ? '<div class="status warn">🎨 Warpaint +3 damage</div>' : ''}
+      ${h.bleed ? `<div class="status bad">${gi('st-bleed')} Bleeding ${h.bleed.dmg} × ${h.bleed.turns}</div>` : ''}
+      ${h.warpaint ? `<div class="status warn">${ICON.warpaint} Warpaint +3 damage</div>` : ''}
     </div>
     <button class="iconbtn" style="position:absolute;top:calc(var(--st) + 6px);left:calc(var(--sl) + 8px);display:none"></button>
-    <button class="btn tiny ghost" style="position:absolute;top:calc(var(--st) + 6px);right:calc(var(--sr) + 8px)" data-a="retreat">🏳 Retreat</button>
+    <button class="btn tiny ghost" style="position:absolute;top:calc(var(--st) + 6px);right:calc(var(--sr) + 8px)" data-a="retreat">${gi('act-retreat')} Retreat</button>
     ${b.enemies.filter((e) => !e.dead || (sh[e.uid] && sh[e.uid].hp > 0)).map((e) => {
       const il = C.intentLabel(e);
       const ex = !e.dead && C.executable(e) && h.finisher;
       return `<div class="hpbox ${e.uid === app.target && alive.length > 1 ? 'target' : ''} ${ex ? 'exec' : ''}" data-anchor="${e.uid}" data-a="target" data-v="${e.uid}">
-        <div class="intent ${il.cls}">${il.icon} ${esc(il.text)}${il.note ? `<span class="note">${esc(il.note)}</span>` : ''}</div>
-        <div class="nm">${ex ? '<span class="skull">💀</span>' : ''}${esc(e.name)}</div>
+        <div class="intent ${il.cls}">${gi(il.ic, il.icon)} ${esc(il.text)}${il.note ? `<span class="note">${esc(il.note)}</span>` : ''}</div>
+        <div class="nm">${ex ? `<span class="skull">${gi('st-execute')}</span>` : ''}${esc(e.name)}</div>
         <div class="traits">${(ENEMIES[e.id].traits || []).filter((k) => k !== 'fireFear').map((k) => `<span>${esc(TRAITS[k].name)}</span>`).join('')}</div>
-        <div class="hp"><i style="width:${(hp(e.uid, e.hp) / e.maxHp) * 100}%"></i><span class="tx">${hp(e.uid, e.hp)}/${e.maxHp}</span>${bl(e.uid, e.block) ? `<span class="bl">🛡${bl(e.uid, e.block)}</span>` : ''}</div>
-        <div class="status">${e.burn ? `🔥${e.burn.dmg}×${e.burn.turns} ` : ''}${e.feared ? '😨 ' : ''}${e.snarl ? '⬆ ' : ''}${e.stompBonus ? `+${e.stompBonus} stomp` : ''}</div>
+        <div class="hp"><i style="width:${(hp(e.uid, e.hp) / e.maxHp) * 100}%"></i><span class="tx">${hp(e.uid, e.hp)}/${e.maxHp}</span>${bl(e.uid, e.block) ? `<span class="bl">${gi('st-block')}${bl(e.uid, e.block)}</span>` : ''}</div>
+        <div class="status">${e.burn ? `${gi('st-burn')}${e.burn.dmg}×${e.burn.turns} ` : ''}${e.feared ? `${gi('st-scared')} ` : ''}${e.snarl ? `${gi('st-buff')} ` : ''}${e.stompBonus ? `+${e.stompBonus} stomp` : ''}</div>
       </div>`;
     }).join('')}
     <div class="skillbar">
@@ -325,10 +333,10 @@ const SCREENS = {
         const sk = SKILLS[id];
         const cd = h.cooldowns[id] || 0;
         return `<div class="sk ${C.canUse(b, id) && !app.busy ? '' : 'no'}" data-a="skill" data-v="${id}">
-          <span class="ap">${sk.ap}</span><span class="si">${sk.icon}</span><span class="sn">${sk.name}</span>
+          <span class="ap">${sk.ap}</span><span class="si">${gi(`skill-${sk.id}`)}</span><span class="sn">${sk.name}</span>
           <span class="sp">${skillShort(id, b)}</span>${cd ? `<span class="cd">${cd}</span>` : ''}</div>`;
       }).join('')}
-      ${h.finisher ? (() => { const f = FINISHERS[h.finisher]; const ok = C.canFinish(b) && !app.busy; return `<div class="sk fin ${ok ? 'ready' : 'no'}" data-a="finish" title="${esc(f.desc)}"><span class="ap">${FURY.ap}</span><span class="si">${f.icon}</span><span class="sn">${esc(f.name)}</span><span class="sp">${h.fury >= FURY.max ? (C.canFinish(b) ? 'Finish!' : 'needs 💀') : `Fury ${h.fury}%`}</span></div>`; })() : ''}
+      ${h.finisher ? (() => { const f = FINISHERS[h.finisher]; const ok = C.canFinish(b) && !app.busy; return `<div class="sk fin ${ok ? 'ready' : 'no'}" data-a="finish" title="${esc(f.desc)}"><span class="ap">${FURY.ap}</span><span class="si">${gi(`fin-${f.id}`)}</span><span class="sn">${esc(f.name)}</span><span class="sp">${h.fury >= FURY.max ? (C.canFinish(b) ? 'Finish!' : `needs ${gi('st-execute')}`) : `Fury ${h.fury}%`}</span></div>`; })() : ''}
     </div>
     <button class="btn small ghost endturn ${app.busy || b.over ? 'off' : ''}" data-a="endTurn" title="End your turn early. Up to ${h.stats.apCarry} unspent AP carries over to next turn.">Save AP ▶<small style="display:block;font-size:10px;font-family:Rajdhani;text-transform:none;letter-spacing:0">end turn early</small></button>`;
   },
@@ -349,19 +357,19 @@ const SCREENS = {
     }
     const cards = [];
     if (r.starter) {
-      cards.push(card('👣', `${r.starter.soles} Soles`, 'Starter grant'));
-      cards.push(card('📦', `${r.starter.boxes} Bronze loot boxes`, 'Starter grant'));
+      cards.push(card(SOLE, `${r.starter.soles} Soles`, 'Starter grant'));
+      cards.push(card(TIER_ICON.bronze, `${r.starter.boxes} Bronze loot boxes`, 'Starter grant'));
     }
-    if (r.xp) cards.push(card('⭐', `${r.xp} XP`, r.first ? 'First win' : ''));
+    if (r.xp) cards.push(card(gi('cur-xp'), `${r.xp} XP`, r.first ? 'First win' : ''));
     if (r.box) cards.push(card(TIER_ICON[r.box], `${E.TIER_NAMES[r.box]} loot box`, 'Added to your boxes'));
     cards.push(matCards(r.mats));
     cards.push(matCards(r.parts, 'Beast part'));
     for (const g of r.gear) cards.push(card(gearIcon(g), GEAR[g].name, statText(GEAR[g].stats), GEAR[g].tier === 'boss' ? 'boss' : ''));
-    if (r.respec) cards.push(card('🔄', 'Respec token', 'Reset your points once'));
-    for (const id of r.blueprints || []) cards.push(card('📐', 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === id)), 'rare'));
-    if (r.fragment) cards.push(card('📄', 'Story fragment', 'Pinned to the Truth Board', 'frag'));
-    if (r.eraKey) cards.push(card('🗝️', 'ERA KEY', 'Primal → Brick', 'boss'));
-    if (r.finisher) cards.push(card(FINISHERS[r.finisher].icon, `Finisher: ${FINISHERS[r.finisher].name}`, FINISHERS[r.finisher].desc, 'boss'));
+    if (r.respec) cards.push(card(gi('cur-respec'), 'Respec token', 'Reset your points once'));
+    for (const id of r.blueprints || []) cards.push(card(gi('cur-blueprint'), 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === id)), 'rare'));
+    if (r.fragment) cards.push(card(gi('cur-fragment'), 'Story fragment', 'Pinned to the Truth Board', 'frag'));
+    if (r.eraKey) cards.push(card(gi('cur-era-key'), 'ERA KEY', 'Primal → Brick', 'boss'));
+    if (r.finisher) cards.push(card(gi(`fin-${r.finisher}`), `Finisher: ${FINISHERS[r.finisher].name}`, FINISHERS[r.finisher].desc, 'boss'));
     for (const sr of r.starRewards || []) cards.push(card(TIER_ICON[sr.box], `${E.TIER_NAMES[sr.box]} loot box`, `${sr.stars} stars reached`, 'rare'));
     return `<div class="overlay"><div class="dialog panel halftone wide" style="text-align:center">
       <div class="tierlabel" style="color:var(--yellow);font-size:44px">${r.first ? 'VICTORY!' : 'REPLAY CLEARED'}</div>
@@ -408,7 +416,7 @@ const SCREENS = {
           <h2 class="h" style="margin:0">${esc(B.recipeName(r))}</h2>
           <div class="small">${g ? `${SLOT_NAMES[g.slot]} · ${statText(g.stats)}` : esc(BOOSTERS[r.out.booster].desc)}</div>
           ${set ? `<div class="small setline">${esc(set.name)} set · ${Object.entries(set.bonus).map(([n, b]) => `${n}: ${esc(b.text)}`).join(' · ')}</div>` : ''}</div>
-          <button class="btn yellow ${check.ok ? 'pulse' : 'off'}" data-a="forgeStart">⚒ Forge</button></div>
+          <button class="btn yellow ${check.ok ? 'pulse' : 'off'}" data-a="forgeStart">${gi('bld-studio')} Forge</button></div>
         <div class="sep"></div>
         <div class="small"><b>Needs</b> ${matList(r.mats, part ? { [part]: 1 } : {})}${check.ok ? '' : ` <span class="warn">· ${esc(why)}</span>`}</div>
         ${g ? `<h3 class="h" style="margin-top:8px">Part slot <span class="small muted">· special effect</span></h3>
@@ -439,7 +447,7 @@ const SCREENS = {
       if (st === 'decoded') return `<div class="entry ${f.from ? 'msg' : ''}" data-a="readFrag" data-v="${f.id}">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div><p>${esc(f.text)}</p></div>`;
       return `<div class="entry redacted">${head}<div class="ek">${esc(f.kind)}${from}</div><div class="et">${esc(f.title)}</div>
         <p class="fx">${esc(f.text.slice(0, 90))}</p>
-        ${st === 'decodable' ? `<button class="btn tiny yellow" data-a="decode" data-v="${f.id}">Decode · 👣${f.cost}</button>` : `<div class="small" style="color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
+        ${st === 'decodable' ? `<button class="btn tiny yellow" data-a="decode" data-v="${f.id}">Decode · ${SOLE}${f.cost}</button>` : `<div class="small" style="color:#8a2a20">Needs Truth Board tier ${f.level}</div>`}
       </div>`;
     });
     // One story: each transmission sits between the parts where it arrives.
@@ -455,7 +463,7 @@ const SCREENS = {
         <div class="memory ${ready ? 'ready' : ''}">
           <div class="grow"><div class="mk">Flashback · Primal era</div><div class="mt">${esc(fb.title)}</div>
             ${ready ? '<div class="small">Every piece decoded. The memory is whole.</div>' : `<div class="small">Decode all ${list.length} parts to recover it.</div><div class="mbar"><i style="width:${(done / list.length) * 100}%"></i></div>`}</div>
-          <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? '▶ Watch again' : '▶ Play memory') : `🔒 ${done}/${list.length}`}</button>
+          <button class="btn small ${ready ? 'yellow' : 'off'}" data-a="flashback" data-v="${era}">${ready ? (s.flashbacksSeen.includes(era) ? `${gi('act-play')} Watch again` : `${gi('act-play')} Play memory`) : `${gi('act-locked')} ${done}/${list.length}`}</button>
         </div>
       </div>
       <div class="scroll grow story">${story.join('')}</div>
@@ -577,7 +585,7 @@ function trialCard(n) {
     <div class="small">Suggested level <b class="${under ? 'warn' : 'ok'}">${t.level}</b> · you are ${s.hero.level} · <span class="stars sm">${[1, 2, 3].map((i) => `<span class="${i <= stars ? 'on' : ''}">★</span>`).join('')}</span> <span class="muted">3rd star: ${t.par} turns</span></div>
     <div class="small">Your skills: ${s.hero.loadout.map((id) => esc(SKILLS[id].name)).join(', ')}${s.hero.finisher ? ` · ${esc(FINISHERS[s.hero.finisher].name)}` : ''} <a href="#" data-a="hero" data-v="skills">Change</a></div>
     <div class="small muted" style="margin:4px 0">${rewards}</div>
-    ${open ? `<button class="btn pink" style="width:100%" data-a="fight" data-v="${n}">${done ? 'Replay' : 'Fight'} ⚔</button>` : `<div class="small bad">Beat Trial ${n - 1} first.</div>`}
+    ${open ? `<button class="btn pink" style="width:100%" data-a="fight" data-v="${n}">${done ? 'Replay' : 'Fight'} ${gi('act-fight')}</button>` : `<div class="small bad">Beat Trial ${n - 1} first.</div>`}
   </div>`;
 }
 
@@ -593,9 +601,9 @@ function heroStatsTab() {
       <div class="bar" style="height:10px"><i style="width:${atCap ? 100 : (h.xp / need) * 100}%"></i></div>
       <div class="small muted">${atCap ? `Era cap reached (level ${cap})` : `${h.xp}/${need} XP`}</div></div></div>
     <div class="row wrap" style="margin:6px 0">
-      <button class="btn small ${!atCap && s.soles >= cost ? 'yellow' : 'off'}" data-a="train">🗿 Train to level ${h.level + 1} · 👣${fmt(cost)}</button>
-      ${!atCap && s.soles >= H.trainCost(s, 10) && s.soles < cost ? `<button class="btn small" data-a="train10">+10 XP · 👣${H.trainCost(s, 10)}</button>` : ''}
-      ${h.respecTokens ? `<button class="btn small ghost" data-a="respec">🔄 Respec (${h.respecTokens})</button>` : ''}
+      <button class="btn small ${!atCap && s.soles >= cost ? 'yellow' : 'off'}" data-a="train">${gi('act-train')} Train to level ${h.level + 1} · ${SOLE}${fmt(cost)}</button>
+      ${!atCap && s.soles >= H.trainCost(s, 10) && s.soles < cost ? `<button class="btn small" data-a="train10">+10 XP · ${SOLE}${H.trainCost(s, 10)}</button>` : ''}
+      ${h.respecTokens ? `<button class="btn small ghost" data-a="respec">${gi('cur-respec')} Respec (${h.respecTokens})</button>` : ''}
     </div>
     <div class="small muted">Training costs ${H.trainCost(s, 1)} Soles per XP. First wins of Trials give XP too.</div>
     <div class="sep"></div>
@@ -603,7 +611,7 @@ function heroStatsTab() {
     ${Object.entries(ATTRS).map(([k, a]) => `<div class="stat"><span class="k">${a.short}</span><span class="v">${st[k]}</span><span class="d">${a.desc}${st[k] !== h.attrs[k] ? ` <span class="ok">(+${st[k] - h.attrs[k]} gear)</span>` : ''}</span>${h.freeAttr ? `<button class="plus" data-a="attr" data-v="${k}">+</button>` : ''}</div>`).join('')}
     <div class="sep"></div>
     <div class="row wrap small">
-      <span>❤ Health <b>${st.maxHp}</b></span><span>🏏 Weapon <b>+${st.weapon}</b></span><span>🎯 Crit <b>${Math.round(st.crit * 100)}%</b></span><span>💨 Dodge <b>${Math.round(st.dodge * 100)}%</b></span><span>⚡ AP carry <b>${st.apCarry}</b></span>
+      <span>${gi('stat-health')} Health <b>${st.maxHp}</b></span><span>${gi('stat-weapon')} Weapon <b>+${st.weapon}</b></span><span>${gi('stat-crit')} Crit <b>${Math.round(st.crit * 100)}%</b></span><span>${gi('stat-dodge')} Dodge <b>${Math.round(st.dodge * 100)}%</b></span><span>${gi('stat-ap')} AP carry <b>${st.apCarry}</b></span>
     </div>
     ${h.boons.length ? `<div class="small" style="margin-top:6px">Boons: ${h.boons.map((id) => BOONS.find((b) => b.id === id).name).join(', ')}</div>` : ''}`;
 }
@@ -612,13 +620,13 @@ function heroSkillsTab() {
   const h = s.hero;
   const max = H.maxRank(s);
   const size = H.loadoutSize(s);
-  const fin = `<h3 class="h" style="margin-top:10px">Finisher <span class="small muted">· one equipped · fill Fury, then finish an enemy marked 💀</span></h3>
+  const fin = `<h3 class="h" style="margin-top:10px">Finisher <span class="small muted">· one equipped · fill Fury, then finish an enemy marked ${gi('st-execute')}</span></h3>
   ${FINISHER_ORDER.map((id) => {
     const f = FINISHERS[id];
     const own = h.finishers.includes(id);
     const eq = h.finisher === id;
     const buy = !own && f.price ? H.canBuyFinisher(s, id) : null;
-    return `<div class="skill ${own ? '' : 'locked'}"><div class="si">${f.icon}</div><div class="grow"><div class="sname">${esc(f.name)}</div><div class="small">${esc(f.desc)}</div>${own ? '' : `<div class="small muted">${esc(f.how)}${f.price ? ` · 👣${f.price}` : ''}</div>`}</div>
+    return `<div class="skill ${own ? '' : 'locked'}"><div class="si">${gi(`fin-${f.id}`)}</div><div class="grow"><div class="sname">${esc(f.name)}</div><div class="small">${esc(f.desc)}</div>${own ? '' : `<div class="small muted">${esc(f.how)}${f.price ? ` · ${SOLE}${f.price}` : ''}</div>`}</div>
       ${own ? `<button class="btn tiny ${eq ? 'cyan' : 'ghost'}" data-a="equipFinisher" data-v="${id}">${eq ? 'Equipped' : 'Equip'}</button>` : f.price ? `<button class="btn tiny ${buy.ok ? 'yellow' : 'off'}" data-a="buyFinisher" data-v="${id}">Buy</button>` : ''}</div>`;
   }).join('')}`;
   return `<div class="small muted">Bring ${size} into a fight: choose for the Trial ahead · max rank ${max} (upgrade the Hero Training Altar for more) · ${h.freeSkill} skill point${h.freeSkill === 1 ? '' : 's'}</div>
@@ -626,8 +634,8 @@ function heroSkillsTab() {
     const sk = SKILLS[id];
     const rank = h.ranks[id];
     const inL = h.loadout.includes(id);
-    if (!rank) return `<div class="skill locked"><div class="si">${sk.icon}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span></div><div class="small">Unlocks at level ${sk.unlock}</div></div></div>`;
-    return `<div class="skill"><div class="si">${sk.icon}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span> <span class="rank">${'◆'.repeat(rank)}<span style="opacity:.35">${'◇'.repeat(3 - rank)}</span></span></div>
+    if (!rank) return `<div class="skill locked"><div class="si">${gi(`skill-${sk.id}`)}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span></div><div class="small">Unlocks at level ${sk.unlock}</div></div></div>`;
+    return `<div class="skill"><div class="si">${gi(`skill-${sk.id}`)}</div><div class="grow"><div class="sname">${sk.name}<span class="ap">${sk.ap} AP</span> <span class="rank">${'◆'.repeat(rank)}<span style="opacity:.35">${'◇'.repeat(3 - rank)}</span></span></div>
       <div class="small">${sk.desc(H.skillPower(s, id))}</div></div>
       ${h.freeSkill && rank < max && sk.power ? `<button class="btn tiny green" data-a="rank" data-v="${id}">+2</button>` : ''}
       <button class="btn tiny ${inL ? 'cyan' : 'ghost'}" data-a="loadout" data-v="${id}">${inL ? 'In loadout' : 'Add'}</button></div>`;
@@ -691,13 +699,13 @@ const MODALS = {
     if (!r) return '';
     const comment = (r.steps < 1000 ? pick(PROCTOR.walkSmall) : r.steps < 5000 ? pick(PROCTOR.walkMid) : pick(PROCTOR.walkBig)).replace('{steps}', fmt(r.steps));
     return `<div class="dialog panel halftone">
-      <h2 class="h">📜 Expedition report</h2>
+      <h2 class="h">${gi('cur-report')} Expedition report</h2>
       <div class="muted small">While you were out</div>
       <div class="body">
-      ${(r.transmissions || []).map((id) => `<div class="txmsg cleared"><div class="txh">📡 Signal cleared · ${esc(FORMER_TRIBUTE)}</div><p>${esc(ST.txById(id).text)}</p></div>`).join('')}
+      ${(r.transmissions || []).map((id) => `<div class="txmsg cleared"><div class="txh">${gi('cur-signal')} Signal cleared · ${esc(FORMER_TRIBUTE)}</div><p>${esc(ST.txById(id).text)}</p></div>`).join('')}
       <div class="loot" style="margin:10px 0">
-        ${card('🚶', `${fmt(r.steps)} steps`)}
-        ${card('👣', `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
+        ${card(gi('cur-steps'), `${fmt(r.steps)} steps`)}
+        ${card(SOLE, `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
         ${r.boxes.map((t) => card(TIER_ICON[t], `${E.TIER_NAMES[t]} box`)).join('')}
         ${matCards(r.mats, 'found on the way')}
       </div>
@@ -714,7 +722,7 @@ const MODALS = {
       return `<div class="dialog panel wide halftone reveal" style="align-items:center">
         <div class="tierlabel" style="color:var(--yellow)">${o.count} LOOT BOXES OPENED</div>
         <div class="small" style="margin:4px 0 2px">${E.TIERS.filter((t) => o.tiers[t]).map((t) => `<span style="color:var(--${t})">${o.tiers[t]} ${E.TIER_NAMES[t]}</span>`).join(' · ')}</div>
-        ${m.revealed ? `<div class="loot body">${o.items.map((it, i) => lootCard(it, Math.min(i, 12))).join('')}</div>` : `<div class="bigbox tier-${E.TIERS.filter((t) => o.tiers[t]).pop()}">📦</div>`}
+        ${m.revealed ? `<div class="loot body">${o.items.map((it, i) => lootCard(it, Math.min(i, 12))).join('')}</div>` : `<div class="bigbox tier-${E.TIERS.filter((t) => o.tiers[t]).pop()}">${TIER_ICON[E.TIERS.filter((t) => o.tiers[t]).pop()]}</div>`}
         <div class="actions" style="justify-content:center">${m.revealed ? '<button class="btn cyan" data-a="closeModal">Done</button>' : ''}</div>
       </div>`;
     }
@@ -729,7 +737,7 @@ const MODALS = {
     const odds = E.boxOdds(s.base.shrine.tier);
     return `<div class="dialog panel halftone">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">📦 Loot boxes</h2>
+      <h2 class="h">${gi('hdr-boxes')} Loot boxes</h2>
       <div class="small muted">One for every 1,000 steps. You can hold ${E.BOX_LIMIT}. Contents scale to your level.</div>
       <div class="body" style="margin:10px 0">
         <div class="boxes">${s.boxes.map((b) => `<div class="lbox tier-${b.tier}" data-a="openBox" data-v="${b.id}"><span class="ico">${TIER_ICON[b.tier]}</span>${E.TIER_NAMES[b.tier]}</div>`).join('') || '<div class="muted">No boxes. Walk 1,000 steps to earn one.</div>'}</div>
@@ -746,13 +754,13 @@ const MODALS = {
     const w = E.updateWeekly(s);
     return `<div class="dialog panel halftone">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">🎯 Daily goals</h2>
+      <h2 class="h">${gi('hdr-goals')} Daily goals</h2>
       <div class="body">
       ${g.list.map((it, i) => {
         const d = E.GOAL_POOL[it.id];
         const done = E.goalDone(it);
         const p = Math.min(1, it.progress / d.target);
-        return `<div class="skill"><div class="si">${it.claimed ? '✅' : done ? '🎁' : '⬜'}</div><div class="grow"><div class="sname">${d.text}</div>
+        return `<div class="skill"><div class="si">${gi(it.claimed ? 'goal-done' : done ? 'goal-ready' : 'goal-open')}</div><div class="grow"><div class="sname">${d.text}</div>
           <div class="bar"><i style="width:${p * 100}%"></i></div><div class="small muted">${fmt(Math.min(it.progress, d.target))}/${fmt(d.target)} · reward: ${rewardText(d.reward)}</div></div>
           ${done && !it.claimed ? `<button class="btn tiny yellow" data-a="claimGoal" data-v="${i}">Claim</button>` : ''}</div>`;
       }).join('')}
@@ -769,10 +777,10 @@ const MODALS = {
     const got = ACHIEVEMENTS.filter((a) => s.achievements[a.id]).length;
     return `<div class="dialog panel halftone wide">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">🏆 Achievements ${got}/${ACHIEVEMENTS.length}</h2>
+      <h2 class="h">${gi('hdr-trophy')} Achievements ${got}/${ACHIEVEMENTS.length}</h2>
       <div class="body">${ACHIEVEMENTS.map((a) => {
         const has = s.achievements[a.id];
-        return `<div class="skill ${has ? '' : 'locked'}"><div class="si">${has ? '🏆' : '🔒'}</div><div class="grow"><div class="sname">${has ? esc(a.name) : '???'}</div>
+        return `<div class="skill ${has ? '' : 'locked'}"><div class="si">${gi(has ? 'ach-unlocked' : 'ach-locked')}</div><div class="grow"><div class="sname">${has ? esc(a.name) : '???'}</div>
           <div class="small">${has ? esc(a.text) : 'Keep playing. Or walking. Mostly walking.'}</div>
           ${has ? `<div class="small muted">${a.reward ? rewardText(a.reward) : esc(a.rewardText || '')}</div>` : ''}</div></div>`;
       }).join('')}</div></div>`;
@@ -787,16 +795,16 @@ const MODALS = {
     let action = '';
     if (st.job) {
       const c = B.speedUpCost(st.job);
-      action = `<div class="row"><span class="grow">⏳ Upgrading to tier ${st.job.to}: <b data-timer="${b}">${timeLeft(st.job)}</b> left</span><button class="btn small ${s.soles >= c ? 'yellow' : 'off'}" data-a="speed" data-v="${b}">Finish now · 👣${c}</button></div>`;
+      action = `<div class="row"><span class="grow">${gi('act-timer')} Upgrading to tier ${st.job.to}: <b data-timer="${b}">${timeLeft(st.job)}</b> left</span><button class="btn small ${s.soles >= c ? 'yellow' : 'off'}" data-a="speed" data-v="${b}">Finish now · ${SOLE}${c}</button></div>`;
     } else if (cost) {
       const ok = free || B.canAfford(s, cost);
-      action = `<div class="row wrap"><span class="grow small">${free ? '<b class="ok">Your first building is free and instant.</b>' : `Tier ${cost.to}: 👣${cost.soles} · ${matList(cost.mats)} · ⏳${cost.minutes >= 60 ? `${cost.minutes / 60}h` : `${cost.minutes}m`}`}</span>
+      action = `<div class="row wrap"><span class="grow small">${free ? '<b class="ok">Your first building is free and instant.</b>' : `Tier ${cost.to}: ${SOLE}${cost.soles} · ${matList(cost.mats)} · ${gi('act-timer')}${cost.minutes >= 60 ? `${cost.minutes / 60}h` : `${cost.minutes}m`}`}</span>
         <button class="btn small ${ok ? 'yellow' : 'off'} ${free ? 'pulse' : ''}" data-a="upgrade" data-v="${b}">${st.tier ? 'Upgrade' : 'Build'}</button></div>`;
     } else action = '<div class="ok">Max tier for this era.</div>';
-    const use = { studio: ['craft', '⚒ Craft'], altar: ['heroStats', '🗿 Train hero'], inventory: ['heroGear', '🎒 Open inventory'], shrine: ['modalBoxes', '📦 Loot box odds'], truth: ['truth', '📌 Open board'] }[b];
+    const use = { studio: ['craft', `${gi('bld-studio')} Craft`], altar: ['heroStats', `${gi('act-train')} Train hero`], inventory: ['heroGear', `${gi('act-inventory')} Open inventory`], shrine: ['modalBoxes', `${TIER_ICON.bronze} Loot box odds`], truth: ['truth', `${gi('bld-truth')} Open board`] }[b];
     return `<div class="dialog panel halftone">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">${def.icon} ${def.name}</h2>
+      <h2 class="h">${gi(`bld-${b}`)} ${def.name}</h2>
       <div class="small muted">Tier ${st.tier}/3</div>
       <div class="body">
         ${def.unlocks.map((u, i) => `<div class="small ${st.tier > i ? 'ok' : 'muted'}">${st.tier > i ? '✔' : '○'} Tier ${i + 1}: ${u}</div>`).join('')}
@@ -826,7 +834,7 @@ const MODALS = {
       ${cur && !eq ? `<div class="small muted">Equipped now: ${esc(GR.itemName(cur))} (${statText(cur.stats)})</div>` : ''}
       ${rc ? `<div class="small" style="margin-top:6px">Reinforce to +${rc.plus}: ${matList(rc.mats)}</div>` : '<div class="small muted" style="margin-top:6px">Fully reinforced (+5).</div>'}
       <div class="actions">
-        ${eq ? '' : `<button class="btn small ghost" data-a="salvage" data-v="${it.uid}">Salvage → 🪨${sv.flint} 🦴${sv.bone}</button>`}
+        ${eq ? '' : `<button class="btn small ghost" data-a="salvage" data-v="${it.uid}">Salvage → ${ICON.flint}${sv.flint} ${ICON.bone}${sv.bone}</button>`}
         ${rc ? `<button class="btn small ${B.hasMats(s, rc.mats) ? 'green' : 'off'}" data-a="reinforce" data-v="${it.uid}">Reinforce +${rc.plus}</button>` : ''}
         <button class="btn small ${eq ? 'ghost' : 'yellow'}" data-a="equip" data-v="${it.uid}">${eq ? 'Unequip' : 'Equip'}</button>
       </div></div>`;
@@ -868,8 +876,8 @@ const MODALS = {
       <button class="x" data-a="closeModal">✕</button>
       <h2 class="h">Salvage junk</h2>
       <div class="small muted">Gear you can safely lose: not equipped, no better than what you're wearing in that slot, and not the one copy a recipe needs. Boss and rare gear is never included.</div>
-      <div class="body" style="margin:8px 0">${junk.length ? `<div class="grid">${junk.map((it) => `<div class="cell t-${GEAR[it.key].tier}"><span class="gi">${gearIcon(it.key)}</span>${esc(GEAR[it.key].name)}<span class="n">👣${E.soleValue(it.key)}</span></div>`).join('')}</div>` : '<span class="muted">Nothing to salvage.</span>'}</div>
-      ${junk.length ? `<div class="actions"><button class="btn ghost" data-a="closeModal">Cancel</button><button class="btn yellow" data-a="salvageJunkGo">Salvage ${junk.length} for 👣${fmt(soles)}</button></div>` : ''}
+      <div class="body" style="margin:8px 0">${junk.length ? `<div class="grid">${junk.map((it) => `<div class="cell t-${GEAR[it.key].tier}"><span class="gi">${gearIcon(it.key)}</span>${esc(GEAR[it.key].name)}<span class="n">${SOLE}${E.soleValue(it.key)}</span></div>`).join('')}</div>` : '<span class="muted">Nothing to salvage.</span>'}</div>
+      ${junk.length ? `<div class="actions"><button class="btn ghost" data-a="closeModal">Cancel</button><button class="btn yellow" data-a="salvageJunkGo">Salvage ${junk.length} for ${SOLE}${fmt(soles)}</button></div>` : ''}
     </div>`;
   },
 
@@ -908,15 +916,15 @@ const MODALS = {
   evolve(m) {
     if (m.choices) {
       return `<div class="dialog panel halftone wide">
-        <h2 class="h">🧬 Choose a Boon</h2>
+        <h2 class="h">${gi('act-evolve')} Choose a Boon</h2>
         <div class="small muted">PROCTOR offers three. You keep one, forever.</div>
-        <div class="loot" style="margin:10px 0">${m.choices.map((b) => `<div class="lootcard rare" style="width:170px;cursor:pointer" data-a="pickBoon" data-v="${b.id}"><div class="li">✨</div>${esc(b.name)}<small>${esc(b.desc)}</small></div>`).join('')}</div>
+        <div class="loot" style="margin:10px 0">${m.choices.map((b) => `<div class="lootcard rare" style="width:170px;cursor:pointer" data-a="pickBoon" data-v="${b.id}"><div class="li">${gi('cur-boon')}</div>${esc(b.name)}<small>${esc(b.desc)}</small></div>`).join('')}</div>
       </div>`;
     }
     const checks = B.evolveChecks(s);
     return `<div class="dialog panel halftone">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">🧬 Evolve to Era 2</h2>
+      <h2 class="h">${gi('act-evolve')} Evolve to Era 2</h2>
       <div class="body">${checks.map((c) => `<div class="${c.ok ? 'ok' : 'muted'}">${c.ok ? '✔' : '○'} ${c.label}</div>`).join('')}
       <div class="sep"></div>
       <div class="small muted">When you evolve: choose 1 of 3 Boons, get a free respec, and your leftover flint and bone turn into Soles.${s.evolved ? ' <b class="ok">Already evolved.</b>' : ''}</div></div>
@@ -927,7 +935,7 @@ const MODALS = {
   settings(m) {
     return `<div class="dialog panel halftone">
       <button class="x" data-a="closeModal">✕</button>
-      <h2 class="h">⚙ Settings</h2>
+      <h2 class="h">${gi('hdr-settings')} Settings</h2>
       <div class="body">
         <h3 class="h">Test tools <span class="debugtag">TEST BUILD</span></h3>
         <div class="row wrap">
@@ -938,7 +946,7 @@ const MODALS = {
         <div class="sep"></div>
         <h3 class="h">Fullscreen</h3>
         <div class="small">${fullscreenHelp()}</div>
-        ${!isStandalone() && canFullscreen() && !isIOS() ? '<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">⛶ Go fullscreen</button></div>' : ''}
+        ${!isStandalone() && canFullscreen() && !isIOS() ? `<div class="row" style="margin-top:6px"><button class="btn small cyan" data-a="fullscreen">${gi('act-fullscreen')} Go fullscreen</button></div>` : ''}
         <div class="sep"></div>
         <h3 class="h">Combat numbers</h3>
         <div class="small muted">"Tuned" raises enemy health ×1.25 and damage ×1.5, and lets Guard be used once a turn. "GDD v1" uses the design document's table exactly.</div>
@@ -947,7 +955,7 @@ const MODALS = {
         <h3 class="h">Progress</h3>
         <div class="small"><span class="ok">✔ Autosaves after every action</span> <span class="muted">(in this browser only; no accounts yet).</span></div>
         <div class="small muted"> Total steps ${fmt(s.steps.total)} · Soles earned ${fmt(s.solesEarned)} · Trials won ${s.trials.wins}</div>
-        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything and restart' : '🗑 Reset game'}</button></div>
+        <div class="row" style="margin-top:6px"><button class="btn small ${m.confirm ? 'pink' : 'ghost'}" data-a="reset">${m.confirm ? 'Tap again to wipe everything and restart' : `${gi('act-reset')} Reset game`}</button></div>
         <div class="small muted" style="margin-top:8px">Version ${__BUILD__}</div>
       </div></div>`;
   },
@@ -955,7 +963,7 @@ const MODALS = {
 
 function rewardText(r) {
   if (!r) return '';
-  return [r.soles ? `👣${r.soles} Soles` : '', r.box ? `${E.TIER_NAMES[r.box]} loot box` : ''].filter(Boolean).join(' + ');
+  return [r.soles ? `${SOLE}${r.soles} Soles` : '', r.box ? `${E.TIER_NAMES[r.box]} loot box` : ''].filter(Boolean).join(' + ');
 }
 
 function lootCard(it, i) {
@@ -964,10 +972,10 @@ function lootCard(it, i) {
     case 'mat': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${MATERIALS[it.key].name}</div>`;
     case 'part': return `<div class="lootcard part" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${PARTS[it.key].name}<small>Beast part</small></div>`;
     case 'gear': { const g = GEAR[it.key]; const inst = it.inst || { key: it.key }; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(GR.itemName(inst))}<small>${statText(GR.itemStats(inst))}${inst.affix ? ` · ${esc(AFFIXES[inst.affix].name)}` : ''}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
-    case 'frag': return `<div class="lootcard frag" ${d}><div class="li">📄</div>Story fragment<small>Pinned to the Truth Board</small></div>`;
+    case 'frag': return `<div class="lootcard frag" ${d}><div class="li">${gi('cur-fragment')}</div>Story fragment<small>Pinned to the Truth Board</small></div>`;
     case 'booster': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n > 1 ? `${it.n} × ` : ''}${esc(BOOSTERS[it.key].name)}<small>${esc(BOOSTERS[it.key].desc)}</small></div>`;
-    case 'blueprint': return `<div class="lootcard rare" ${d}><div class="li">📐</div>Blueprint<small>${esc(B.recipeName(RECIPES.find((r) => r.id === it.id)))}</small></div>`;
-    case 'respec': return `<div class="lootcard" ${d}><div class="li">🔄</div>Respec token</div>`;
+    case 'blueprint': return `<div class="lootcard rare" ${d}><div class="li">${gi('cur-blueprint')}</div>Blueprint<small>${esc(B.recipeName(RECIPES.find((r) => r.id === it.id)))}</small></div>`;
+    case 'respec': return `<div class="lootcard" ${d}><div class="li">${gi('cur-respec')}</div>Respec token</div>`;
   }
   return '';
 }
