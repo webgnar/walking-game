@@ -55,6 +55,7 @@ export class Stage {
     this.scene.add(this.hero);
     this.heroHome = new THREE.Vector3(0, 0, 0);
     this.looks = {};
+    this.gearIds = {};
     // swap the placeholder body for the rigged caveman once it has loaded
     this.hero.userData.body.visible = false;
     loadProps().then(() => setHeroLook(this.hero, this.shownLooks())).catch((e) => console.warn('[stage] props failed', e));
@@ -64,6 +65,7 @@ export class Stage {
       rig.attachSlots(h.userData.slots);
       this.rig = rig;
       setHeroLook(h, this.shownLooks());
+      rig.wardrobe.wearAll(this.gearIds);
     }).catch((e) => {
       console.warn('[stage] caveman failed to load, using placeholder', e);
       this.hero.userData.body.visible = true;
@@ -164,13 +166,16 @@ export class Stage {
     this.lookNow.copy(this.camLook);
   }
 
-  // Until gear is modelled in the hero's style, the rigged hero only shows his weapon:
-  // the old placeholder armor, helm, shield and trinket shapes clash with the sculpted model.
-  // The weapon is always zack's club model for now: the other weapon looks are placeholder shapes.
+  // The rigged hero wears the fitted gear models (scene/wear.js) for armor, helm, offhand and
+  // trinket; the old placeholder shapes are only for the stand-in body. The weapon is always
+  // zack's club model for now: the other weapon looks are placeholder shapes.
   shownLooks() { return this.rig ? { weapon: 'club1' } : this.looks; }
-  setHeroLook(looks) {
+  // looks: slot -> placeholder look key; ids: slot -> gear item id
+  setHeroLook(looks, ids = {}) {
     this.looks = looks;
+    this.gearIds = ids;
     setHeroLook(this.hero, this.shownLooks());
+    if (this.rig) this.rig.wardrobe.wearAll(ids);
   }
 
   setBase(tiers) {

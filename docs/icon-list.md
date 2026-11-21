@@ -2,7 +2,7 @@
 
 Every icon the game shows, 112 in all. Each one is an emoji placeholder in the build today. Drop a PNG named `<id>.png` into `src/icons/` and push: the game shows the PNG instead of the emoji on the next build. Nothing else to wire. Missing files keep their emoji, so icons can arrive in any order.
 
-8 are already done: they reuse your gold menu icons from `public/ui/` (marked **done** below). That leaves **104 to make**.
+26 are done: 8 reuse your gold menu icons from `public/ui/`, and 18 came from sheets 1 and 2 (marked **done** below). That leaves **86 to make**.
 
 The code side is `src/ui/gameIcons.js` (id → emoji). `tests/icons.test.js` fails if an id is added there and not here, or the other way round.
 
@@ -27,7 +27,7 @@ ChatGPT does one image per request, so the icons are grouped into 13 sheets of u
 
 ## Sheet requests
 
-### Sheet 1 (objects): Currencies and rewards, Materials and beast parts
+### Sheet 1 (objects, done): Currencies and rewards, Materials and beast parts
 
 ```
 Attached is my game UI mockup. Make ONE image, 1:1 square, flat pure #00FF00 green background. 9 separate game icons in a 3 by 3 grid, same size, wide green gaps, none touching. In reading order:
@@ -44,7 +44,7 @@ Style: Painted game item icons. Realistic, richly detailed painterly Stone Age o
 ```
 Files, in order: `cur-respec.png`, `cur-blueprint.png`, `cur-fragment.png`, `cur-era-key.png`, `cur-report.png`, `mat-wood.png`, `part-fang.png`, `part-claw.png`, `part-tine.png`
 
-### Sheet 2 (objects): Materials and beast parts, Boosters, Loot boxes
+### Sheet 2 (objects, done): Materials and beast parts, Boosters, Loot boxes
 
 ```
 Attached is my game UI mockup. Make ONE image, 1:1 square, flat pure #00FF00 green background. 9 separate game icons in a 3 by 3 grid, same size, wide green gaps, none touching. In reading order:
@@ -248,13 +248,13 @@ Shop prices, reward cards, the expedition report, loot reveals.
 | `cur-soles.png` | 👣 | Soles, every price and reward | E | a pair of bare footprints in gold | done (copy of `public/ui/icon-sole.png`) |
 | `cur-steps.png` | 🚶 | Steps walked (expedition report) | E | a gold walking figure in mid-stride, like a Roman frieze | to do |
 | `cur-xp.png` | ⭐ | XP reward card | E | a gold eight-pointed star with a small laurel under it | to do |
-| `cur-respec.png` | 🔄 | Respec token | O | an old bronze coin stamped with two curved arrows chasing each other in a circle | to do |
-| `cur-blueprint.png` | 📐 | Blueprint (loot, Workshop) | O | a rolled sheet of tanned hide tied with sinew, a charcoal diagram of a club peeking out | to do |
-| `cur-fragment.png` | 📄 | Story fragment (Truth Board) | O | a torn scrap of glowing pale data-parchment with faint red redacted lines, one corner burnt | to do |
-| `cur-era-key.png` | 🗝️ | Era Key (Mammoth reward) | O | an ornate gold key whose bow is a mammoth head with ivory tusks, a red gem in the eye | to do |
+| `cur-respec.png` | 🔄 | Respec token | O | an old bronze coin stamped with two curved arrows chasing each other in a circle | done (sheet 1 or 2, zack) |
+| `cur-blueprint.png` | 📐 | Blueprint (loot, Workshop) | O | a rolled sheet of tanned hide tied with sinew, a charcoal diagram of a club peeking out | done (sheet 1 or 2, zack) |
+| `cur-fragment.png` | 📄 | Story fragment (Truth Board) | O | a torn scrap of glowing pale data-parchment with faint red redacted lines, one corner burnt | done (sheet 1 or 2, zack) |
+| `cur-era-key.png` | 🗝️ | Era Key (Mammoth reward) | O | an ornate gold key whose bow is a mammoth head with ivory tusks, a red gem in the eye | done (sheet 1 or 2, zack) |
 | `cur-boon.png` | ✨ | Boon choice when evolving | E | a gold sunburst sigil with three small sparkles | to do |
 | `cur-signal.png` | 📡 | Transmission cleared | E | a gold radar dish emblem with three signal arcs | to do |
-| `cur-report.png` | 📜 | Expedition report header | O | a rolled parchment scroll with a red wax seal | to do |
+| `cur-report.png` | 📜 | Expedition report header | O | a rolled parchment scroll with a red wax seal | done (sheet 1 or 2, zack) |
 
 ### Materials and beast parts
 
@@ -264,12 +264,12 @@ Resource bar, shop, Workshop recipes, loot, salvage.
 | --- | --- | --- | --- | --- | --- |
 | `mat-flint.png` | 🪨 | Flint | O | a rough grey flint stone with gold edge highlights | done (copy of `public/ui/icon-flint.png`) |
 | `mat-bone.png` | 🦴 | Bone | O | a single pale bone with gold edge highlights | done (copy of `public/ui/icon-bone.png`) |
-| `mat-wood.png` | 🪵 | Wood | O | a short split log with bark and visible rings, gold edge highlights | to do |
-| `part-fang.png` | 🦷 | Wolf Fang (part) | O | one long curved wolf fang, ivory with a dark root, a drop of dried blood | to do |
-| `part-claw.png` | 🐾 | Lion Claw (part) | O | a single hooked big-cat claw, glossy dark keratin | to do |
-| `part-tine.png` | 🦌 | Antler Tine (part) | O | a broken-off forked antler tip, velvet worn away | to do |
-| `part-hide.png` | 🟫 | Thick Hide (part) | O | a folded square of thick wrinkled grey rhino hide with coarse hair at the edge | to do |
-| `part-ember.png` | 🔥 | Ember Coal (part) | O | a glowing coal, black crust cracked with bright orange heat inside | to do |
+| `mat-wood.png` | 🪵 | Wood | O | a short split log with bark and visible rings, gold edge highlights | done (sheet 1 or 2, zack) |
+| `part-fang.png` | 🦷 | Wolf Fang (part) | O | one long curved wolf fang, ivory with a dark root, a drop of dried blood | done (sheet 1 or 2, zack) |
+| `part-claw.png` | 🐾 | Lion Claw (part) | O | a single hooked big-cat claw, glossy dark keratin | done (sheet 1 or 2, zack) |
+| `part-tine.png` | 🦌 | Antler Tine (part) | O | a broken-off forked antler tip, velvet worn away | done (sheet 1 or 2, zack) |
+| `part-hide.png` | 🟫 | Thick Hide (part) | O | a folded square of thick wrinkled grey rhino hide with coarse hair at the edge | done (sheet 1 or 2, zack) |
+| `part-ember.png` | 🔥 | Ember Coal (part) | O | a glowing coal, black crust cracked with bright orange heat inside | done (sheet 1 or 2, zack) |
 
 ### Boosters
 
@@ -277,9 +277,9 @@ Inventory consumables, loot, Workshop.
 
 | File | Emoji | Shows | Style | Prompt | Status |
 | --- | --- | --- | --- | --- | --- |
-| `boost-stride-brew.png` | 🧪 | Stride Brew | O | a small clay flask stoppered with leather, green herbal brew glowing faintly at the neck | to do |
-| `boost-lucky-knot.png` | 🪢 | Lucky Knot | O | an intricate knot of red cord with a small gold bead and a tiny bone charm | to do |
-| `boost-warpaint.png` | 🎨 | Warpaint (also the combat status) | O | a shallow stone bowl of red ochre paste with two finger streaks | to do |
+| `boost-stride-brew.png` | 🧪 | Stride Brew | O | a small clay flask stoppered with leather, green herbal brew glowing faintly at the neck | done (sheet 1 or 2, zack) |
+| `boost-lucky-knot.png` | 🪢 | Lucky Knot | O | an intricate knot of red cord with a small gold bead and a tiny bone charm | done (sheet 1 or 2, zack) |
+| `boost-warpaint.png` | 🎨 | Warpaint (also the combat status) | O | a shallow stone bowl of red ochre paste with two finger streaks | done (sheet 1 or 2, zack) |
 
 ### Loot boxes
 
@@ -287,10 +287,10 @@ Boxes screen, loot reveal, reward cards. One chest per tier, getting richer.
 
 | File | Emoji | Shows | Style | Prompt | Status |
 | --- | --- | --- | --- | --- | --- |
-| `box-bronze.png` | 📦 | Bronze box | O | a small plain wooden chest bound with dull bronze bands | to do |
-| `box-silver.png` | 🎁 | Silver box | O | a wooden chest bound with polished silver bands and a silver lock | to do |
-| `box-gold.png` | 💰 | Gold box | O | a crimson-lacquered chest bound in gold with laurel corner pieces | to do |
-| `box-platinum.png` | 💎 | Platinum box | O | a pale white-gold chest with blue-white gems set in the lid | to do |
+| `box-bronze.png` | 📦 | Bronze box | O | a small plain wooden chest bound with dull bronze bands | done (sheet 1 or 2, zack) |
+| `box-silver.png` | 🎁 | Silver box | O | a wooden chest bound with polished silver bands and a silver lock | done (sheet 1 or 2, zack) |
+| `box-gold.png` | 💰 | Gold box | O | a crimson-lacquered chest bound in gold with laurel corner pieces | done (sheet 1 or 2, zack) |
+| `box-platinum.png` | 💎 | Platinum box | O | a pale white-gold chest with blue-white gems set in the lid | done (sheet 1 or 2, zack) |
 | `box-legendary.png` | 🔥 | Legendary box | O | a black chest with ornate gold filigree, warm orange light leaking from the seam | to do |
 | `box-celestial.png` | 🌌 | Celestial box | O | a deep blue chest scattered with gold star inlays, starlight spilling from the seam | to do |
 
