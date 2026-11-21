@@ -1113,8 +1113,11 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .proctor.glitch .bubble { min-width: min(300px, 70vw); text-transform: none !important; font-size: 16px; animation: none; }
 .proctor.glitch .eye { background: #0d0505 !important; border-color: #7a1a14 !important; box-shadow: 0 0 12px rgba(226,87,74,.6) !important; }
 
-/* Hand-lettered manga SFX over the cutscene art: slam in, then a small shake. */
-.cutpanel .sfxart { position: absolute; height: auto; pointer-events: none; transform: rotate(var(--r)); filter: drop-shadow(0 3px 6px rgba(0,0,0,.6)); animation: sfxSlam .45s cubic-bezier(.2,1.6,.4,1) both, sfxShake .3s ease-out; animation-delay: var(--d), calc(var(--d) + .45s); }
-@keyframes sfxSlam { from { opacity: 0; transform: rotate(var(--r)) scale(1.9); } to { opacity: 1; transform: rotate(var(--r)) scale(1); } }
-@keyframes sfxShake { 30% { translate: -4px 2px; } 60% { translate: 3px -2px; } }
-@media (prefers-reduced-motion: reduce) { .cutpanel .sfxart { animation: none; } }
+/* Cutscene SFX as quiet terminal text: small green mono, typed in letter by letter,
+   with a faint flicker and the odd glitch, a hint that the world is a simulation. */
+.cut .sfx.code { font-family: var(--mono); font-weight: 400; font-size: calc(var(--u) * 2.8); letter-spacing: .35em; color: #b4ffca; opacity: .78; text-transform: none; transform: none; -webkit-text-stroke: 0; text-shadow: 0 0 2px #000, 0 0 8px rgba(0, 0, 0, .9), 0 0 6px rgba(70, 255, 130, .6), 0 0 16px rgba(40, 200, 90, .3); white-space: nowrap; pointer-events: none; animation: sfxFlicker 4s steps(1) infinite 1.5s; }
+.cut .sfx.code i { font-style: normal; opacity: 0; animation: sfxType .01s calc(.35s + var(--k) * .07s) forwards; }
+.cut .sfx.code .caret { display: inline-block; width: .55em; height: 1em; margin-left: .1em; vertical-align: -.12em; background: currentColor; opacity: .7; animation: blinkc 1s steps(1) infinite; }
+@keyframes sfxType { to { opacity: 1; } }
+@keyframes sfxFlicker { 0%, 100% { opacity: .78; } 41% { opacity: .35; } 42% { opacity: .78; transform: translateX(2px); clip-path: inset(0 0 45% 0); } 43% { transform: none; clip-path: none; } 77% { opacity: .5; } 78% { opacity: .78; } }
+@media (prefers-reduced-motion: reduce) { .cut .sfx.code, .cut .sfx.code i, .cut .sfx.code .caret { animation: none; opacity: .78; } }
