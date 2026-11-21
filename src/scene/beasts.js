@@ -10,7 +10,10 @@ import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js
 const ATTACK_CONTACT = 0.4; // seconds into the attack clip where the bite lands
 // which model each enemy uses, and its world length (model is ~1 unit nose to tail)
 export const BEASTS = {
-  mangy: { file: 'wolf', size: 2.2 },
+  mangy: { file: 'mangy', size: 1.9 },
+  wolf: { file: 'wolf', size: 2.05 },
+  beta: { file: 'beta', size: 2.35 },
+  alpha: { file: 'alpha', size: 2.75 },
 };
 
 const cache = {};
