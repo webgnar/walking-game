@@ -1003,3 +1003,7 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .strikes .miss { color: #c0504a; }
 .dialog h2.h { white-space: normal; overflow-wrap: anywhere; padding-right: 36px; }
 .forgepanel { overflow-y: auto; }
+
+/* Cutscene art: shown as supplied (keeps the gold accent), framed at 16:9 so nothing is cropped */
+.cutpanel.art { aspect-ratio: 16 / 9; height: auto; width: min(100%, calc(82vh * 16 / 9)); max-height: none; }
+.cutpanel.art .cutart { filter: none; }

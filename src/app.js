@@ -483,12 +483,14 @@ function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
   const pic = sh.art
     ? `<img class="cutart" src="${esc(sh.art)}" alt="">`
     : `<div class="cutph"><div class="speed"></div>${sh.icon ? `<div class="cutico ${sh.glow ? 'glow' : ''}">${sh.icon}</div>` : ''}<div class="brief">ART: ${esc(sh.brief)}</div></div>`;
+  // per-shot text placement over real art
+  const at = (k) => (sh.at && sh.at[k] ? ` style="${Object.entries(sh.at[k]).map(([p, v]) => `${p}:${v}`).join(';')}"` : '');
   return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="${tapA}" key="${i}">
-    <div class="cutpanel">${pic}
-      ${sh.caption ? `<div class="cap">${esc(sh.caption)}</div>` : ''}
-      ${sh.sfx ? `<div class="sfx">${esc(sh.sfx)}</div>` : ''}
-      ${sh.thought ? `<div class="thought">${esc(sh.thought)}</div>` : ''}
-      ${sh.voice ? `<div class="voice"><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
+    <div class="cutpanel ${sh.art ? 'art' : ''}">${pic}
+      ${sh.caption ? `<div class="cap"${at('caption')}>${esc(sh.caption)}</div>` : ''}
+      ${sh.sfx ? `<div class="sfx"${at('sfx')}>${esc(sh.sfx)}</div>` : ''}
+      ${sh.thought ? `<div class="thought"${at('thought')}>${esc(sh.thought)}</div>` : ''}
+      ${sh.voice ? `<div class="voice"${at('voice')}><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
     </div>${dots}${skip}</div>`;
 }
 

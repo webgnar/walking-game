@@ -11,13 +11,17 @@ export const INTRO_LINES = [
 ];
 
 // Opening, part 2: the cutscene, black-and-white anime style. Tap to advance.
-// art: image path under public/ (for example 'cutscenes/intro-01.jpg'). While art is
+// art: image path under public/ (for example '/cutscenes/intro-01.webp'). While art is
 // null the game draws a manga-style placeholder and shows the brief for the artist.
+// at: optional placement for the text over the art, so it doesn't cover the subject
+// (CSS positions in % of the frame, for sfx / thought / caption / voice).
 // style: 'panel' (default), 'flash' (white-out), 'title' (big title card).
 export const INTRO_CUTSCENE = [
-  { art: null, icon: '🏗', sfx: 'CLANK… CLANK…', caption: 'Lowborn Quarry 9. Third shift.',
+  { art: '/cutscenes/intro-01.webp', icon: '🏗', sfx: 'CLANK… CLANK…', caption: 'Lowborn Quarry 9. Third shift.',
+    at: { sfx: { left: '38%', top: '30%', right: 'auto' } },
     brief: 'Wide shot: a vast quarry under a gleaming gold spire. Hundreds of lowborn workers, ore carts, smog.' },
-  { art: null, icon: '⛏', sfx: 'KRAK', thought: 'Same rock. Same quota. Same tower watching.',
+  { art: '/cutscenes/intro-02.webp', icon: '⛏', sfx: 'KRAK', thought: 'Same rock. Same quota. Same tower watching.',
+    at: { sfx: { left: '4%', top: '14%', right: 'auto' }, thought: { left: 'auto', right: '4%', bottom: '8%' } },
     brief: 'Mid shot: our hero swinging a pick. Long hair, stubble, sweat and dust. Tired eyes.' },
   { art: null, icon: '✋', sfx: 'VMMMM', glow: true, thought: 'What…?',
     brief: 'Extreme close-up: his hands on the pick handle. The sigils burned into the backs of his hands start to flash.' },
