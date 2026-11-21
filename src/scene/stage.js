@@ -20,7 +20,7 @@ const CAMS = {
   intro: { pos: [0, 1.3, 3.2], look: [0, 1.4, 0] },
   home: { pos: [0, 1.86, 5.6], look: [0, 1.26, 0] },
   hero: { pos: [0.5, 1.35, 6.2], look: [0.5, 1.05, 0] },
-  base: { pos: [0, 3.4, 4.2], look: [0, 0.9, -6] },
+  base: { pos: [0, 3.4, 4.2], look: [0, 1.45, -6] },
   map: { pos: [0, 16, 8], look: [0, 0, -4] },
   combat: { pos: [0.7, 2.6, 10.6], look: [0.7, 1.4, 0] },
 };
@@ -537,6 +537,21 @@ export class Stage {
       }
     }
     return 0;
+  }
+
+  // Which Base building (if any) is under a screen point (CSS px).
+  pickBuilding(x, y) {
+    const r = this.canvas.getBoundingClientRect();
+    const v = new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(v, this.camera);
+    let best = null, dist = Infinity;
+    for (const [id, obj] of Object.entries(this.buildings)) {
+      if (!obj.visible) continue;
+      const hit = ray.intersectObject(obj, true)[0];
+      if (hit && hit.distance < dist) { dist = hit.distance; best = id; }
+    }
+    return best;
   }
 
   // Screen position (CSS px) of an actor's head or a building top.

@@ -206,7 +206,7 @@ h3.h { margin: 0 0 4px; font-family: var(--display); font-weight: 400; color: va
 .trialcard { position: absolute; right: calc(var(--sr) + 12px); bottom: calc(var(--sb) + 12px); width: min(320px, 40vw); }
 
 /* ---------- Base ---------- */
-.bldg { position: absolute; transform: translate(-50%, -100%); text-align: center; cursor: pointer; }
+.bldg { position: absolute; transform: translate(-50%, 0); text-align: center; cursor: pointer; } /* top-anchored: timers hang below */
 .bldg .bn { font-family: var(--display); font-size: calc(var(--u) * 3.8); letter-spacing: .04em; background: rgba(11,11,16,.85); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); padding: 2px 8px; white-space: nowrap; }
 .bldg .tiers { display: flex; gap: 3px; justify-content: center; margin-top: 3px; }
 .bldg .tiers i { width: 14px; height: 6px; background: #333; border: 1px solid var(--ink); }

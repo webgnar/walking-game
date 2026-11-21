@@ -1023,11 +1023,18 @@ function renderToasts() {
 
 // Keep HTML anchored to 3D actors (HP bars, building labels).
 function follow(once) {
+  let bldgTop = Infinity;
+  const bldgs = [];
   document.querySelectorAll('[data-anchor]').forEach((el) => {
     const id = el.dataset.anchor;
     const p = stage.anchor(/^\d+$/.test(id) ? Number(id) : id, 0.15);
-    if (p) { el.style.left = `${p.x}px`; el.style.top = `${Math.max(el.classList.contains('hpbox') ? 92 : 70, p.y)}px`; }
+    if (!p) return;
+    el.style.left = `${p.x}px`;
+    // Base labels share one line (the highest building's), so timers never knock them out of line
+    if (el.classList.contains('bldg')) { bldgs.push(el); bldgTop = Math.min(bldgTop, p.y); return; }
+    el.style.top = `${Math.max(el.classList.contains('hpbox') ? 92 : 70, p.y)}px`;
   });
+  for (const el of bldgs) el.style.top = `${Math.max(64, bldgTop - 40)}px`;
   if (once !== true) requestAnimationFrame(follow);
 }
 
@@ -1586,7 +1593,14 @@ function typeIntro() {
 
 function onClick(ev) {
   const el = ev.target.closest('[data-a]');
-  if (!el) return;
+  if (!el) {
+    // On the Base, tapping a building's model opens it, same as its label
+    if (app.screen === 'base' && !app.modal) {
+      const b = stage.pickBuilding(ev.clientX, ev.clientY);
+      if (b) ACTIONS.building(b);
+    }
+    return;
+  }
   const fn = ACTIONS[el.dataset.a];
   if (!fn) return;
   if (el.dataset.a === 'overlay' && ev.target !== el) return;
