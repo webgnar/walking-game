@@ -32,11 +32,12 @@ test('boxes give materials and parts, not finished gear (below Legendary)', () =
 });
 
 test('hammer timing sets quality', () => {
-  assert.equal(qualityFromStrikes(['perfect', 'perfect', 'good']), 'masterwork');
-  assert.equal(qualityFromStrikes(['good', 'good', 'miss']), 'fine');
-  assert.equal(qualityFromStrikes(['miss', 'good', 'miss']), 'crude');
+  assert.equal(qualityFromStrikes(['perfect', 'perfect', 'miss']), 'masterwork');
+  assert.equal(qualityFromStrikes(['perfect', 'good', 'good']), 'masterwork');
+  assert.equal(qualityFromStrikes(['good', 'miss', 'miss']), 'fine');
+  assert.equal(qualityFromStrikes(['miss', 'miss', 'miss']), 'crude');
   assert.equal(qualityFromStrikes(null), 'fine');
-  assert.equal(qualityFromStrikes(['perfect', 'good', 'good'], 3), 'masterwork', 'tier 3 Workshop is more forgiving');
+  assert.equal(qualityFromStrikes(['perfect', 'good', 'miss'], 3), 'masterwork', 'tier 3 Workshop is more forgiving');
 });
 
 test('forging with a part adds its special effect; Masterwork is stronger', () => {

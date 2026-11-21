@@ -992,10 +992,10 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 
 /* Hammer timing */
 .forge { cursor: pointer; user-select: none; }
-.anvil { position: relative; height: 34px; margin: 14px 8px 10px; background: linear-gradient(180deg, #2a1d16, #120c09); border: 1px solid rgba(217,176,91,.5); }
+.anvil { position: relative; height: 34px; margin: 30px 8px 10px; background: linear-gradient(180deg, #2a1d16, #120c09); border: 1px solid rgba(217,176,91,.5); }
 .anvil .zone { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); }
-.anvil .zone.good { width: 32%; background: rgba(217,176,91,.18); }
-.anvil .zone.perfect { width: 12%; background: linear-gradient(180deg, #ffe7a8, #d79a3c); box-shadow: 0 0 12px rgba(255,200,100,.7); }
+.anvil .zone.good { width: 44%; background: rgba(217,176,91,.18); }
+.anvil .zone.perfect { width: 20%; background: linear-gradient(180deg, #ffe7a8, #d79a3c); box-shadow: 0 0 12px rgba(255,200,100,.7); }
 .anvil .marker { position: absolute; top: -6px; bottom: -6px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 10px #fff, 0 0 18px #ff9a4a; }
 .strikes { display: flex; justify-content: center; gap: 14px; font-family: var(--display); font-weight: 700; letter-spacing: .14em; font-size: 14px; color: #6b5a4a; margin-bottom: 6px; }
 .strikes .perfect { color: #ffd27a; text-shadow: 0 0 8px rgba(255,200,100,.7); }
@@ -1034,3 +1034,24 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 /* Game icons dropped into src/icons/ (see docs/icon-list.md). Sized to the emoji they replace. */
 .gimg { width: 1.2em; height: 1.2em; object-fit: contain; vertical-align: -0.22em; display: inline-block; }
 .lootcard .li .gimg, .skill .si .gimg, .sk .si .gimg, .lbox .ico .gimg, .bigbox .gimg { width: 1.1em; height: 1.1em; vertical-align: middle; }
+
+/* Hammer feedback: each strike flashes and names itself */
+.anvil .hitword { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); font-family: var(--display); font-weight: 800; letter-spacing: .18em; font-size: 16px; animation: hitPop .6s ease-out forwards; pointer-events: none; white-space: nowrap; }
+.anvil.hit-perfect .hitword { color: #ffd27a; text-shadow: 0 0 12px rgba(255,200,100,.9); }
+.anvil.hit-good .hitword { color: #f1e3c2; }
+.anvil.hit-miss .hitword { color: #c0504a; }
+.anvil.hit-perfect { animation: anvilFlash .4s ease-out; }
+@keyframes hitPop { from { transform: translateX(-50%) scale(1.6); opacity: 0; } 30% { opacity: 1; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+@keyframes anvilFlash { from { box-shadow: 0 0 30px rgba(255,210,120,.95), inset 0 0 20px rgba(255,210,120,.6); } }
+
+/* Decoded Truth Board note: parchment, dark ink, never covered by the panel frame art */
+.dialog.notepaper { width: min(540px, 92vw); background: linear-gradient(180deg, #f3e7c9, #e4d3aa) !important; color: #1f160a !important; border: 2px solid #8a6a2c !important; border-image: none !important; outline: 0 !important; box-shadow: 0 10px 40px rgba(0,0,0,.6); position: relative; }
+.dialog.notepaper::before, .dialog.notepaper::after { display: none !important; }
+.dialog.notepaper .nk { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: #8a2a20; font-weight: 700; }
+.dialog.notepaper .nt { margin: 4px 0 8px; font-family: var(--display); font-weight: 700; font-size: 24px; color: #1f160a; text-shadow: none; padding-right: 36px; }
+.dialog.notepaper p { font-size: 17px; line-height: 1.5; color: #1f160a; margin: 0 0 6px; }
+.dialog.notepaper .x { color: #1f160a; border-color: #8a6a2c; background: rgba(255,255,255,.4); }
+.dialog.notepaper.msg { background: #07080c !important; color: #6dff9e !important; border-color: #3ad27a !important; font-family: ui-monospace, Menlo, monospace; }
+.dialog.notepaper.msg .nk { color: #3ad27a; }
+.dialog.notepaper.msg .nt, .dialog.notepaper.msg p { color: #8bffb4; }
+.dialog.notepaper.msg .x { color: #8bffb4; border-color: #3ad27a; background: transparent; }

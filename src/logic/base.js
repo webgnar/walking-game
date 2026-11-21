@@ -119,9 +119,10 @@ export function canForge(s, r, part = null) {
 export function qualityFromStrikes(strikes, studioTier = 1) {
   if (!strikes) return 'fine';
   const pts = strikes.reduce((t, x) => t + (x === 'perfect' ? 2 : x === 'good' ? 1 : 0), 0);
-  if (pts >= (studioTier >= 3 ? 4 : 5)) return 'masterwork';
-  if (pts >= 2) return 'fine';
-  return 'crude';
+  // 2 points per perfect, 1 per good. Two perfects (or a perfect and two goods) = Masterwork.
+  if (pts >= (studioTier >= 3 ? 3 : 4)) return 'masterwork';
+  if (pts >= 1) return 'fine';
+  return 'crude'; // only when every strike misses
 }
 
 export function forge(s, recipeId, part = null, quality = 'fine') {

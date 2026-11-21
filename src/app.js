@@ -862,9 +862,9 @@ const MODALS = {
     return `<div class="dialog panel halftone forge" data-a="hammer" style="width:min(520px,94vw);text-align:center">
       <div class="small muted">${esc(B.recipeName(m.recipe))}${m.part ? ` · ${esc(AFFIXES[PARTS[m.part].affix].name)}` : ''}</div>
       <h2 class="h" style="margin:4px 0">Strike ${Math.min(3, n + 1)} of 3</h2>
-      <div class="anvil"><div class="zone good"></div><div class="zone perfect"></div><div class="marker" id="hmark"></div></div>
+      <div class="anvil ${m.flash ? `hit-${m.flash}` : ''}" key="${n}"><div class="zone good"></div><div class="zone perfect"></div><div class="marker" id="hmark"></div>${m.flash ? `<span class="hitword">${m.flash === 'perfect' ? 'PERFECT!' : m.flash === 'good' ? 'GOOD' : 'MISS'}</span>` : ''}</div>
       <div class="strikes">${[0, 1, 2].map((i) => `<span class="${m.strikes[i] || ''}">${m.strikes[i] ? m.strikes[i].toUpperCase() : '·'}</span>`).join('')}</div>
-      <div class="small muted">Tap anywhere when the marker crosses the gold. Three perfect strikes make a Masterwork.</div>
+      <div class="small muted">Tap anywhere when the marker crosses the gold. Two perfect strikes make a Masterwork.</div>
       <div class="actions" style="justify-content:center"><button class="btn tiny ghost" data-a="forgeSkip">Skip (Fine quality)</button></div>
     </div>`;
   },
@@ -883,11 +883,11 @@ const MODALS = {
 
   frag(m) {
     const f = FRAGMENTS.find((x) => x.id === m.id);
-    return `<div class="dialog panel" style="background:#efe6cc;color:#1a1408;width:min(520px,92vw)">
+    return `<div class="dialog notepaper ${f.from ? 'msg' : ''}">
       <button class="x" data-a="closeModal">✕</button>
-      <div class="small" style="color:#8a2a20;text-transform:uppercase;letter-spacing:.1em">${esc(f.kind)}${f.from ? ` · from ${esc(f.from)}` : ''}</div>
-      <h2 class="h" style="color:#1a1408;text-shadow:none">${esc(f.title)}</h2>
-      <p style="font-size:16px">${esc(f.text)}</p>
+      <div class="nk">${esc(f.kind)}${f.from ? ` · from ${esc(f.from)}` : ''}</div>
+      <h2 class="nt">${esc(f.title)}</h2>
+      <p>${esc(f.text)}</p>
       ${m.flashback ? `<div class="actions" style="justify-content:space-between;align-items:center"><span class="small" style="color:#8a2a20">The last piece. Something is surfacing…</span><button class="btn yellow" data-a="flashback" data-v="${m.flashback}">▶ Play memory</button></div>` : ''}</div>`;
   },
 
@@ -1365,7 +1365,7 @@ const ACTIONS = {
     const part = app.part && (s.mats[app.part] || 0) > 0 ? app.part : null;
     const c = B.canForge(s, r, part);
     if (!c.ok) { say({ studio: 'Build the Workshop first.', blueprint: 'You need the blueprint. Bosses and Gold+ loot boxes drop them.', tier: `This needs Workshop tier ${c.need}.`, amount: 'Not enough materials. Walk, or replay a Trial for parts.', full: 'Your inventory is full.' }[c.why] || 'Not yet.'); return; }
-    app.modal = { type: 'forge', recipe: r, part, strikes: [], t0: performance.now(), period: 1100 };
+    app.modal = { type: 'forge', recipe: r, part, strikes: [], t0: performance.now(), period: 1700 };
     renderModal();
     hammerLoop();
   },
@@ -1373,10 +1373,11 @@ const ACTIONS = {
     const m = app.modal;
     if (!m || m.type !== 'forge' || m.result || m.strikes.length >= 3) return;
     const d = Math.abs(hammerPos(m) - 0.5);
-    m.strikes.push(d <= 0.06 ? 'perfect' : d <= 0.16 ? 'good' : 'miss');
+    const hit = d <= 0.1 ? 'perfect' : d <= 0.22 ? 'good' : 'miss';
+    m.strikes.push(hit);
+    m.flash = hit;
     $('#ui').classList.remove('shake'); void $('#ui').offsetWidth; $('#ui').classList.add('shake');
-    m.period *= 0.85;
-    m.t0 = performance.now() - Math.random() * m.period;
+    // the marker keeps sweeping at the same steady speed, so the rhythm is learnable
     if (m.strikes.length >= 3) return setTimeout(() => finishForge(B.qualityFromStrikes(m.strikes, s.base.studio.tier)), 350);
     renderModal();
   },

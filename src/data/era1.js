@@ -269,7 +269,7 @@ export const SLOT_NAMES = { weapon: 'Weapon', armor: 'Armor', helm: 'Helm', offh
 
 // ---------- Boosters ----------
 export const BOOSTERS = {
-  stride_brew: { name: 'Stride Brew', desc: '24 hours of 2 steps per Sole', hours: 24, stepsPerSole: 2 },
+  stride_brew: { name: 'Stride Brew', desc: 'For 12 hours, every 5 steps earns a Sole (double the usual rate)', hours: 12, stepsPerSole: 5 },
   lucky_knot: { name: 'Lucky Knot', desc: 'Your next 3 loot boxes roll one tier up', boxesUp: 3 },
   warpaint: { name: 'Warpaint', desc: 'Next Trial: +3 damage on every hit', fights: 1, dmg: 3 },
 };

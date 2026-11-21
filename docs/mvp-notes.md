@@ -53,7 +53,7 @@ All in `src/data/era1.js`, `src/data/story.js` and `src/logic/economy.js`.
 - **Trial loot boxes:** regular Trials roll the normal odds; mini-bosses give Gold, the era boss Platinum.
 - **Replays:** 1-3 materials, 20% chance of worn gear.
 - **Crafting recipes:** 8 recipes, e.g. 5 Flint + 2 Bone = Flint Club (+4 damage). Two need blueprints (from the Mammoth and rare boxes).
-- **Boosters:** Stride Brew (24h of 2 steps per Sole, as in the GDD), Lucky Knot (next 3 boxes roll a tier up), Warpaint (+3 damage next Trial).
+- **Boosters:** Stride Brew (12h of 5 steps per Sole, as in the GDD), Lucky Knot (next 3 boxes roll a tier up), Warpaint (+3 damage next Trial).
 - **Shop:** the GDD gear plus flint and bone at 10 Soles each.
 - **Inventory slots:** 20, then 30/40/50 by tier. Full bags salvage new gear into materials.
 - **Shrine:** +10% Silver/Gold odds and +5% Platinum and up, per tier.

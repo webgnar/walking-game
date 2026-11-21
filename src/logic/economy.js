@@ -16,7 +16,7 @@ export const TIER_NAMES = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold', pl
 export const BASE_ODDS = { bronze: 0.7625, silver: 0.15, gold: 0.055, platinum: 0.024, legendary: 0.0055, celestial: 0.003 };
 
 export function stepsPerSole(s) {
-  if (s.active.strideUntil > env.now()) return 2;
+  if (s.active.strideUntil > env.now()) return BOOSTERS.stride_brew.stepsPerSole;
   return 10; // upgrades to 8 and 5 are proposed in the GDD; not in the MVP shop yet
 }
 

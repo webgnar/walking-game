@@ -87,7 +87,7 @@ Next Trial too hard ->  need more power -> WALK
 | **Boss gear** | Mini-bosses and era bosses | Wearable gear, alongside shop and crafted gear |
 | **Blueprints** | Boss drops and rare loot boxes | Teach a crafting recipe permanently |
 | **Respec tokens** | Mini-boss kills | Reset skill points once |
-| **Boosters** | Found in loot boxes, won, or crafted | Short-term boosts, for example 24 hours of 2 steps per Sole |
+| **Boosters** | Found in loot boxes, won, or crafted | Short-term boosts, for example 12 hours of 5 steps per Sole |
 | **Ichor** | Endgame only (not in MVP) | The golden blood of the Aurum. Final evolution |
 
 ### Steps per Sole
@@ -297,7 +297,7 @@ Three finishers per era.
 | Thick Hide | Hardened: +15 max health |
 | Ember Coal | Smoldering: weapon hits set the target burning |
 
-- **Hammer timing:** strike the anvil three times as the marker crosses the gold. Perfect strikes make Masterwork (stats ×1.25), fumbles make Crude (×0.85); skipping gives Fine. A tier 3 Workshop is more forgiving.
+- **Hammer timing:** strike the anvil three times as the marker crosses the gold. Two perfect strikes (or a perfect and two goods) make Masterwork (stats ×1.25); only three misses make Crude (×0.85); skipping gives Fine. The marker sweeps slowly at a steady speed, the gold zones are wide, and each strike shows PERFECT, GOOD or MISS. A tier 3 Workshop is more forgiving.
 - **Reinforce** any piece from +1 to +5 with materials (no failure chance).
 
 **Sets (trophies from each act's hunt):**
