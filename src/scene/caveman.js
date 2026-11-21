@@ -7,7 +7,7 @@ import { Wardrobe } from './wear.js';
 
 const URL = '/models/caveman.fbx';
 // Animation clips, one file each: public/models/anims/<name>.fbx (missing files are skipped).
-export const CLIP_NAMES = ['idle', 'walk', 'attack', 'throw', 'block', 'hurt', 'death', 'roar', 'victory'];
+export const CLIP_NAMES = ['idle', 'walk', 'attack', 'throw', 'block', 'hurt', 'death', 'roar', 'victory', 'jumpattack'];
 const HEIGHT = 1.9; // world units, matches the old placeholder hero
 
 const loader = new FBXLoader();
@@ -92,6 +92,12 @@ function fixClip(clip) {
   }
   if (pos) {
     const v = pos.values, x0 = v[0], y0 = v[1];
+    // keep the clip's travel (before pinning it) so a stage move can follow it: horizontal distance
+    // from the first frame along the clip's main direction of travel
+    let fx = 0, fy = 0;
+    for (let i = 0; i < v.length; i += 3) if ((v[i] - x0) ** 2 + (v[i + 1] - y0) ** 2 > fx * fx + fy * fy) { fx = v[i] - x0; fy = v[i + 1] - y0; }
+    const len = Math.hypot(fx, fy);
+    if (len > 1e-6) clip.userData = { travelTimes: pos.times.slice(), travel: Array.from({ length: v.length / 3 }, (_, k) => ((v[k * 3] - x0) * fx + (v[k * 3 + 1] - y0) * fy) / len) };
     for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 1] = y0; }
   }
 }
@@ -101,7 +107,21 @@ function fixClip(clip) {
 const STRIKE = {
   attack: { from: 0.12, contact: 0.42 },
   throw: { from: 0.08, contact: 0.36 },
+  // run, leap and two-handed smash (club meets the head about frame 51 of 111 at 30 fps); `from` skips the standing start
+  jumpattack: { from: 0.35, contact: 1.66, speed: 1.35 },
 };
+
+// The clip's travel at time t (linear between keys).
+function travelAt(clip, t) {
+  const u = clip.userData, ts = u && u.travelTimes;
+  if (!ts) return 0;
+  if (t <= ts[0]) return u.travel[0];
+  for (let i = 1; i < ts.length; i++) if (t <= ts[i]) {
+    const k = (t - ts[i - 1]) / (ts[i] - ts[i - 1]);
+    return u.travel[i - 1] + (u.travel[i] - u.travel[i - 1]) * k;
+  }
+  return u.travel[u.travel.length - 1];
+}
 
 class Rig {
   constructor(model, fbx, bone, skinned) {
@@ -115,7 +135,7 @@ class Rig {
     this.dead = false;
     // remember the bind pose so the hand-made pose can be layered on top of it each frame
     this.bind = new Map();
-    fbx.traverse((o) => { if (o.isBone) this.bind.set(o, o.quaternion.clone()); });
+    fbx.traverse((o) => { if (o.isBone) { this.bind.set(o, o.quaternion.clone()); o.userData.bindPos = o.position.clone(); } });
     this.pose = this.buildPose();
     // wearable gear is fitted against the bind pose, so set it up while the bones are still in it
     this.wardrobe = new Wardrobe(model, skinned);
@@ -131,10 +151,26 @@ class Rig {
         if (!clip) continue;
         clip.name = name;
         fixClip(clip);
+        this.fitHips(clip);
         this.clips[name] = clip;
       } catch (e) { console.warn('[caveman] clip failed', name, e); }
     }
     if (this.clips.idle && !this.action) this.play('idle');
+  }
+
+  // A clip made on a different-sized Mixamo skeleton moves the hips in its own units (the jump
+  // attack's skeleton is twice his size, so he'd sink into the ground and leap off the screen).
+  // Scale its hips track to his size; the joint rotations already fit.
+  fitHips(clip) {
+    const pos = clip.tracks.find((t) => /Hips\.position$/.test(t.name));
+    const hips = this.bone('Hips');
+    if (!pos || !hips) return;
+    const k = this.bind.get(hips) && hips.userData.bindPos ? hips.userData.bindPos.length() : 0;
+    const c = new THREE.Vector3().fromArray(pos.values, 0).length();
+    if (!k || !c) return;
+    const r = k / c;
+    if (Math.abs(r - 1) < 0.15) return;
+    for (let i = 0; i < pos.values.length; i++) pos.values[i] *= r;
   }
 
   has(name) { return !!this.clips[name]; }
@@ -178,6 +214,25 @@ class Rig {
       return;
     }
     if (!this.play(clip)) this.swingT = 0;
+  }
+
+  // Play a travelling strike (the jump attack). Returns real ms to the contact frame at normal speed.
+  // The clip plays on the spot; follow its travel with travelled().
+  leap(name = 'jumpattack') {
+    const k = STRIKE[name];
+    if (!this.play(name, { from: k.from, speed: k.speed, fade: 0.1 })) return 0;
+    return ((k.contact - k.from) / k.speed) * 1000;
+  }
+
+  // How far the current travelling strike has carried him: 0 at its start, 1 at its contact frame
+  // (a little more or less after it, as he stumbles out of the landing).
+  travelled() {
+    const a = this.action;
+    if (!a) return 0;
+    const clip = a.getClip(), k = STRIKE[clip.name];
+    if (!k || !clip.userData || !clip.userData.travel) return 0;
+    const d0 = travelAt(clip, k.from), d1 = travelAt(clip, k.contact);
+    return d1 === d0 ? 0 : (travelAt(clip, a.time) - d0) / (d1 - d0);
   }
 
   // Hand-made rest pose relative to the bind (T) pose, expressed as world-space aims for limbs.

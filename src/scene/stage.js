@@ -490,22 +490,40 @@ export class Stage {
     const h = this.hero, home = this.actor('hero').home.clone();
     const target = a.obj.position.clone();
     const reach = Math.max(0, target.x - home.x - 1.25 - (enemyHeight(a.id) > 3 ? 1.4 : 0));
-    // close in on the target and push the camera toward it
-    this.tween(260, (p) => { h.position.x = home.x + reach * easeOut(p); });
+    // the Skull Crusher leaps in with the jump-attack clip when the rig has it; the rest close in first
+    const leap = kind === 'skull' && this.rig && this.rig.has('jumpattack');
+    if (!leap) this.tween(260, (p) => { h.position.x = home.x + reach * easeOut(p); });
     const look0 = this.camLook.clone(), pos0 = this.camPos.clone();
     const focus = this.actorPoint(who, 0.6);
     this.camLook.lerpVectors(look0, focus, 0.45);
     this.camPos.lerpVectors(pos0, focus, 0.22);
     const back = () => {
       this.camLook.copy(look0); this.camPos.copy(pos0);
-      this.tween(320, (p) => { h.position.x = home.x + reach * (1 - easeOut(p)); });
+      const x0 = h.position.x, z0 = h.position.z;
+      this.tween(320, (p) => { h.position.x = x0 + (home.x - x0) * easeOut(p); h.position.z = z0 + (home.z - z0) * easeOut(p); });
     };
     const head = a.obj.userData.head;
     switch (kind) {
       case 'skull': {
-        // two-handed overhead slam: the skull caves in
-        this.swing('attack', 300);
-        this.after(300, () => {
+        // run, leap high and smash down two-handed on landing (or, without the clip, an overhead slam):
+        // the skull caves in
+        let contact = 300;
+        if (leap) {
+          contact = Math.round(this.rig.leap());
+          // the clip plays on the spot: carry him along its travel so he lands right in front of the beast
+          // land a little short of the usual spot and step toward the camera, so the beast doesn't hide him
+          let following = true;
+          const lx = Math.max(0, reach - 0.45), lz = 0.55;
+          this.tween(contact + 380, () => {
+            if (!following) return;
+            const k = this.rig.travelled();
+            h.position.x = home.x + lx * k;
+            h.position.z = home.z + lz * Math.min(1, Math.max(0, k));
+          });
+          this.after(contact + 380, () => { following = false; this.rig.play('idle', { fade: 0.3 }); });
+          this.camPos.lerpVectors(pos0, focus, 0.12);
+        } else this.swing('attack', 300);
+        this.after(contact, () => {
           this.hitStop(150); this.slowMo(0.25, 420); this.shake(0.22, 380);
           if (head) { const s0 = head.scale.clone(); this.tween(140, (p) => head.scale.set(s0.x * (1 + 0.35 * p), s0.y * (1 - 0.65 * p), s0.z * (1 + 0.35 * p))); }
           const hp = this.actorPoint(who, 0.85);
@@ -514,7 +532,7 @@ export class Stage {
           this.spawn('bone', hp, 7, { dir: new THREE.Vector3(0.4, 0.8, 0), speed: 2.2, spread: 1, life: 0.7 });
           this.after(380, () => { back(); this.dissolve(who); });
         });
-        return 320;
+        return contact + 20;
       }
       case 'terror': {
         // run it through, lift it, and roar: the pack flinches
