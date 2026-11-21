@@ -53,7 +53,8 @@ button { font: inherit; color: inherit; }
 .btn.ghost { background: rgba(23,20,37,.85); color: var(--paper); }
 .btn.small { font-size: calc(var(--u) * 3.2); min-height: 36px; padding: 4px 10px; }
 .btn.tiny { font-size: 14px; min-height: 30px; padding: 2px 8px; box-shadow: 2px 2px 0 var(--ink); }
-.btn[disabled], .btn.off { filter: grayscale(.85) brightness(.7); pointer-events: none; }
+/* greyed-out buttons stay tappable so they can say what's missing */
+.btn[disabled], .btn.off { filter: grayscale(.85) brightness(.7); }
 .btn .badge { position: static; margin-left: 4px; background: var(--red); color: #fff; font-family: var(--body); font-weight: 700; font-size: 13px; min-width: 22px; height: 22px; border-radius: 11px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; padding: 0 4px; }
 .pulse { animation: pulse 1.2s infinite; }
 @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35) drop-shadow(0 0 8px var(--cyan)); } }
@@ -1055,3 +1056,52 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .dialog.notepaper.msg .nk { color: #3ad27a; }
 .dialog.notepaper.msg .nt, .dialog.notepaper.msg p { color: #8bffb4; }
 .dialog.notepaper.msg .x { color: #8bffb4; border-color: #3ad27a; background: transparent; }
+
+/* ---------- Home: notes under the step tracker ---------- */
+.ui-home .ui-steps { cursor: pointer; }
+.ui-home .ui-steps.needwalk { animation: walkPulse 2.4s ease-in-out infinite; }
+@keyframes walkPulse { 0%, 100% { filter: drop-shadow(0 calc(.5 * var(--fh)) calc(.8 * var(--fh)) rgba(0,0,0,.55)); } 50% { filter: drop-shadow(0 0 10px rgba(255,190,90,.85)); } }
+.ui-notes { position: absolute; left: 50%; top: calc(12 * var(--fh)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 6; }
+.ui-notes .ui-report { position: static; transform: none; }
+.ui-home .herotap { top: 28%; height: 56%; }
+.ui-signal { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; background: rgba(14,5,5,.9); border: 1px solid #7a1a14; color: #e2574a; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 13px; cursor: pointer; animation: sigPulse 2s ease-in-out infinite; white-space: nowrap; }
+.ui-signal .dot { width: 8px; height: 8px; border-radius: 50%; background: #e2574a; box-shadow: 0 0 8px #e2574a; }
+@keyframes sigPulse { 0%, 100% { box-shadow: 0 0 0 rgba(226,87,74,0); } 50% { box-shadow: 0 0 14px rgba(226,87,74,.6); } }
+
+/* A quick note that fades on its own */
+.nudge { position: fixed; left: 50%; top: calc(var(--st, 0px) + 22%); transform: translateX(-50%); z-index: 60; max-width: min(460px, 86vw); padding: 8px 14px; background: rgba(16,11,8,.95); border: 1px solid #b8862f; color: #f1e3c2; font-size: 13px; line-height: 1.35; text-align: center; pointer-events: none; animation: nudgeLife 2.8s ease forwards; }
+.nudge b { display: block; font-family: var(--display); letter-spacing: .2em; font-size: 10px; color: #e0a94e; margin-bottom: 2px; }
+.nudge.eerie { background: rgba(14,5,5,.95); border-color: #7a1a14; color: #e2574a; font-family: Georgia, 'Times New Roman', serif; font-style: italic; }
+.nudge.eerie b { color: #b8433a; font-style: normal; }
+@keyframes nudgeLife { 0% { opacity: 0; transform: translate(-50%, 8px); } 10%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -6px); } }
+
+/* ---------- 7,301,223 (former tribute): red italic, eerie ---------- */
+.dialog.signalnote { width: min(440px, 90vw); background: linear-gradient(180deg, #120707, #070303) !important; border: 1px solid #7a1a14 !important; border-image: none !important; outline: 0 !important; color: #e2574a; }
+.dialog.signalnote::before, .dialog.signalnote::after { display: none !important; }
+.dialog.signalnote .nk { font-family: var(--display); letter-spacing: .18em; font-size: 11px; color: #b8433a; text-transform: uppercase; }
+.dialog.signalnote p { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; line-height: 1.45; color: #e2574a; margin: 8px 0; }
+.dialog.signalnote .small { color: #b8877f; }
+.dialog.signalnote .x { color: #e2574a; border-color: #7a1a14; background: transparent; }
+.proctor.glitch .bubble, .dialog.notepaper.msg, .truthboard .entry.msg, .txmsg, .truthboard .signalcard { background: #0d0505 !important; border-color: #7a1a14 !important; color: #e2574a !important; font-family: Georgia, 'Times New Roman', serif !important; font-style: italic; box-shadow: none; }
+.proctor.glitch .who, .dialog.notepaper.msg .nk, .truthboard .entry.msg .ek, .txmsg .txh, .truthboard .signalcard .mk { color: #b8433a !important; font-style: normal; }
+.dialog.notepaper.msg .nt, .dialog.notepaper.msg p, .truthboard .entry.msg .et, .truthboard .entry.msg p, .txmsg p { color: #e2574a !important; }
+.dialog.notepaper.msg .x { color: #e2574a; border-color: #7a1a14; }
+.truthboard .signalcard .mbar, .truthboard .entry.tx .mbar, .txmsg .mbar { background: #2a0a08 !important; border-color: #7a1a14 !important; }
+.truthboard .signalcard .mbar i, .truthboard .entry.tx .mbar i, .txmsg .mbar i { background: #c0392b !important; }
+
+/* ---------- Defeat advice ---------- */
+.defline { font-style: italic; }
+.lossadvice { text-align: left; margin: 2px auto 4px; max-width: 520px; }
+.lossadvice .small { color: #d8c9a8; }
+.lossadvice ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: #f1e3c2; }
+.lossadvice li { margin: 2px 0; }
+
+/* ---------- Victory: smaller cards; never push the buttons off screen ---------- */
+.loot.compact { gap: 6px; }
+.loot.compact .lootcard { width: 84px; min-height: 84px; padding: 4px; font-size: 11px; }
+.loot.compact .lootcard .li { font-size: 24px; margin-bottom: 2px; }
+.loot.compact .lootcard .li img, .loot.compact .lootcard .li .gicon { width: 34px; height: 34px; }
+.loot.compact .lootcard small { font-size: 9px; }
+.lootcard.more { border-style: dashed; }
+.lootcard.more .li { font-family: var(--display); font-weight: 700; color: #ffd27a; }
+.overlay .dialog .loot { min-height: 0; overflow-y: auto; }

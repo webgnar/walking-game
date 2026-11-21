@@ -212,7 +212,8 @@ export class Stage {
   // The rigged hero wears the fitted gear models (scene/wear.js) for armor, helm, offhand and
   // trinket; the old placeholder shapes are only for the stand-in body. The weapon is always
   // zack's club model for now: the other weapon looks are placeholder shapes.
-  shownLooks() { return this.rig ? { weapon: 'club1' } : this.looks; }
+  // With no weapon equipped he is bare-handed ('none' draws nothing).
+  shownLooks() { return this.rig ? { weapon: this.looks.weapon ? 'club1' : 'none' } : { ...this.looks, weapon: this.looks.weapon || 'none' }; }
   // looks: slot -> placeholder look key; ids: slot -> gear item id
   setHeroLook(looks, ids = {}) {
     this.looks = looks;

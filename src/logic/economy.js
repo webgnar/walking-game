@@ -199,7 +199,7 @@ export function junkGear(s) {
   const junk = [];
   for (const it of s.inv) {
     const g = GEAR[it.key];
-    if (equipped.includes(it.uid) || g.tier === 'boss' || g.tier === 'rare' || g.set || it.affix || it.q === 'masterwork' || it.plus) continue;
+    if (equipped.includes(it.uid) || g.tier === 'starter' || g.tier === 'boss' || g.tier === 'rare' || g.set || it.affix || it.q === 'masterwork' || it.plus) continue;
     if (ingredient.has(it.key) && !keptForRecipe.has(it.key)) { keptForRecipe.add(it.key); continue; }
     if (itemScore(it) > (wornScore[g.slot] ?? -1)) continue;
     junk.push(it);

@@ -312,6 +312,7 @@ Inventory, item cards, loot, Workshop, shop. Each piece is optional: until it ex
 
 | File | Emoji | Shows | Style | Prompt | Status |
 | --- | --- | --- | --- | --- | --- |
+| `gear-starter-club.png` | (slot) | Worn Club, starter weapon (+1 damage) | O | a plain, worn wooden club, the one he lands with | to do |
 | `gear-stone-club.png` | (slot) | Knapped Club, Shop weapon | O | a wooden club with a knapped stone lashed to the head | to do |
 | `gear-hide-wrap.png` | (slot) | Hide Wrap, Shop armor | O | a plain tan hide wrapped as a chest piece, tied with thongs | to do |
 | `gear-skull-cap.png` | (slot) | Skull Cap, Shop helm | O | a cap made from the top of a small animal skull, lined with fur | to do |

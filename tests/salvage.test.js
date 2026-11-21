@@ -6,9 +6,10 @@ import { autoEquipBest } from '../src/logic/hero.js';
 
 test('consumables never take inventory slots', () => {
   const s = newState();
+  const before = invUsed(s); // the starter kit
   addBooster(s, 'warpaint', 5);
   addBooster(s, 'lucky_knot', 2);
-  assert.equal(invUsed(s), 0);
+  assert.equal(invUsed(s), before);
 });
 
 test('salvage junk keeps equipped, better, boss and one recipe copy', () => {

@@ -4,7 +4,7 @@ import { env, load, save, wipeSave, newState, toast, pick, SAVE_KEY, dayKey } fr
 import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
   INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS, FINISHERS, FINISHER_ORDER, FURY, TRAITS, ACTS, LOADOUT_MAX, STAR_REWARDS, PARTS, AFFIXES, QUALITY, REINFORCE_MAX, SETS } from './data/era1.js';
-import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP, LOSS_TIPS } from './data/story.js';
+import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
 import * as ST from './logic/story.js';
 import * as GR from './logic/gear.js';
 import { IC, WREATH } from './ui/icons.js';
@@ -165,7 +165,7 @@ function homeTop() {
       <div class="ui-portrait"><i></i></div>
       <div class="ui-idplate"><div class="t1">${esc(era)}</div><div class="t2">Subject 7,301,224</div><div class="t3">Level ${roman(s.hero.level)}</div></div>
     </div>
-    <div class="ui-steps"><div class="lbl">Today <b>${fmt(today)}</b> steps <span>·</span> next loot box in <b>${fmt(toBox)}</b>${stride ? ' <span>·</span> <em>Stride Brew</em>' : ''}</div>
+    <div class="ui-steps ${s.soles < 100 && !s.report ? 'needwalk' : ''}" data-a="walkHint"><div class="lbl">Today <b>${fmt(today)}</b> steps <span>·</span> next loot box in <b>${fmt(toBox)}</b>${stride ? ' <span>·</span> <em>Stride Brew</em>' : ''}</div>
       <div class="segs">${Array.from({ length: 10 }, (_, i) => `<i class="${i < seg ? 'on' : ''}"></i>`).join('')}</div></div>
     <div class="ui-res">
       <span class="c" title="Soles"><span class="uicon ic-sole">${IC.sole}</span>${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span>
@@ -201,7 +201,10 @@ const SCREENS = {
     return `<div class="ui-home">
     ${homeTop()}
     <div class="ui-banner"><i class="pole"></i><i class="cloth">${WREATH}</i></div>
-    ${s.report ? `<button class="btn small ui-report ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
+    <div class="ui-notes">
+      ${s.report ? `<button class="btn small ui-report ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
+      ${s.signal ? `<button class="ui-signal" data-a="modal" data-v="signal"><span class="dot"></span>A signal from ${esc(FORMER_TRIBUTE)}</button>` : ''}
+    </div>
     <div class="ui-left">
       ${homePlate(`dark big ${hint('base')}`, 'base', 'Base', 'Command · Develop · Survive', 'data-a="go" data-v="base"', truthNews() ? '!' : jobs)}
       ${homePlate('dark', 'shop', 'Shop', 'Supply · Gear · Upgrade', 'data-a="go" data-v="shop"')}
@@ -337,8 +340,7 @@ const SCREENS = {
           <span class="sp">${skillShort(id, b)}</span>${cd ? `<span class="cd">${cd}</span>` : ''}</div>`;
       }).join('')}
       ${h.finisher ? (() => { const f = FINISHERS[h.finisher]; const ok = C.canFinish(b) && !app.busy; return `<div class="sk fin ${ok ? 'ready' : 'no'}" data-a="finish" title="${esc(f.desc)}"><span class="ap">${FURY.ap}</span><span class="si">${gi(`fin-${f.id}`)}</span><span class="sn">${esc(f.name)}</span><span class="sp">${h.fury >= FURY.max ? (C.canFinish(b) ? 'Finish!' : `needs ${gi('st-execute')}`) : `Fury ${h.fury}%`}</span></div>`; })() : ''}
-    </div>
-    <button class="btn small ghost endturn ${app.busy || b.over ? 'off' : ''}" data-a="endTurn" title="End your turn early. Up to ${h.stats.apCarry} unspent AP carries over to next turn.">Save AP ▶<small style="display:block;font-size:10px;font-family:Rajdhani;text-transform:none;letter-spacing:0">end turn early</small></button>`;
+    </div>`;
   },
 
   reward() {
@@ -348,9 +350,8 @@ const SCREENS = {
     if (r.result !== 'win') {
       return `<div class="overlay"><div class="dialog panel halftone" style="text-align:center">
         <div class="tierlabel" style="color:var(--red);font-size:44px">DEFEAT</div>
-        <p>${esc(r.line)}</p>
-        ${r.tip ? `<div class="txmsg cleared" style="text-align:left"><div class="txh">${esc(FORMER_TRIBUTE)}</div><p>${esc(r.tip)}</p></div>` : ''}
-        <p class="small muted">No penalty. Get stronger: walk for Soles, train at the altar, upgrade gear, or try a different skill order.</p>
+        <p class="defline">"${esc(r.line)}"</p>
+        ${lossAdvice(t)}
         <div class="actions" style="justify-content:center"><button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to the map</button>
         <button class="btn pink" data-a="fight" data-v="${r.n}">Try again</button></div>
       </div></div>`;
@@ -362,8 +363,8 @@ const SCREENS = {
     }
     if (r.xp) cards.push(card(gi('cur-xp'), `${r.xp} XP`, r.first ? 'First win' : ''));
     if (r.box) cards.push(card(TIER_ICON[r.box], `${E.TIER_NAMES[r.box]} loot box`, 'Added to your boxes'));
-    cards.push(matCards(r.mats));
-    cards.push(matCards(r.parts, 'Beast part'));
+    cards.push(...matCards(r.mats));
+    cards.push(...matCards(r.parts, 'Beast part'));
     for (const g of r.gear) cards.push(card(gearIcon(g), GEAR[g].name, statText(GEAR[g].stats), GEAR[g].tier === 'boss' ? 'boss' : ''));
     if (r.respec) cards.push(card(gi('cur-respec'), 'Respec token', 'Reset your points once'));
     for (const id of r.blueprints || []) cards.push(card(gi('cur-blueprint'), 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === id)), 'rare'));
@@ -374,10 +375,10 @@ const SCREENS = {
     return `<div class="overlay"><div class="dialog panel halftone wide" style="text-align:center">
       <div class="tierlabel" style="color:var(--yellow);font-size:44px">${r.first ? 'VICTORY!' : 'REPLAY CLEARED'}</div>
       <div class="muted">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}${r.flawless ? ' · <span class="ok">no damage taken</span>' : ''}</div>
-      ${r.starList ? `<div class="stars">${r.starList.map((on, i) => `<span class="${on ? 'on' : ''}" title="${['Win', 'Finish above half health', `Win in ${t.par} turns or fewer`][i]}">★</span>`).join('')}${r.newBest && r.stars > 1 ? '<em>new best</em>' : ''}</div>
+      ${r.starList ? `<div class="stars">${[0, 1, 2].map((i) => `<span class="${i < r.stars ? 'on' : ''}">★</span>`).join('')}${r.newBest && r.stars > 1 ? '<em>new best</em>' : ''}</div>
         <div class="small muted">${['Win', 'Above half health', `Within ${t.par} turns`].map((l, i) => `${r.starList[i] ? '✔' : '✖'} ${l}`).join(' · ')}</div>` : ''}
       <div class="sep"></div>
-      <div class="loot">${cards.join('') || '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
+      <div class="loot compact">${(cards.length > 6 ? cards.slice(0, 5) : cards).join('')}${cards.length > 6 ? `<div class="lootcard more"><div class="li">+${cards.length - 5}</div>more<small>in your inventory</small></div>` : ''}${cards.length ? '' : '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
       <div class="actions" style="justify-content:center">
         ${r.box ? `<button class="btn yellow" data-a="openLatest">Open the loot box</button>` : ''}
         ${r.n === 0 ? `<button class="btn cyan pulse" data-a="afterTutorial">Continue</button>` : `<button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to the map</button>`}
@@ -540,7 +541,7 @@ function matList(mats, extra = {}) {
   return Object.entries(need).map(([k, n]) => `<span class="${(s.mats[k] || 0) >= n ? '' : 'bad'}">${ICON[k] || ''}${n} ${esc(itemName(k))}</span>`).join(' · ');
 }
 function matCards(mats, sub = '') {
-  return Object.entries(mats || {}).filter(([, n]) => n > 0).map(([k, n]) => card(ICON[k] || '?', `${n} ${itemName(k)}`, PARTS[k] ? PARTS[k].name === itemName(k) ? 'Beast part' : sub : sub, PARTS[k] ? 'part' : '')).join('');
+  return Object.entries(mats || {}).filter(([, n]) => n > 0).map(([k, n]) => card(ICON[k] || '?', `${n} ${itemName(k)}`, PARTS[k] ? 'Beast part' : sub, PARTS[k] ? 'part' : ''));
 }
 function itemIcon(k) {
   return ICON[k] || (GEAR[k] ? gearIcon(k) : '?');
@@ -707,7 +708,7 @@ const MODALS = {
         ${card(gi('cur-steps'), `${fmt(r.steps)} steps`)}
         ${card(SOLE, `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
         ${r.boxes.map((t) => card(TIER_ICON[t], `${E.TIER_NAMES[t]} box`)).join('')}
-        ${matCards(r.mats, 'found on the way')}
+        ${matCards(r.mats, 'found on the way').join('')}
       </div>
       ${r.lost ? `<div class="small warn">${r.lost} loot box${r.lost > 1 ? 'es' : ''} lost: you can hold ${E.BOX_LIMIT} unopened. Open them more often.</div>` : ''}
       </div>
@@ -866,6 +867,21 @@ const MODALS = {
       <div class="strikes">${[0, 1, 2].map((i) => `<span class="${m.strikes[i] || ''}">${m.strikes[i] ? m.strikes[i].toUpperCase() : '·'}</span>`).join('')}</div>
       <div class="small muted">Tap anywhere when the marker crosses the gold. Two perfect strikes make a Masterwork.</div>
       <div class="actions" style="justify-content:center"><button class="btn tiny ghost" data-a="forgeSkip">Skip (Fine quality)</button></div>
+    </div>`;
+  },
+
+  signal() {
+    const sg = s.signal;
+    if (!sg) return '';
+    const live = sg.kind === 'tx' ? ST.activeTransmission(s) : null;
+    const def = sg.kind === 'tx' ? ST.txById(sg.id) : null;
+    const text = sg.kind === 'tx' ? (live && live.id === sg.id ? ST.signalText(live, live.frac) : def.text) : sg.text;
+    return `<div class="dialog signalnote">
+      <button class="x" data-a="closeSignal">✕</button>
+      <div class="nk">${esc(FORMER_TRIBUTE)}</div>
+      <p>${esc(text)}</p>
+      ${live && live.id === sg.id ? `<div class="small">The signal is weak. Walk ${fmt(live.left)} more steps to clear it.</div>` : ''}
+      <div class="actions"><button class="btn small" data-a="closeSignal">Close</button><button class="btn small yellow" data-a="signalTruth">Open the Truth Board</button></div>
     </div>`;
   },
 
@@ -1155,7 +1171,6 @@ function endBattle() {
   if (result !== 'win') {
     r.line = b.trial === 15 && (s.trials.losses[15] || 0) >= 3 ? 'Mammoth Problems loading...' : pick(PROCTOR.lose);
     if (b.trial === 6 && !s.wallShown) { s.wallShown = true; r.line = PROCTOR.wall[0]; }
-    if (LOSS_TIPS[b.trial] && r.lossCount === 1) r.tip = LOSS_TIPS[b.trial];
   }
   app.lastReward = r;
   app.battle = null;
@@ -1174,11 +1189,10 @@ function endBattle() {
 
 // A broken transmission arrives from 7,301,223 (former tribute).
 function incoming(id) {
-  const def = ST.txById(id);
-  say(`${ST.signalText(def, 0)}  [signal 0% · walk ${fmt(def.steps)} steps to clear it · follow it on the Truth Board]`, {
-    glitch: true, sticky: true, who: FORMER_TRIBUTE,
-    then: () => say('Cosmic ray. Ignore it. Definitely do not go for a walk to hear the rest.'),
-  });
+  s.signal = { kind: 'tx', id };
+  save(s);
+  nudge(`A broken signal from ${FORMER_TRIBUTE}. Check it on Home.`, true);
+  render();
 }
 
 // Play a short black-and-white cutscene in the modal layer.
@@ -1192,8 +1206,35 @@ function playCut(shots, done) {
 function glitch() {
   const text = E.nextGlitch(s);
   s.glitches++;
+  s.signal = { kind: 'glitch', text };
   save(s);
-  say(text, { glitch: true, sticky: true, then: () => say(pick(PROCTOR.glitchDismiss)) });
+  nudge(`A signal from ${FORMER_TRIBUTE}. Check it on Home.`, true);
+  render();
+}
+
+// A small note that fades on its own. eerie: styled as a signal from 7,301,223.
+function nudge(text, eerie = false) {
+  const el = document.createElement('div');
+  el.className = `nudge ${eerie ? 'eerie' : ''}`;
+  el.innerHTML = `<b>${eerie ? esc(FORMER_TRIBUTE) : 'PROCTOR'}</b>${esc(text)}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// Defeat: what to do next, tailored to where the player is.
+function lossAdvice(t) {
+  const tips = [];
+  const pts = s.hero.freeAttr + s.hero.freeSkill;
+  if (pts) tips.push(`You have ${pts} unspent point${pts > 1 ? 's' : ''}. Spend them on the Hero screen.`);
+  if (s.hero.level < t.level) tips.push(`You're level ${s.hero.level}; this Trial suggests ${t.level}. Train at the Hero Training Altar to level up.`);
+  if (RECIPES.some((r) => r.out.gear && B.canForge(s, r).ok)) tips.push('You can forge something stronger in the Workshop right now.');
+  if (BUILDING_ORDER.some((b) => { const c = B.upgradeCost(s, b); return c && !s.base[b].job && B.canAfford(s, c); })) tips.push('You can afford a Base upgrade.');
+  const traits = [...new Set(t.enemies.flatMap((e) => ENEMIES[e.replace('!', '')].traits || []))].filter((k) => k !== 'fireFear');
+  if (traits.length) tips.push(`Read the Trial card: ${traits.map((k) => TRAITS[k].name).join(', ')}. Pick your 4 skills to answer it.`);
+  return `<div class="lossadvice">
+    <div class="small">(Walking earns Soles. Spend them to train your hero, forge better gear and upgrade your Base, then come back stronger.)</div>
+    ${tips.length ? `<ul>${tips.slice(0, 3).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+  </div>`;
 }
 
 // ---------- Actions ----------
@@ -1278,6 +1319,9 @@ const ACTIONS = {
     const last = s.boxes[s.boxes.length - 1];
     if (last) ACTIONS.openBox(last.id);
   },
+  closeSignal() { s.signal = null; closeModal(); commit(); setTimeout(() => say(pick(PROCTOR.glitchDismiss)), 300); },
+  signalTruth() { s.signal = null; closeModal(); go('truth'); commit(); },
+  walkHint() { nudge(`Walk to earn Soles and loot boxes: every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. Soles train your hero, forge gear and grow your Base.`); },
   claimGoal(v) { E.claimGoal(s, Number(v)); commit(); },
   claimBonus() { E.claimAllGoalsBonus(s); commit(); },
   claimWeekly() { E.claimWeekly(s); commit(); },
@@ -1315,11 +1359,11 @@ const ACTIONS = {
   train() {
     const need = xpToNext(s.hero.level) - s.hero.xp;
     const r = H.train(s, need);
-    if (!r.ok && r.why === 'soles') say(pick(PROCTOR.noSoles));
+    if (!r.ok && r.why === 'soles') nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`);
     else if (r.ok) { E.goalEvent(s, 'train', 1); say(pick(PROCTOR.levelUp)); }
     commit();
   },
-  train10() { const r = H.train(s, 10); if (r.ok) E.goalEvent(s, 'train', 1); commit(); },
+  train10() { const r = H.train(s, 10); if (r.ok) E.goalEvent(s, 'train', 1); else if (r.why === 'soles') nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`); commit(); },
   respec() { H.respec(s); commit(); },
   item(v) { openModal('item', { uid: v }); },
   booster(v) { openModal('booster', { key: v }); },
@@ -1338,7 +1382,7 @@ const ACTIONS = {
   // shop
   buy(v) {
     const r = E.buy(s, Number(v));
-    if (!r.ok) say(r.why === 'full' ? 'Your inventory is full. Upgrade it at the Base, or salvage something.' : pick(PROCTOR.noSoles));
+    if (!r.ok) { if (r.why === 'full') say('Your inventory is full. Upgrade it at the Base, or salvage something.'); else nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`); }
     commit();
   },
 
@@ -1351,11 +1395,14 @@ const ACTIONS = {
       if (r.instant) say(`${BUILDINGS[v].name} built. Instantly. Never again. Everything after this runs on timers.`);
       else say(pick(PROCTOR.build));
       if (s.tutorial === 'base') { s.tutorial = 'level'; setTimeout(() => say('You reached level 2 in that first fight. Spend your attribute points on the Hero screen.'), 2500); }
-    } else if (r.why === 'cost') say(s.soles < r.cost.soles ? pick(PROCTOR.noSoles) : 'Not enough materials. Walking finds flint and bone. So do Trial replays.');
+    } else if (r.why === 'cost') {
+      nudge(s.soles < r.cost.soles ? `Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.` : 'Not enough wood. Walking finds it, and so do loot boxes.');
+      return;
+    }
     closeModal();
     commit();
   },
-  speed(v) { B.speedUp(s, v); stage.setBase(tiers()); commit(); },
+  speed(v) { if (!B.speedUp(s, v)) { nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`); return; } stage.setBase(tiers()); commit(); },
 
   // crafting
   pickRecipe(v) { app.recipe = v; render(); },
@@ -1364,7 +1411,8 @@ const ACTIONS = {
     const r = RECIPES.find((x) => x.id === app.recipe);
     const part = app.part && (s.mats[app.part] || 0) > 0 ? app.part : null;
     const c = B.canForge(s, r, part);
-    if (!c.ok) { say({ studio: 'Build the Workshop first.', blueprint: 'You need the blueprint. Bosses and Gold+ loot boxes drop them.', tier: `This needs Workshop tier ${c.need}.`, amount: 'Not enough materials. Walk, or replay a Trial for parts.', full: 'Your inventory is full.' }[c.why] || 'Not yet.'); return; }
+    if (!c.ok && c.why === 'amount') { nudge('Not enough materials. Walk to find more, or replay a Trial for beast parts.'); return; }
+    if (!c.ok) { say({ studio: 'Build the Workshop first.', blueprint: 'You need the blueprint. Bosses and Gold+ loot boxes drop them.', tier: `This needs Workshop tier ${c.need}.`, amount: '', full: 'Your inventory is full.' }[c.why] || 'Not yet.'); return; }
     app.modal = { type: 'forge', recipe: r, part, strikes: [], t0: performance.now(), period: 1700 };
     renderModal();
     hammerLoop();

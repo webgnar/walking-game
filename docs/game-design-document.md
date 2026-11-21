@@ -167,6 +167,8 @@ The MVP ships Eras 1 to 3; all ten ship before launch. The era name is also the 
 
 ## Hero
 
+- **Starts with the Worn Club** equipped (+1 damage). His fur and tooth necklace are part of the base model, not gear; with no weapon equipped he is bare-handed.
+
 **Character (decided):** a fixed hero for now. Inspired by the gothic hunter look of Castlevania's Belmont and Alucard (inspiration only, an original design): a white man with tanned skin, long hair and stubble. Battle-worn and quietly stubborn. His look changes with each era's gear while staying recognizably him.
 
 - Levels 1 to 100, about ten per era.
@@ -213,7 +215,7 @@ Turn-based strategy. Unlocks at hero level 5 (the first-session tutorial fights 
 | Era boss (Trial 15) | XP, loot box, boss gear, blueprint, Era Key | Crafting materials and low-level gear only |
 
 - **Enemies show their next move** with an intent icon (attack for 12, block, charging, calling backup).
-- **3 Action Points per turn**; a **loadout of 4 skills** (you own more than you can bring, so the loadout is a build decision). The turn ends on its own when no skill is affordable; a small "Save AP" button ends it early so unspent AP can carry over (for example, saving up for Roar or Firebrand).
+- **3 Action Points per turn**; a **loadout of 4 skills** (you own more than you can bring, so the loadout is a build decision). There is no end-turn button: the turn ends on its own once no skill can be used, so every turn spends its AP.
 - **Skill vs. power:** smart play beats enemies up to about 20% stronger. Never a hard barrier: enough walking, XP and gear wins on strength.
 - **Each era adds a new skill branch.** Earlier skills stay available.
 
@@ -255,7 +257,7 @@ Three finishers per era.
 
 **Stars:** 1 for winning, 1 for finishing above half health, 1 for winning within the Trial's par turns. 15, 30 and 45 total stars give a Gold, Platinum and Legendary loot box.
 
-**Losing still moves the story:** the first loss at key Trials brings a hint from 7,301,223 (former tribute), for example "when the lion goes still, it is about to jump. hit it with a stone."
+**Defeat gives guidance:** PROCTOR's line, then a short reminder that walking earns Soles for training, gear and the Base, and up to three tips tailored to the player: unspent points, being under the suggested level, gear they can forge now, a Base upgrade they can afford, and the Trial's enemy traits to build against.
 
 **Difficulty:** each Trial has a difficulty dial on enemy health and damage, set with a balance bot so a hero at the suggested level with sensible gear and loadout ends regular Trials with about 40% health, mini-bosses about 25% and the Mammoth about 20%, and two levels under loses most of the later Trials. The bot plays well, so real players will find these harder: tune after playtests.
 
@@ -458,6 +460,8 @@ The sigils on his hands are a new story thread: they're how the Ascent marks and
 - **A timer loop:** a base upgrade finishing while they're out.
 
 ### New mechanic: transmissions (built)
+
+Signals from 7,301,223 (transmissions and glitches) arrive as a short fading note, then wait as a small pulsing notification under the step tracker on Home. Tapping it opens the message in a compact window (red italic text) with a link to the Truth Board. Everything from 7,301,223 uses the same eerie red italic style.
 
 Messages from 7,301,223 (former tribute) arrive broken. The signal only gets stronger while you walk: "Signal 12%. Walk 1,000 steps to clear it." Each one reads as a cliffhanger, and the expedition report shows the cleared message when you come back. The sigils on the hero's hands pulse as the signal grows.
 

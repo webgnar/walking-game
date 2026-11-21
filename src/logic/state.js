@@ -27,6 +27,12 @@ export function weekKey(t = env.now()) {
 }
 
 export function newState() {
+  const s = freshState();
+  giveStarterKit(s);
+  return s;
+}
+
+function freshState() {
   const base = {};
   for (const b of BUILDING_ORDER) base[b] = { tier: 0, job: null };
   return {
@@ -74,6 +80,7 @@ export function newState() {
     opens: { day: null, count: 0, lastDay: null },
     proctorSeen: {},
     trainedOnce: false,
+    starterKit: false,
   };
 }
 
@@ -83,10 +90,11 @@ export function load() {
     if (!raw) return newState();
     const s = JSON.parse(raw);
     // Fill fields added in later builds.
-    const fresh = newState();
+    const fresh = freshState();
     for (const k of Object.keys(fresh)) if (s[k] === undefined) s[k] = fresh[k];
     for (const k of Object.keys(fresh.hero)) if (s.hero[k] === undefined) s.hero[k] = fresh.hero[k];
     if (!s.trials.stars) s.trials.stars = {};
+    if (!s.starterKit) giveStarterKit(s);
     for (const k of Object.keys(fresh.mats)) if (s.mats[k] === undefined) s.mats[k] = 0;
     // Fang Ripper was removed: saves that had it get Bloodrush instead
     if (s.hero.finishers.includes('fang')) {
@@ -110,6 +118,17 @@ export function wipeSave() {
   try {
     if (indexedDB.databases) indexedDB.databases().then((dbs) => dbs.forEach((d) => d.name && indexedDB.deleteDatabase(d.name)));
   } catch (e) { /* not supported */ }
+}
+
+// The starter kit: the Worn Club (+1 damage), equipped if the weapon slot is empty.
+export const STARTER_KIT = { weapon: 'starter_club' };
+export function giveStarterKit(s) {
+  for (const [slot, key] of Object.entries(STARTER_KIT)) {
+    const it = { uid: uid(), key };
+    s.inv.push(it);
+    if (!s.hero.equip[slot]) s.hero.equip[slot] = it.uid;
+  }
+  s.starterKit = true;
 }
 
 export function save(s) {

@@ -234,6 +234,9 @@ export const xpToNext = (level) => 50 * level;
 // slot: weapon | armor | helm | offhand | trinket
 // stats: dmg (weapon bonus), hp, str/vit/int/agi
 export const GEAR = {
+  // Starter weapon: the club he lands with, equipped from the start.
+  // (His fur and necklace are part of the base model, not gear.)
+  starter_club: { name: 'Worn Club', slot: 'weapon', stats: { dmg: 1 }, tier: 'starter', look: 'club1' },
   // Shop
   stone_club: { name: 'Knapped Club', slot: 'weapon', stats: { dmg: 2 }, price: 150, tier: 'shop', look: 'club1' },
   hide_wrap: { name: 'Hide Wrap', slot: 'armor', stats: { hp: 10 }, price: 150, tier: 'shop', look: 'armor1' },
