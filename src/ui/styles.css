@@ -1011,3 +1011,6 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .cutpanel .sglow { position: absolute; width: 14%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; mix-blend-mode: screen; background: radial-gradient(circle, rgba(255,214,120,.95) 0%, rgba(255,180,60,.55) 18%, rgba(255,150,40,0) 60%); animation: sigilFlash 1.1s ease-in-out infinite; }
 @keyframes sigilFlash { 0%, 100% { opacity: .15; transform: translate(-50%, -50%) scale(.85); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 30% { opacity: .35; } 45% { opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .cutpanel .sglow { animation: none; opacity: .6; } }
+/* strong: the sigils burning brighter, light spilling onto the skin around them */
+.cutpanel .sglow.strong { width: 22%; background: radial-gradient(circle, rgba(255,240,190,1) 0%, rgba(255,205,100,.85) 12%, rgba(255,160,50,.45) 30%, rgba(255,130,30,0) 62%); animation: sigilBurn .9s ease-in-out infinite; }
+@keyframes sigilBurn { 0%, 100% { opacity: .55; transform: translate(-50%, -50%) scale(.95); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.18); } 35% { opacity: .7; } 55% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } }
