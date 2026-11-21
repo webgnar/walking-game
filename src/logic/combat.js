@@ -180,18 +180,18 @@ export function useFinisher(b, targetUid) {
 
 // What the intent badge shows.
 export function intentLabel(e) {
-  if (e.stunned) return { icon: '💫', text: 'Stunned', cls: 'stun' };
+  if (e.stunned) return { ic: 'st-stun', icon: '💫', text: 'Stunned', cls: 'stun' };
   const it = e.intent;
   if (!it) return { icon: '?', text: '', cls: '' };
-  if (e.interrupted) return { icon: '✖', text: 'Interrupted', cls: 'stun' };
-  if (e.feared && it.kind === 'attack') return { icon: '😨', text: `Scared (skips ${it.label})`, cls: 'stun' };
+  if (e.interrupted) return { ic: 'st-interrupted', icon: '✖', text: 'Interrupted', cls: 'stun' };
+  if (e.feared && it.kind === 'attack') return { ic: 'st-scared', icon: '😨', text: `Scared (skips ${it.label})`, cls: 'stun' };
   switch (it.kind) {
-    case 'attack': return { icon: it.pierce ? '🎯' : '⚔', text: `${it.label} ${it.dmg}`, cls: 'atk', note: it.note };
-    case 'block': return { icon: '🛡', text: `${it.label} ${Math.round(it.amt * (e.vet ? VET : 1) * TUNING.enemyDmg * (e.power || 1))}`, cls: 'def', note: it.note };
-    case 'buff': return { icon: '⬆', text: it.label, cls: 'buff', note: it.note };
-    case 'windup': return { icon: '⚠', text: it.label, cls: 'warn', note: it.note };
-    case 'call': return { icon: '📯', text: it.label, cls: 'warn', note: it.note };
-    case 'bleed': return { icon: '🩸', text: `${it.label} ${it.dmg}×${it.turns}`, cls: 'atk', note: it.note };
+    case 'attack': return { ic: it.pierce ? 'st-pierce' : 'st-attack', icon: it.pierce ? '🎯' : '⚔', text: `${it.label} ${it.dmg}`, cls: 'atk', note: it.note };
+    case 'block': return { ic: 'st-block', icon: '🛡', text: `${it.label} ${Math.round(it.amt * (e.vet ? VET : 1) * TUNING.enemyDmg * (e.power || 1))}`, cls: 'def', note: it.note };
+    case 'buff': return { ic: 'st-buff', icon: '⬆', text: it.label, cls: 'buff', note: it.note };
+    case 'windup': return { ic: 'st-windup', icon: '⚠', text: it.label, cls: 'warn', note: it.note };
+    case 'call': return { ic: 'st-call', icon: '📯', text: it.label, cls: 'warn', note: it.note };
+    case 'bleed': return { ic: 'st-bleed', icon: '🩸', text: `${it.label} ${it.dmg}×${it.turns}`, cls: 'atk', note: it.note };
     default: return { icon: '?', text: it.label, cls: '' };
   }
 }
