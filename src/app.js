@@ -530,7 +530,8 @@ function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
   return `<div class="cut ${sh.style === 'flash' ? 'flash' : ''}" data-a="${tapA}" key="${i}">
     <div class="cutpanel ${sh.art ? 'art' : ''}">${pic}${sh.style === 'flash' && sh.art ? '<i class="whiteout"></i>' : ''}
       ${sh.caption ? `<div class="cap"${at('caption')}>${esc(sh.caption)}</div>` : ''}
-      ${sh.sfx ? `<div class="sfx code"${at('sfx')}>${[...sh.sfx].map((c, k) => `<i style="--k:${k}">${esc(c)}</i>`).join('')}<b class="caret"></b></div>` : ''}
+      ${sh.sfxArt && sh.art ? `<img class="sfxart" src="${esc(sh.sfxArt.src)}" alt="${esc(sh.sfx || '')}" style="left:${sh.sfxArt.x};top:${sh.sfxArt.y};width:${sh.sfxArt.w};--r:${sh.sfxArt.r || '0deg'}">`
+        : sh.sfx ? `<div class="sfx"${at('sfx')}>${esc(sh.sfx)}</div>` : ''}
       ${sh.thought ? `<div class="thought"${at('thought')}>${esc(sh.thought)}</div>` : ''}
       ${sh.voice ? `<div class="voice"${at('voice')}><b>${esc(sh.voice.who)}</b>${esc(sh.voice.text)}</div>` : ''}
     </div>${dots}${skip}</div>`;
