@@ -1022,3 +1022,7 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .cutpanel .sglow.dust { width: 18%; background: radial-gradient(circle, rgba(255,220,130,.75) 0%, rgba(255,190,80,.35) 25%, rgba(255,160,50,0) 65%); animation: dustRise 2.4s ease-in-out infinite; animation-delay: 1s !important; }
 @keyframes dustRise { 0% { opacity: .2; transform: translate(-50%, -40%) scale(.9); } 50% { opacity: .9; transform: translate(-50%, -55%) scale(1.1); } 100% { opacity: .2; transform: translate(-50%, -70%) scale(1.2); } }
 @media (prefers-reduced-motion: reduce) { .cutpanel .whiteout { animation-duration: .01s; } .cutpanel .sglow.dust { animation: none; opacity: .6; } }
+/* fire: a warm, irregular flicker */
+.cutpanel .sglow.fire { width: 20%; background: radial-gradient(circle, rgba(255,200,110,.7) 0%, rgba(255,140,40,.35) 30%, rgba(255,110,20,0) 65%); animation: fireFlicker 1.7s steps(9) infinite; }
+@keyframes fireFlicker { 0% { opacity: .55; } 11% { opacity: .9; } 22% { opacity: .6; } 33% { opacity: 1; } 44% { opacity: .7; } 55% { opacity: .85; } 66% { opacity: .5; } 77% { opacity: .95; } 88% { opacity: .65; } 100% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .cutpanel .sglow.fire { animation: none; opacity: .7; } }

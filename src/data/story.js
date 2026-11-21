@@ -40,7 +40,9 @@ export const INTRO_CUTSCENE = [
     glows: [{ x: '46.9%', y: '50%', dust: true }], // what's left of him, drifting up
     at: { sfx: { left: '33%', top: '18%', right: 'auto' } },
     brief: 'White flash: his body breaks apart into a swirl of dust. The pick falls and clatters.' },
-  { art: null, icon: '🕯', caption: 'Somewhere. Somewhen.', thought: 'Where… am I?',
+  { art: '/cutscenes/intro-07.webp', icon: '🕯', caption: 'Somewhere. Somewhen.', thought: 'Where… am I?',
+    glows: [{ x: '84.2%', y: '58%', fire: true }], // the campfire flickers
+    at: { caption: { left: '3%', top: '4%' }, thought: { left: '3%', bottom: 'auto', top: '42%', 'max-width': '24%' } },
     brief: 'He lands on cold stone in a cave, coughing up dust. Firelight. He is wearing furs now.' },
   { art: null, icon: '🐺', sfx: 'GRRRR',
     brief: 'His view: yellow eyes in the dark. A wolf steps into the firelight, snarling.' },
