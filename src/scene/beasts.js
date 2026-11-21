@@ -14,6 +14,7 @@ export const BEASTS = {
   wolf: { file: 'wolf', size: 2.05 },
   beta: { file: 'beta', size: 2.35 },
   alpha: { file: 'alpha', size: 2.75 },
+  lion: { file: 'lion', size: 2.45 },
   // Until hyenas get their own model they reuse the wolf, repainted sandy and spotted, with shorter
   // hind legs for the hyena's sloping back.
   hyena: { file: 'wolf', size: 2.0, skin: 'hyena', hind: 0.84 },

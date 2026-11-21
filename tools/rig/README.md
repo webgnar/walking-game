@@ -44,3 +44,15 @@ To rig a new beast (beta, alpha, hyena, later lion and sabretooth), copy `wolf_r
 4. `python beast_frames.py -- attack,death q <name>` renders check frames.
 
 Vertices the heat solve misses are blended over their 3 nearest bones.
+
+## A raw Tripo HD export (mountain lion, 2026-11-21)
+
+Tripo's HD model is about 2M triangles with 4K colour, ORM and normal maps, meshopt-compressed. To get it rig-ready:
+
+1. `gltf-transform weld src.glb w.glb`, `simplify w.glb s.glb --ratio 0.006 --error 0.02` (to ~12K triangles, like the wolves),
+   `dequantize s.glb d.glb`, `resize d.glb r.glb --width 1024 --height 1024`.
+2. `python tripo_prep.py [--flip]` turns it to face -X, normalizes it and drops the ORM and normal maps. It writes `lion.glb`,
+   `lion.npy` and `side.png` (check the head is on the left).
+3. `python fit_canine.py lion.npy fit-lion.json`. A model sculpted mid-stride gives each leg's hip a different x: set both
+   legs of a pair to their average before rigging.
+4. Then `beast_rig.py`, `beast_anim.py`, `beast_export.py` and the optimize step as above.
