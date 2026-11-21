@@ -19,7 +19,7 @@ export const STRIKE_MS = LUNGE_MS * LUNGE_PEAK;
 const CAMS = {
   intro: { pos: [0, 1.3, 3.2], look: [0, 1.4, 0] },
   home: { pos: [0, 1.86, 5.6], look: [0, 1.26, 0] },
-  hero: { pos: [0.5, 1.35, 6.2], look: [0.5, 1.05, 0] },
+  hero: { pos: [0.5, 1.2, 5.4], look: [0.5, 1.0, 0] },
   base: { pos: [0, 3.4, 4.2], look: [0, 1.45, -6] },
   map: { pos: [0, 16, 8], look: [0, 0, -4] },
   combat: { pos: [0.7, 2.6, 10.6], look: [0.7, 1.4, 0] },
@@ -178,13 +178,17 @@ export class Stage {
       h.position.set(-2.8, 0, 0.4);
       h.rotation.y = 0.75;
     } else if (mode === 'hero') {
-      h.position.set(-1.25, 0, 0);
-      h.rotation.y = 0.3;
+      // left of the inventory panel, centred in the open space
+      h.position.set(-2.0, 0, 0);
+      h.rotation.y = 0.35;
     } else {
       h.position.set(0, 0, 0);
       h.rotation.y = 0;
       this.clearEnemies();
     }
+    // swipe-to-spin starts from his default stance in each mode
+    this.heroYaw = h.rotation.y;
+    this.spin = { a: 0, v: 0, drag: false, target: 0 };
     this.clearFx();
     this.timeScale = 1;
     this.fire.visible = mode !== 'combat';
@@ -546,6 +550,40 @@ export class Stage {
     return 0;
   }
 
+  // ---------- Swipe to spin the hero (Home and Hero screens) ----------
+  // While dragging he follows the finger. On release he keeps spinning with the swipe's momentum,
+  // then eases back to his default stance (a whole number of turns from where he started).
+  spinStart() {
+    if (!this.spin) this.spin = { a: 0, v: 0, drag: false, target: 0 };
+    this.spin.drag = true;
+    this.spin.v = 0;
+  }
+  spinMove(dx) {
+    if (this.spin && this.spin.drag) this.spin.a += dx * 0.012;
+  }
+  spinEnd(vel) {
+    const sp = this.spin;
+    if (!sp) return;
+    sp.drag = false;
+    sp.v = vel;
+    const TAU = Math.PI * 2;
+    // where the momentum would carry him, rounded to the next whole turn in that direction
+    const coast = sp.a + vel / SPIN_DAMP;
+    sp.target = Math.abs(vel) < 0.5 ? Math.round(sp.a / TAU) * TAU : (vel > 0 ? Math.ceil(coast / TAU) : Math.floor(coast / TAU)) * TAU;
+  }
+  updateSpin(dt) {
+    const sp = this.spin;
+    if (!sp || (this.mode !== 'home' && this.mode !== 'hero')) return;
+    if (!sp.drag) {
+      // critically damped spring toward the target turn: no wobble, no sudden stop
+      const acc = -SPIN_K * (sp.a - sp.target) - SPIN_DAMP * sp.v;
+      sp.v += acc * dt;
+      sp.a += sp.v * dt;
+      if (Math.abs(sp.a - sp.target) < 0.001 && Math.abs(sp.v) < 0.01) { sp.a = 0; sp.target = 0; sp.v = 0; }
+    }
+    this.hero.rotation.y = this.heroYaw + sp.a;
+  }
+
   // Which Base building (if any) is under a screen point (CSS px).
   pickBuilding(x, y) {
     const r = this.canvas.getBoundingClientRect();
@@ -610,6 +648,7 @@ export class Stage {
     hb.position.y = Math.sin(t * 2) * 0.02;
     this.hero.userData.hairBack.rotation.x = 0.12 + Math.sin(t * 1.7) * 0.04;
     if (this.rig) this.rig.update(gdt, t);
+    this.updateSpin(dt);
     for (const a of this.enemies.values()) {
       if (a.obj.userData.beast) { a.obj.userData.beast.update(dt); continue; }
       const b = a.obj.userData.body;
@@ -680,5 +719,6 @@ function FX_MATS() {
   return fxMats;
 }
 
+const SPIN_K = 16, SPIN_DAMP = 8; // the spin's spring stiffness and damping (critically damped)
 const easeOut = (k) => 1 - (1 - k) * (1 - k);
 const backOut = (p) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
