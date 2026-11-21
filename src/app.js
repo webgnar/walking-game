@@ -60,7 +60,12 @@ export function start() {
   for (const t of TRANSMISSIONS) if (s.trials.cleared[t.trial]) ST.startTransmission(s, t.id);
   if (!s.intro) go('intro');
   else if (s.tutorial === 'fight') startBattle(0);
-  else { go('home'); say(pick(PROCTOR.home)); }
+  else {
+    go('home');
+    // PROCTOR greets once a day, with whatever is most useful right now
+    const today = new Date().toDateString();
+    if (s.proctorDay !== today) { s.proctorDay = today; save(s); setTimeout(() => say(homeLine(), { sticky: true }), 600); }
+  }
   stage.snapCamera();
   document.addEventListener('click', onClick);
   bindSpin();
@@ -552,7 +557,7 @@ function finishForge(quality) {
   m.result = r;
   if (s.mats[app.part] <= 0) app.part = null;
   renderModal();
-  say(quality === 'masterwork' ? 'A Masterwork. I am almost impressed. Almost.' : quality === 'crude' ? 'Crude. It will still hurt something. Probably you.' : pick(PROCTOR.craft));
+  nudge(quality === 'masterwork' ? 'A Masterwork! Equip it from the Hero screen.' : quality === 'crude' ? 'Crude, but it still works. Time the strikes for better quality.' : 'Forged. Equip it from the Hero screen.');
   commit();
 }
 
@@ -731,7 +736,6 @@ const MODALS = {
   report() {
     const r = s.report;
     if (!r) return '';
-    const comment = (r.steps < 1000 ? pick(PROCTOR.walkSmall) : r.steps < 5000 ? pick(PROCTOR.walkMid) : pick(PROCTOR.walkBig)).replace('{steps}', fmt(r.steps));
     return `<div class="dialog panel halftone">
       <h2 class="h">${gi('cur-report')} Expedition report</h2>
       <div class="muted small">While you were out</div>
@@ -740,12 +744,11 @@ const MODALS = {
       <div class="loot" style="margin:10px 0">
         ${card(gi('cur-steps'), `${fmt(r.steps)} steps`)}
         ${card(SOLE, `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
-        ${r.boxes.map((t) => card(TIER_ICON[t], `${E.TIER_NAMES[t]} box`)).join('')}
+        ${E.TIERS.filter((t) => r.boxes.includes(t)).map((t) => { const n = r.boxes.filter((x) => x === t).length; return card(TIER_ICON[t], `${n > 1 ? `${n}× ` : ''}${E.TIER_NAMES[t]} box${n > 1 ? 'es' : ''}`); }).join('')}
         ${matCards(r.mats, 'found on the way').join('')}
       </div>
       ${r.lost ? `<div class="small warn">${r.lost} loot box${r.lost > 1 ? 'es' : ''} lost: you can hold ${E.BOX_LIMIT} unopened. Open them more often.</div>` : ''}
       </div>
-      <div class="proctor wide" style="position:static;margin-top:8px"><div class="eye"></div><div class="bubble"><span class="who">PROCTOR</span>${esc(comment)}</div></div>
       <div class="actions"><button class="btn yellow" data-a="collect">Collect</button></div>
     </div>`;
   },
@@ -774,7 +777,7 @@ const MODALS = {
       <h2 class="h">${gi('hdr-boxes')} Loot boxes</h2>
       <div class="small muted">One for every 1,000 steps. You can hold ${E.BOX_LIMIT}. Contents scale to your level.</div>
       <div class="body" style="margin:10px 0">
-        <div class="boxes">${s.boxes.map((b) => `<div class="lbox tier-${b.tier}" data-a="openBox" data-v="${b.id}"><span class="ico">${TIER_ICON[b.tier]}</span>${E.TIER_NAMES[b.tier]}</div>`).join('') || '<div class="muted">No boxes. Walk 1,000 steps to earn one.</div>'}</div>
+        <div class="boxes">${[...E.TIERS].reverse().filter((t) => s.boxes.some((b) => b.tier === t)).map((t) => { const mine = s.boxes.filter((b) => b.tier === t); return `<div class="lbox tier-${t}" data-a="openBox" data-v="${mine[0].id}"><span class="ico">${TIER_ICON[t]}</span>${E.TIER_NAMES[t]}${mine.length > 1 ? `<span class="cnt">×${mine.length}</span>` : ''}</div>`; }).join('') || '<div class="muted">No boxes. Walk 1,000 steps to earn one.</div>'}</div>
         <div class="sep"></div>
         <div class="small muted">Odds${s.base.shrine.tier ? ` (Shrine tier ${s.base.shrine.tier})` : ''}: ${E.TIERS.map((t) => `${E.TIER_NAMES[t]} ${(odds[t] * 100).toFixed(2)}%`).join(' · ')}</div>
       </div>
@@ -1231,7 +1234,11 @@ function endBattle() {
   app.screen = 'reward';
   app.proctor = null;
   commit();
-  if (result === 'win' && b.trial > 0) say(r.first ? pick(PROCTOR.win) : pick(PROCTOR.replayWin));
+  if (result === 'win' && r.first && PROCTOR.bossWin[b.trial]) {
+    // after the finisher moment if there is one, else right away
+    if (r.finisher) app.afterFinisher = PROCTOR.bossWin[b.trial];
+    else say(PROCTOR.bossWin[b.trial], { sticky: true });
+  }
   if (r.glitch) setTimeout(() => glitch(), 900);
   if (r.transmission) setTimeout(() => incoming(r.transmission), 900);
   if (r.slip) setTimeout(() => say(PROCTOR_SLIP[0], { sticky: true, then: () => say(PROCTOR_SLIP[1]) }), 900);
@@ -1271,6 +1278,19 @@ function nudge(text, eerie = false) {
   el.innerHTML = `<b>${eerie ? esc(FORMER_TRIBUTE) : 'PROCTOR'}</b>${esc(text)}`;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2800);
+}
+
+// PROCTOR's daily greeting: the most useful thing to do right now, with a joke attached.
+function homeLine() {
+  const h = s.hero;
+  const sp = h.freeAttr + h.freeSkill;
+  if (s.report) return `You walked ${fmt(s.report.steps)} steps while I wasn't looking. Tap the Expedition report to collect. I'll pretend I'm proud.`;
+  if (s.boxes.length) return `You have ${s.boxes.length} unopened loot box${s.boxes.length > 1 ? 'es' : ''}. They're not decorations. Tap Boxes.`;
+  if (sp) return `You have ${sp} unspent point${sp > 1 ? 's' : ''}. Points in your pocket do nothing. Tap your hero.`;
+  if (BUILDING_ORDER.some((b) => { const c = B.upgradeCost(s, b); return c && !s.base[b].job && B.canAfford(s, c); })) return 'You can afford a Base upgrade. A bigger cave is a better cave. Tap Base.';
+  if (RECIPES.some((r) => r.out.gear && B.canForge(s, r).ok)) return 'You have the materials to forge something. The Workshop is in your Base. Go make a slightly sharper rock.';
+  if (s.soles < 100) return `Your Soles are running low. Every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. The couch pays nothing.`;
+  return pick(PROCTOR.home);
 }
 
 // Defeat: what to do next, tailored to where the player is.
@@ -1338,7 +1358,7 @@ const ACTIONS = {
   collect() {
     const r = E.collectReport(s);
     closeModal();
-    if (r && r.boxes.length && s.tutorial === 'done') say(`${r.boxes.length} new loot box${r.boxes.length > 1 ? 'es' : ''}. Open ${r.boxes.length > 1 ? 'them' : 'it'}. You know you want to.`);
+    if (r && r.boxes.length && s.tutorial === 'done') nudge(`${r.boxes.length} new loot box${r.boxes.length > 1 ? 'es' : ''}. Open ${r.boxes.length > 1 ? 'them' : 'it'}. You know you want to.`);
     commit();
   },
   openBox(v) {
@@ -1375,7 +1395,7 @@ const ACTIONS = {
   signalTruth() { s.signal = null; closeModal(); go('truth'); commit(); },
   walkHint() { say(`Walk to earn Soles and loot boxes: every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. Soles train your hero, forge gear and grow your Base. Tap to close.`, { sticky: true }); },
   allLoot() { app.allLoot = true; render(); },
-  finisherOk() { closeModal(); render(); },
+  finisherOk() { closeModal(); render(); if (app.afterFinisher) { say(app.afterFinisher, { sticky: true }); app.afterFinisher = null; } },
   claimGoal(v) { E.claimGoal(s, Number(v)); commit(); },
   claimBonus() { E.claimAllGoalsBonus(s); commit(); },
   claimWeekly() { E.claimWeekly(s); commit(); },
@@ -1411,7 +1431,7 @@ const ACTIONS = {
   rank(v) { H.rankUp(s, v); commit(); },
   learn(v) {
     if (!H.learnSkill(s, v)) { nudge(s.hero.freeSkill ? 'Not available yet.' : 'You need a skill point. Level up: win a Trial for the first time, or train at the Hero Training Altar.'); return; }
-    say(`${SKILLS[v].name} learned.${s.hero.loadout.includes(v) ? ' It is in your loadout.' : ' Add it to your loadout to bring it into a Trial.'}`);
+    nudge(`${SKILLS[v].name} learned.${s.hero.loadout.includes(v) ? ' It is in your loadout.' : ' Add it to your loadout to bring it into a Trial.'}`);
     commit();
   },
   loadout(v) { if (!H.toggleLoadout(s, v)) say(`Your loadout is full (${H.loadoutSize(s)}). Remove a skill first, or upgrade the Hero Training Altar.`); commit(); },
@@ -1419,7 +1439,7 @@ const ACTIONS = {
     const need = xpToNext(s.hero.level) - s.hero.xp;
     const r = H.train(s, need);
     if (!r.ok && r.why === 'soles') nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`);
-    else if (r.ok) { E.goalEvent(s, 'train', 1); say(pick(PROCTOR.levelUp)); }
+    else if (r.ok) { E.goalEvent(s, 'train', 1); nudge('Level up! Spend your new points on the Hero screen.'); }
     commit();
   },
   train10() { const r = H.train(s, 10); if (r.ok) E.goalEvent(s, 'train', 1); else if (r.why === 'soles') nudge(`Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.`); commit(); },
@@ -1432,11 +1452,11 @@ const ACTIONS = {
   salvageJunkGo() {
     const r = E.salvageJunk(s);
     closeModal();
-    if (r.count) say(`${r.count} piece${r.count > 1 ? 's' : ''} of junk melted down into ${fmt(r.soles)} Soles. Very sustainable. Very Stone Age.`);
+    if (r.count) nudge(`${r.count} piece${r.count > 1 ? 's' : ''} of junk melted down into ${fmt(r.soles)} Soles.`);
     commit();
   },
   invTab(v) { app.invTab = v; render(); },
-  useBooster(v) { if (E.useBooster(s, v)) say(`${BOOSTERS[v].name} active. ${BOOSTERS[v].desc}.`); closeModal(); commit(); },
+  useBooster(v) { if (E.useBooster(s, v)) nudge(`${BOOSTERS[v].name} active. ${BOOSTERS[v].desc}.`); closeModal(); commit(); },
 
   // shop
   buy(v) {
@@ -1452,7 +1472,7 @@ const ACTIONS = {
     if (r.ok) {
       stage.setBase(tiers());
       if (r.instant) say(`${BUILDINGS[v].name} built. Instantly. Never again. Everything after this runs on timers.`);
-      else say(pick(PROCTOR.build));
+      else nudge('Building. It finishes on a real-world timer, so go for a walk.');
       if (s.tutorial === 'base') { s.tutorial = 'level'; setTimeout(() => say('You reached level 2 in that first fight. Spend your attribute points on the Hero screen.'), 2500); }
     } else if (r.why === 'cost') {
       nudge(s.soles < r.cost.soles ? `Not enough Soles. Go for a walk: every ${E.stepsPerSole(s)} steps earns a Sole.` : 'Not enough wood. Walking finds it, and so do loot boxes.');
@@ -1493,7 +1513,7 @@ const ACTIONS = {
   reinforce(v) {
     const r = B.reinforce(s, v);
     if (!r.ok) say(r.why === 'max' ? 'It is as strong as it gets.' : 'Not enough materials to reinforce it.');
-    else say(`Reinforced to +${r.plus}. Stronger. Shinier. Same smell.`);
+    else nudge(`Reinforced to +${r.plus}.`);
     renderModal();
     commit();
   },
@@ -1590,7 +1610,7 @@ const ACTIONS = {
   buyFinisher(v) {
     const r = H.buyFinisher(s, v);
     if (!r.ok) say(r.why === 'soles' ? pick(PROCTOR.noSoles) : r.why === 'altar' ? `Upgrade the Hero Training Altar to tier ${FINISHERS[v].altar} first.` : 'You already own it.');
-    else say(`${FINISHERS[v].name} learned. Equip it, then make it count.`);
+    else nudge(`${FINISHERS[v].name} learned. Equip it on the Skills tab.`);
     commit();
   },
   equipFinisher(v) { H.equipFinisher(s, v); commit(); },

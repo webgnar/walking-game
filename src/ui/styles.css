@@ -1144,3 +1144,6 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 /* "+N more": the whole list, scrolling if needed */
 .loot.compact.all { max-height: 46vh; overflow-y: auto; }
 .lootcard.more { cursor: pointer; }
+/* one box per tier, with a count */
+.lbox .cnt { position: absolute; top: -8px; right: -8px; min-width: 24px; padding: 1px 6px; background: #ffd27a; color: #1a1008; font-family: var(--display); font-weight: 800; font-size: 13px; border-radius: 12px; box-shadow: 0 0 0 2px #1a1008; letter-spacing: 0; }
+.boxes { padding-top: 10px; }

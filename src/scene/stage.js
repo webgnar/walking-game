@@ -490,8 +490,8 @@ export class Stage {
     const h = this.hero, home = this.actor('hero').home.clone();
     const target = a.obj.position.clone();
     const reach = Math.max(0, target.x - home.x - 1.25 - (enemyHeight(a.id) > 3 ? 1.4 : 0));
-    // close in on the target and push the camera toward it (Skull Crusher leaps in instead)
-    if (kind !== 'skull') this.tween(260, (p) => { h.position.x = home.x + reach * easeOut(p); });
+    // close in on the target and push the camera toward it
+    this.tween(260, (p) => { h.position.x = home.x + reach * easeOut(p); });
     const look0 = this.camLook.clone(), pos0 = this.camPos.clone();
     const focus = this.actorPoint(who, 0.6);
     this.camLook.lerpVectors(look0, focus, 0.45);
@@ -503,36 +503,18 @@ export class Stage {
     const head = a.obj.userData.head;
     switch (kind) {
       case 'skull': {
-        // Leaping two-handed smash: a crouch, a leap high over the beast, the club brought down
-        // with both hands on landing, and the head pulverized.
-        const LEAP = 520, PEAK = 1.35 + Math.min(1.2, enemyHeight(a.id) * 0.25);
-        const y0 = h.position.y;
-        this.tween(90, (p) => { h.position.y = y0 - 0.12 * Math.sin(p * Math.PI); }); // crouch
-        this.after(90, () => {
-          this.tween(LEAP, (p) => {
-            h.position.x = home.x + reach * easeOut(p);
-            h.position.y = y0 + PEAK * Math.sin(p * Math.PI) * (p < 0.5 ? 1 : 1 - 0.15 * (p - 0.5)); // up, then drive down
-            h.rotation.z = -0.25 * Math.sin(p * Math.PI); // lean back at the top of the leap
-          });
-          this.swing('attack', LEAP);
-          this.after(LEAP, () => {
-            h.position.y = y0; h.rotation.z = 0;
-            this.hitStop(190); this.slowMo(0.22, 520); this.shake(0.32, 460);
-            const hp = this.actorPoint(who, 0.85);
-            if (head) {
-              // flattened by the blow, then gone
-              const s0 = head.scale.clone();
-              this.tween(110, (p) => head.scale.set(s0.x * (1 + 0.6 * p), s0.y * (1 - 0.9 * p), s0.z * (1 + 0.6 * p)));
-              this.after(130, () => head.scale.setScalar(0.001));
-            }
-            this.spawn('blood', hp, 46, { dir: new THREE.Vector3(0.2, 1.0, 0), speed: 3.2, spread: 1.4, size: 1.6 });
-            this.spawn('bloodDark', hp, 26, { dir: new THREE.Vector3(0.6, 0.2, 0), speed: 2.2, spread: 1.2, size: 1.7 });
-            this.spawn('bone', hp, 14, { dir: new THREE.Vector3(0.3, 1.0, 0), speed: 3.0, spread: 1.3, life: 0.8 });
-            this.stain(a.obj.position.x - 0.3, a.obj.position.z, 0.7);
-            this.after(460, () => { back(); this.dissolve(who); });
-          });
+        // two-handed overhead slam: the skull caves in
+        this.swing('attack', 300);
+        this.after(300, () => {
+          this.hitStop(150); this.slowMo(0.25, 420); this.shake(0.22, 380);
+          if (head) { const s0 = head.scale.clone(); this.tween(140, (p) => head.scale.set(s0.x * (1 + 0.35 * p), s0.y * (1 - 0.65 * p), s0.z * (1 + 0.35 * p))); }
+          const hp = this.actorPoint(who, 0.85);
+          this.spawn('blood', hp, 30, { dir: new THREE.Vector3(0.5, 0.8, 0), speed: 2.6, spread: 1.1, size: 1.5 });
+          this.spawn('bloodDark', hp, 18, { dir: new THREE.Vector3(0.7, 0.3, 0), speed: 1.8, spread: 1, size: 1.5 });
+          this.spawn('bone', hp, 7, { dir: new THREE.Vector3(0.4, 0.8, 0), speed: 2.2, spread: 1, life: 0.7 });
+          this.after(380, () => { back(); this.dissolve(who); });
         });
-        return 90 + LEAP;
+        return 320;
       }
       case 'terror': {
         // run it through, lift it, and roar: the pack flinches

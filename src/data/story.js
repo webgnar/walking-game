@@ -51,85 +51,84 @@ export const INTRO_CUTSCENE = [
   { style: 'title', title: 'Trial 0', text: 'Fight to the death' },
 ];
 
+// PROCTOR: the bored game-show host of the Ascent. Every line is a plain joke a new player gets
+// on first read, plus something useful. He speaks rarely: first boss wins, once-a-day greetings,
+// and when the player is stuck. Routine confirmations are quiet notes instead.
 export const PROCTOR = {
   wake: [
-    "Oh good, you're awake. A wolf has noticed you. Try not to die in the first minute; it ruins my numbers.",
+    "Oh good, you're awake. Tap Club Strike to hit the wolf. Tap Guard to not get eaten. Those are the two rules of the Stone Age.",
   ],
   tutorialWin: [
-    "You beat a wolf with a stick. Write that down. Actually, don't, you can't write yet.",
+    'You beat a wolf with a stick. Honestly? Better than most of my contestants.',
   ],
   starterGrant: [
-    "Standard issue for new subjects: 300 Soles and three loot boxes. Don't spend it all on rocks. You will, though.",
+    "Welcome gift: 300 Soles and three loot boxes. Tap Boxes to open them. I'd say don't spend it all at once, but you will.",
   ],
+  // first wins over the three bosses
+  bossWin: {
+    5: "The Alpha is down. You got its fang, its finisher and its respect. Mostly the fang.",
+    10: 'You beat the Sabretooth. With a club. The audience at home is very confused.',
+    15: "The Great Mammoth is dead. The Era Key is yours. Build up your Base and you can leave this cave forever. You're welcome.",
+  },
+  win: [
+    'A win! Check the Trial card before the next one. The animals have read it.',
+  ],
+  replayWin: [
+    'Replays drop beast parts. The Workshop turns parts into gear. Gear turns you into less of a snack.',
+  ],
+  lose: [
+    "That didn't go well. Not your fault. Partly your fault.",
+    'Defeated. Good news: there is no penalty. Bad news: the wolf is telling everyone.',
+    'You lost. Losing is just winning that needs more walking.',
+  ],
+  // the once-a-day Home greeting when nothing urgent is waiting
   home: [
-    'Welcome back, Subject. The cave missed you. It did not.',
-    'Your Soles are showing. Spend them before I start charging rent.',
-    'Reminder: the simulation runs on your effort. Your effort is currently "couch".',
-    'Every step you take powers the Ascent. Why? Read the terms and conditions. There are no terms and conditions.',
-    'I have run this trial seven million times. You are, statistically, in the bottom half. Of something.',
+    'Welcome back. Every 1,000 steps you walk is a loot box. Every couch hour is a loot box you did not get.',
+    "I've watched seven million contestants. The ones who walk survive. The ones who don't are on a shelf somewhere.",
+    "Tip: the Trial card tells you how each enemy fights. Reading it is free. Dying isn't. Well, it's free too, but it's embarrassing.",
+    'Tip: you can only bring 4 skills into a fight. Pick the ones that answer the Trial card.',
+    "Tip: forge with a beast part in the third slot and the gear gets a special effect. Wolves drop fangs. Fangs make things bleed.",
     'Fun fact: nobody remembers the last winner. That is not a fun fact. Forget I said it.',
   ],
   walkSmall: [
-    '{steps} steps. A stroll. A meander. A rounding error.',
-    '{steps} steps. I have seen houseplants with more ambition.',
+    '{steps} steps. A stroll. A meander. A good start. Here are your Soles.',
   ],
   walkMid: [
-    '{steps} steps. Acceptable. Barely. Here are your Soles.',
-    '{steps} steps. The wolves felt that one. Not much, but they felt it.',
+    '{steps} steps. Respectable. The wolves felt that one. Here are your Soles.',
   ],
   walkBig: [
-    '{steps} steps?! Fine. FINE. You are allowed to feel something.',
-    '{steps} steps. The simulation hums. I did not tell it to hum.',
-  ],
-  win: [
-    'Victory. Your ancestors are proud. They are also you. It is complicated.',
-    'It is dead. You are not. That is the whole game, really.',
-    'Adequate violence. Moving on.',
-  ],
-  replayWin: [
-    'You beat it again. It did not get smarter. Neither did you. Have some flint.',
-    'Replay complete. Scraps for the scavenger.',
-  ],
-  lose: [
-    'You died. The simulation put you back together. It sighed while doing it.',
-    'Interesting strategy, losing. Bold. Have you tried walking more?',
-    'Defeat. Perhaps the answer is outside. Literally outside. The door. Use it.',
+    '{steps} steps?! Fine. FINE. You are allowed to feel something. Go open those boxes.',
   ],
   tooHard: [
-    'It is called your front door. Use it.',
+    'Too hard? Walk, then train at the Altar and forge better gear. It is called your front door. Use it.',
   ],
   noSoles: [
     'Out of Soles. Soles come from walking. Walking comes from legs. You have legs. I checked.',
   ],
   levelUp: [
-    'Level up. Your stats went up. Your posture did not.',
-    'Another level. The Aurum are trembling. That is a lie; they are asleep.',
+    'Level up! Spend your new points on the Hero screen before you forget. You will forget.',
   ],
   build: [
-    'Construction begun. Please enjoy this real-world timer, a feature I designed out of spite.',
-    'Building. Go for a walk while it finishes. That was a hint. A big one.',
+    'Building. It runs on a real-world timer, so go for a walk while it finishes. That was a hint. A big one.',
   ],
   craft: [
-    'You smushed two things together and made a third thing. Tens of thousands of years of progress, in one tap.',
-    'Crafted. It is almost useful.',
+    'Forged. Equip it from the Hero screen, or it is just a very expensive rock.',
   ],
   shop: [
-    'Everything is for sale. Except Soles. Those you earn. With feet.',
+    'Everything here costs Soles. Soles come from walking. I am contractually required to keep saying that.',
   ],
   glitchDismiss: [
-    'Ignore that. Cosmic ray. Very common. Totally normal. Back to the wolves.',
-    'That was a rendering artifact. Do not look at it. Look at the wolves.',
-    'Who said that? Nobody. Static. Next.',
+    'Ignore that. Signal noise. Totally normal. Back to the wolves.',
+    'That was not a message. It was static. Static with opinions. Moving on.',
   ],
   wall: [
-    "Out of Soles, and Trial 6 has three wolves. Here is a novel idea: walk 1,000 steps. A loot box, your upgrade, and that annoying signal will all be waiting. It's called your front door.",
+    "Out of Soles, and this one is a step up. Here is the plan: walk 1,000 steps for a loot box, train at the Altar, then come back. It's called your front door.",
   ],
   boxOpen: [
     'Ooh, a box. Everybody loves a box.',
-    'Open it. Feel the dopamine. I am legally required to say that is a joke.',
   ],
   evolveReady: [
-    'Key, buildings, level. You have all three. The next era is waiting. So am I, unfortunately.',
+    'Era Key, buildings, level: you have all three. Tap Evolve on the Base. The next era is waiting. So am I, unfortunately.',
   ],
 };
 
