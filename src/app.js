@@ -277,7 +277,7 @@ const SCREENS = {
       return `<div class="bldg" data-anchor="${b}" data-a="building" data-v="${b}">
         <div class="bn">${gi(`bld-${b}`)} ${BUILDINGS[b].short}</div>
         <div class="tiers">${[1, 2, 3].map((t) => `<i class="${st.tier >= t ? 'on' : ''}"></i>`).join('')}</div>
-        ${st.job ? `<div class="timer">${gi('act-timer')} <span data-timer="${b}">${timeLeft(st.job)}</span></div>` : st.tier === 0 ? `<div class="timer">${s.firstBuildFree ? 'Build free!' : 'Not built'}</div>` : ''}
+        ${st.job ? `<div class="timer">${gi('act-timer')} <span data-timer="${b}">${timeLeft(st.job)}</span></div>` : st.tier === 0 ? `<div class="timer">${s.firstBuildFree ? 'First one free' : 'Not built'}</div>` : ''}
       </div>`;
     }).join('')}
     <div style="position:absolute;right:calc(var(--sr) + 12px);bottom:calc(var(--sb) + 10px)" class="row">

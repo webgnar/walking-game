@@ -166,8 +166,9 @@ export class Stage {
     this.camPos.set(...c.pos);
     this.camLook.set(...c.look);
     const h = this.hero;
-    // undo any death/stun/win pose left over from the last fight
+    // undo any death/stun/win pose or hit flash left over from the last fight
     this.tweens = [];
+    this.clearFlashes();
     h.rotation.set(0, 0, 0);
     h.userData.armR.rotation.x = 0;
     if (this.rig) this.rig.reset();
@@ -386,8 +387,16 @@ export class Stage {
       }
     });
     const c = new THREE.Color(color);
-    const base = mats.map((m) => m.emissive.clone());
-    this.tween(260, (p) => mats.forEach((m, i) => m.emissive.copy(base[i]).lerp(c, 1 - p)));
+    // remember each material's own glow once, so an interrupted flash can always be undone
+    for (const m of mats) if (!m.userData.baseEmissive) m.userData.baseEmissive = m.emissive.clone();
+    (this.flashed || (this.flashed = new Set())).add(obj);
+    this.tween(260, (p) => mats.forEach((m) => m.emissive.copy(m.userData.baseEmissive).lerp(c, 1 - p)));
+  }
+
+  // Undo any hit flash that a screen change cut off mid-way (it used to leave the hero red).
+  clearFlashes() {
+    for (const obj of this.flashed || []) obj.traverse((m) => { if (m.isMesh && m.material && m.material.userData && m.material.userData.baseEmissive) m.material.emissive.copy(m.material.userData.baseEmissive); });
+    this.flashed = new Set();
   }
 
   pop(obj) {
