@@ -2,7 +2,7 @@
 // "has-<name>" and the CSS swaps that element's placeholder for the image (see docs/ui-assets.md).
 export const UI_ASSETS = [
   // frames and plates (9-slice)
-  'plate-dark', 'plate-crimson', 'plate-steps', 'frame-panel', 'frame-brief', 'frame-steps', 'frame-res','res-wing', 'frame-id', 'tag-points', 'tag-test', 'btn-square',
+  'plate-dark', 'plate-dark-r', 'plate-crimson', 'plate-crimson-r', 'plate-steps', 'frame-panel', 'frame-brief', 'frame-steps', 'frame-res','res-wing', 'frame-id', 'tag-points', 'tag-test', 'btn-square',
   // fixed art
   'portrait', 'banner', 'radar', 'brief-sky', 'medal-steps',
   // icons

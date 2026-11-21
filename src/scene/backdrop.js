@@ -121,31 +121,40 @@ function spire(g, x, baseY, w, h) {
   g.beginPath(); g.moveTo(x - w, baseY); g.lineTo(x - w * 0.6, baseY - h * 0.7); g.lineTo(x, baseY - h); g.lineTo(x + w * 0.6, baseY - h * 0.7); g.lineTo(x + w, baseY); g.fill();
 }
 
-// Returns a texture with a .fit(aspect) method that cover-fits it to the screen.
-export function buildBackdrop() {
-  const tex = new THREE.CanvasTexture(paint());
+// Returns a texture with a .fit(aspect) method that cover-fits it to the screen with the painting's horizon
+// pinned at HORIZON on screen (where the 3D ground ends), zooming in a little if it has to.
+export function buildBackdrop(onSwap) {
+  let tex = new THREE.CanvasTexture(paint());
   tex.colorSpace = THREE.SRGBColorSpace;
-  let imgAspect = W / H;
+  let imgAspect = W / H, hz = HORIZON;
   const fit = (aspect) => {
-    tex.repeat.set(1, 1); tex.offset.set(0, 0);
-    if (aspect > imgAspect) {
-      // wider screen: crop top/bottom, keeping the horizon line where it is on screen
-      const r = imgAspect / aspect, t0 = HORIZON * (1 - r);
-      tex.repeat.y = r; tex.offset.y = 1 - t0 - r;
-    } else {
-      const r = aspect / imgAspect;
-      tex.repeat.x = r; tex.offset.x = (1 - r) * 0.7; // keep the citadel side in view
-    }
+    // visible fraction of the image height: cover the screen, and keep room above/below the horizon
+    const ry = Math.min(1, imgAspect / aspect, (1 - hz) / (1 - HORIZON), hz / HORIZON);
+    const rx = ry * aspect / imgAspect;
+    const t0 = hz - HORIZON * ry;
+    tex.userData.lastAspect = aspect;
+    tex.repeat.set(rx, ry);
+    tex.offset.set((1 - rx) * 0.75, 1 - t0 - ry); // horizontally, keep the citadel side in view
   };
   tex.userData.fit = fit;
   // image slot: zack's painted backdrop replaces the placeholder when present
   const img = new Image();
   img.onload = () => {
-    tex.image = img;
-    imgAspect = img.width / img.height;
+    // a new texture: WebGL can't resize the old one in place
+    const last = tex.userData.lastAspect;
+    tex.dispose();
+    tex = new THREE.Texture(img);
+    tex.colorSpace = THREE.SRGBColorSpace;
     tex.needsUpdate = true;
-    if (tex.userData.lastAspect) fit(tex.userData.lastAspect);
+    tex.userData.fit = fit;
+    imgAspect = img.width / img.height;
+    hz = BACKDROP_HORIZON;
+    if (last) fit(last);
+    if (onSwap) onSwap(tex);
   };
-  img.src = '/ui/backdrop-home.png';
+  img.src = '/ui/backdrop-home.jpg';
   return tex;
 }
+
+// Where the horizon sits in public/ui/backdrop-home.jpg (fraction from the top).
+const BACKDROP_HORIZON = 0.462;

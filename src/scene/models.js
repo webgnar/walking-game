@@ -286,7 +286,7 @@ export function enemyHeight(id) {
 // ---------- Environment ----------
 export function buildCave() {
   const g = new THREE.Group();
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 40), toon(0x5b4636));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 40), toon(0x5a3528));
   ground.rotation.x = -Math.PI / 2;
   g.add(ground);
   // rocks around
@@ -300,7 +300,7 @@ export function buildCave() {
     const x = Math.cos(a) * rr, z = Math.sin(a) * rr;
     // behind-right stays low so the citadel and moon in the backdrop show over it (Home mockup)
     const low = x > 1 && z < 0 ? 0.45 : 1;
-    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x40342e : 0x4b3d34, [x, s * 0.4 * low, z], [rng() * 3, rng() * 3, rng() * 3], [low, low, low], 0.1);
+    const m = part(new THREE.DodecahedronGeometry(s, 0), i % 3 ? 0x3e2824 : 0x4a302a, [x, s * 0.4 * low, z], [rng() * 3, rng() * 3, rng() * 3], [low, low, low], 0.1);
     g.add(m);
   }
   // (distant mountains, moon and citadel are painted in the backdrop: scene/backdrop.js)
