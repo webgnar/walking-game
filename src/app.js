@@ -361,7 +361,6 @@ const SCREENS = {
     if (r.fragment) cards.push(card('📄', 'Story fragment', 'Pinned to the Truth Board', 'frag'));
     if (r.eraKey) cards.push(card('🗝️', 'ERA KEY', 'Primal → Brick', 'boss'));
     if (r.finisher) cards.push(card(FINISHERS[r.finisher].icon, `Finisher: ${FINISHERS[r.finisher].name}`, FINISHERS[r.finisher].desc, 'boss'));
-    if (r.fang) cards.push(card('🦷', `${r.fang} Bone`, 'Fang Ripper trophies'));
     for (const sr of r.starRewards || []) cards.push(card(TIER_ICON[sr.box], `${E.TIER_NAMES[sr.box]} loot box`, `${sr.stars} stars reached`, 'rare'));
     return `<div class="overlay"><div class="dialog panel halftone wide" style="text-align:center">
       <div class="tierlabel" style="color:var(--yellow);font-size:44px">${r.first ? 'VICTORY!' : 'REPLAY CLEARED'}</div>
@@ -998,7 +997,6 @@ async function playEvents(ev) {
         break;
       case 'fury': render(); break;
       case 'ap': floatText('hero', `+${e.amt} AP`, 'info'); render(); await wait(200); break;
-      case 'trophy': floatText('hero', `+${e.amt} bone`, 'info'); await wait(150); break;
       case 'resist': floatText(e.who, 'RESISTS', 'info'); await wait(250); break;
       case 'hit':
         if (app.shown && e.hpAfter !== undefined) app.shown[e.who] = { hp: e.hpAfter, block: e.blockAfter };

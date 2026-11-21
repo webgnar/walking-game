@@ -35,7 +35,6 @@ export function createBattle(s, trialN) {
     },
     loadout: trialN === 0 ? ['club', 'guard'] : s.hero.loadout.slice(0, LOADOUT_MAX),
     finishes: 0,
-    fangMats: 0,
     powers: Object.fromEntries(Object.keys(SKILLS).map((k) => [k, skillPower(s, k)])),
     enemies: t.enemies.map((e) => makeEnemy(e, t.power || 1)),
     power: t.power || 1,
@@ -171,10 +170,6 @@ export function useFinisher(b, targetUid) {
     case 'bloodrush':
       h.ap += 2;
       ev.push({ t: 'ap', amt: 2 });
-      break;
-    case 'fang':
-      b.fangMats += 3;
-      ev.push({ t: 'trophy', who: e.uid, amt: 3 });
       break;
   }
   ev.push({ t: 'fury', v: 0 });

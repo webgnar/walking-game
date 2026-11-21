@@ -247,8 +247,9 @@ Every Trial has a one-line setup card, and the Trial card lists the enemies' tra
 | --- | --- | --- | --- |
 | Skull Crusher | Two-handed overhead slam; the head caves in | Heal 15% of max health | The Alpha (Trial 5) |
 | Terror | Run it through, lift it, roar | Every other enemy loses its next action | Altar tier 1, 300 Soles |
-| Bloodrush | A three-hit flurry | Refund 2 AP | Altar tier 2, 500 Soles |
-| Fang Ripper | A blow to the jaw; a fang torn loose | +3 crafting materials | The Sabretooth (Trial 10) |
+| Bloodrush | A three-hit flurry | Refund 2 AP | The Sabretooth (Trial 10) |
+
+Three finishers per era.
 
 **Gore and age rating:** blood bursts, a skull that visibly caves in, stains on the ground, but no dismemberment, no exposed insides, and bodies dissolve instead of lingering. Aimed at Apple's 13+ tier.
 
@@ -258,7 +259,7 @@ Every Trial has a one-line setup card, and the Trial card lists the enemies' tra
 
 **Difficulty:** each Trial has a difficulty dial on enemy health and damage, set with a balance bot so a hero at the suggested level with sensible gear and loadout ends regular Trials with about 40% health, mini-bosses about 25% and the Mammoth about 20%, and two levels under loses most of the later Trials. The bot plays well, so real players will find these harder: tune after playtests.
 
-**Art:** the new beasts (mangy and beta wolves, hyena, mountain lion, elk, woolly rhino) are stand-ins built from simple shapes until real models arrive. Until gear is modeled in the hero's style, the hero only shows his weapon. The blocky armor, helm, shield and trinket shapes are hidden.
+**Art:** the new beasts (mangy and beta wolves, hyena, mountain lion, elk, woolly rhino) are stand-ins built from simple shapes until real models arrive. Until gear is modeled in the hero's style, the hero always holds zack's club model (weapon stats still apply) and the blocky armor, helm, shield and trinket shapes are hidden.
 
 ## Era 1 combat: v1 numbers (superseded by v2 above for enemies and Trials)
 

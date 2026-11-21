@@ -62,10 +62,10 @@ export const FURY = { perHit: 20, perHurt: 10, max: 100, ap: 1, threshold: 0.3, 
 export const FINISHERS = {
   skull: { id: 'skull', name: 'Skull Crusher', icon: '💀', desc: 'Heal 15% of your max health', how: 'Drops from the Alpha (Trial 5)' },
   terror: { id: 'terror', name: 'Terror', icon: '😱', desc: 'Every other enemy loses its next action', price: 300, altar: 1, how: 'Hero Training Altar tier 1' },
-  bloodrush: { id: 'bloodrush', name: 'Bloodrush', icon: '🩸', desc: 'Refund 2 AP so you can keep going', price: 500, altar: 2, how: 'Hero Training Altar tier 2' },
-  fang: { id: 'fang', name: 'Fang Ripper', icon: '🦷', desc: 'Rip out a trophy: +3 crafting materials', how: 'Drops from the Sabretooth (Trial 10)' },
+  bloodrush: { id: 'bloodrush', name: 'Bloodrush', icon: '🩸', desc: 'Refund 2 AP so you can keep going', how: 'Drops from the Sabretooth (Trial 10)' },
 };
-export const FINISHER_ORDER = ['skull', 'terror', 'bloodrush', 'fang'];
+// Three finishers per era.
+export const FINISHER_ORDER = ['skull', 'terror', 'bloodrush'];
 
 // ---------- Enemies ----------
 // Intent kinds: attack (dmg), block (amt), buff (snarl), charge (wind-up -> big hit), call (summon), bleed.
@@ -253,7 +253,7 @@ export const RECIPES = [
 // ---------- Base ----------
 export const BUILDINGS = {
   studio: { name: 'Workshop', short: 'Workshop', icon: '⚒', unlocks: ['Two-item crafts', 'Three-item crafts', 'Master recipes'] },
-  altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Skill rank 2 · Terror finisher for sale', 'Skill rank 3 · Bloodrush finisher for sale', 'Training 25% cheaper'] },
+  altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Skill rank 2 · Terror finisher for sale', 'Skill rank 3', 'Training 25% cheaper'] },
   inventory: { name: 'Inventory', short: 'Inventory', icon: '🧺', unlocks: ['30 slots', '40 slots', '50 slots'] },
   shrine: { name: 'Shrine', short: 'Shrine', icon: '⛩', unlocks: ['Better loot box odds', 'Even better odds', 'Best odds'] },
   truth: { name: 'Truth Board', short: 'Truth Board', icon: '📌', unlocks: ['Decode level 1 fragments', 'Decode level 2 fragments', 'Decode everything'] },

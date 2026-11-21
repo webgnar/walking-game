@@ -86,6 +86,11 @@ export function load() {
     for (const k of Object.keys(fresh)) if (s[k] === undefined) s[k] = fresh[k];
     for (const k of Object.keys(fresh.hero)) if (s.hero[k] === undefined) s.hero[k] = fresh.hero[k];
     if (!s.trials.stars) s.trials.stars = {};
+    // Fang Ripper was removed: saves that had it get Bloodrush instead
+    if (s.hero.finishers.includes('fang')) {
+      s.hero.finishers = [...new Set(s.hero.finishers.map((f) => (f === 'fang' ? 'bloodrush' : f)))];
+      if (s.hero.finisher === 'fang') s.hero.finisher = 'bloodrush';
+    }
     return s;
   } catch (e) {
     console.warn('Save unreadable, starting fresh', e);

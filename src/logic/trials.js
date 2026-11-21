@@ -46,7 +46,6 @@ export function finishTrial(s, n, result, battle) {
       }
     }
   }
-  if (battle && battle.fangMats) { s.mats.bone += battle.fangMats; out.fang = battle.fangMats; }
   s.trials.wins++;
   goalEvent(s, 'win', 1);
   if (battle && battle.hero.damageTaken === 0) s.flawless = true;
@@ -72,7 +71,7 @@ export function finishTrial(s, n, result, battle) {
     const f = randInt(0, m);
     out.mats = { flint: f, bone: m - f };
     if (n === 5) { addGear(s, 'alpha_fang'); out.gear.push('alpha_fang'); grantFinisher(s, 'skull'); out.finisher = 'skull'; }
-    if (n === 10) { addGear(s, 'sabre_hide'); out.gear.push('sabre_hide'); grantFinisher(s, 'fang'); out.finisher = 'fang'; }
+    if (n === 10) { addGear(s, 'sabre_hide'); out.gear.push('sabre_hide'); grantFinisher(s, 'bloodrush'); out.finisher = 'bloodrush'; }
     if (n === 15) { addGear(s, 'tusk_club'); out.gear.push('tusk_club'); }
     if (t.boss === 'mini') { s.hero.respecTokens++; out.respec = true; }
     if (t.boss === 'era') {

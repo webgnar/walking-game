@@ -165,7 +165,8 @@ export class Stage {
 
   // Until gear is modelled in the hero's style, the rigged hero only shows his weapon:
   // the old placeholder armor, helm, shield and trinket shapes clash with the sculpted model.
-  shownLooks() { return this.rig ? { weapon: this.looks.weapon } : this.looks; }
+  // The weapon is always zack's club model for now: the other weapon looks are placeholder shapes.
+  shownLooks() { return this.rig ? { weapon: 'club1' } : this.looks; }
   setHeroLook(looks) {
     this.looks = looks;
     setHeroLook(this.hero, this.shownLooks());
@@ -470,23 +471,6 @@ export class Stage {
         }
         this.after(560, () => { this.slowMo(0.35, 300); this.after(260, () => { back(); this.dissolve(who); }); });
         return 520;
-      }
-      case 'fang': {
-        // a blow to the jaw, then a fang torn loose as a trophy
-        this.swing('attack', 260);
-        this.after(260, () => {
-          this.hitStop(120); this.slowMo(0.3, 380); this.shake(0.15, 300);
-          if (head) { const r0 = head.rotation.z; this.tween(200, (p) => { head.rotation.z = r0 + 0.9 * p; }); }
-          const hp = this.actorPoint(who, 0.8);
-          this.spawn('blood', hp, 22, { dir: new THREE.Vector3(0.5, 0.7, 0), speed: 2.4, spread: 1, size: 1.4 });
-          const fang = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.28, 6), FX_MATS().bone);
-          fang.position.copy(hp);
-          this.fx.add(fang);
-          const to = this.actorPoint('hero', 0.6);
-          this.tween(520, (p) => { fang.position.lerpVectors(hp, to, p); fang.position.y += Math.sin(p * Math.PI) * 0.9; fang.rotation.z = p * 8; if (p >= 1) this.fx.remove(fang); });
-          this.after(360, () => { back(); this.dissolve(who); });
-        });
-        return 300;
       }
     }
     return 0;
