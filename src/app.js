@@ -342,7 +342,7 @@ const SCREENS = {
     const t = TRIALS.find((x) => x.n === b.trial);
     const alive = C.living(b);
     if (!alive.find((e) => e.uid === app.target)) app.target = alive[0] && alive[0].uid;
-    return `<div class="combat-top"><div class="comic">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}</div><div class="small muted">Turn ${b.turn}${s.trials.cleared[t.n] && t.n ? ' · replay' : ''}</div></div>
+    return `<div class="combat-top"><div class="comic ${t.name.length > 18 ? 'long' : ''}">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}</div><div class="small muted">Turn ${b.turn}${s.trials.cleared[t.n] && t.n ? ' · replay' : ''}</div></div>
     <div class="combat-hero panel pad">
       <div class="row"><span class="comic" style="font-size:18px">You</span><span class="grow"></span><span class="small muted">Lv ${s.hero.level}</span></div>
       <div class="hp hero"><i style="width:${(hp('hero', h.hp) / h.maxHp) * 100}%"></i><span class="tx">${hp('hero', h.hp)}/${h.maxHp}</span>${bl('hero', h.block) ? `<span class="bl">${gi('st-block')}${bl('hero', h.block)}</span>` : ''}</div>
@@ -385,6 +385,7 @@ const SCREENS = {
         <div class="tierlabel" style="color:var(--red);font-size:44px">DEFEAT</div>
         <p class="defline">"${esc(r.line)}"</p>
         ${lossAdvice(t)}
+        ${rewardNotes(r)}
         <div class="actions" style="justify-content:center"><button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to Trials</button>
         <button class="btn pink" data-a="fight" data-v="${r.n}">Try again</button></div>
       </div></div>`;
@@ -410,6 +411,7 @@ const SCREENS = {
       <div class="muted">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}${r.flawless ? ' · <span class="ok">no damage taken</span>' : ''}</div>
       ${r.starList ? `<div class="stars">${[0, 1, 2].map((i) => `<span class="${i < r.stars ? 'on' : ''}">★</span>`).join('')}${r.newBest && r.stars > 1 ? '<em>new best</em>' : ''}</div>
         <div class="small muted">${['Win', 'Above half health', `Within ${t.par} turns`].map((l, i) => `${r.starList[i] ? '✔' : '✖'} ${l}`).join(' · ')}</div>` : ''}
+      ${rewardNotes(r)}
       <div class="sep"></div>
       <div class="loot compact ${app.allLoot ? 'all' : ''}">${(cards.length > 6 && !app.allLoot ? cards.slice(0, 5) : cards).join('')}${cards.length > 6 && !app.allLoot ? `<div class="lootcard more" data-a="allLoot"><div class="li">+${cards.length - 5}</div>more<small>tap to see</small></div>` : ''}${cards.length ? '' : '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
       <div class="actions" style="justify-content:center">
@@ -992,7 +994,7 @@ const MODALS = {
       <h2 class="h">${gi('act-evolve')} Evolve to Era 2</h2>
       <div class="body">${checks.map((c) => `<div class="${c.ok ? 'ok' : 'muted'}">${c.ok ? '✔' : '○'} ${c.label}</div>`).join('')}
       <div class="sep"></div>
-      <div class="small muted">When you evolve: choose 1 of 3 Boons, get a free respec, and your leftover flint and bone turn into Soles.${s.evolved ? ' <b class="ok">Already evolved.</b>' : ''}</div></div>
+      <div class="small muted">When you evolve: choose 1 of 3 Boons, get a free respec, and your leftover materials and beast parts turn into Soles.${s.evolved ? ' <b class="ok">Already evolved.</b>' : ''}</div></div>
       <div class="actions"><button class="btn ${B.canEvolve(s) ? 'yellow pulse' : 'off'}" data-a="evolveGo">Evolve</button></div>
     </div>`;
   },
@@ -1046,6 +1048,12 @@ function lootCard(it, i) {
 }
 
 // ---------- PROCTOR and toasts ----------
+// Notes that arrive while the Victory/Defeat window is up, shown inside it
+function rewardNotes(r) {
+  if (!(r.notes || []).length) return '';
+  return `<div class="vnotes">${r.notes.map((t) => `<span class="vnote n-${t.kind}"><b>${t.kind === 'achievement' ? '🏆 ' : ''}${esc(t.title)}</b> ${esc(t.text)}${t.reward ? ` <i>${rewardText(t.reward)}</i>` : t.rewardText ? ` <i>(${esc(t.rewardText)})</i>` : ''}</span>`).join('')}</div>`;
+}
+
 function renderProctor() {
   const p = app.proctor;
   const el = $('#proctor');
@@ -1058,6 +1066,13 @@ function renderProctor() {
 function renderToasts() {
   const el = $('#toasts');
   const now = Date.now();
+  // On the Victory window, notes (level up, new skills, achievements) go inside it, not in the corner on
+  // top of its header
+  if (app.screen === 'reward' && app.lastReward && s.toasts.length) {
+    app.lastReward.notes = [...(app.lastReward.notes || []), ...s.toasts.splice(0)];
+    render();
+    return;
+  }
   while (s.toasts.length) {
     const t = s.toasts.shift();
     app.toastQ = app.toastQ || [];
@@ -1074,6 +1089,9 @@ function renderToasts() {
 function follow(once) {
   let bldgTop = Infinity;
   const bldgs = [];
+  // HP plates stay below the Trial title where they would overlap it (big beasts' heads reach the top edge)
+  const title = document.querySelector('.combat-top');
+  const tr = title && title.getBoundingClientRect();
   document.querySelectorAll('[data-anchor]').forEach((el) => {
     const id = el.dataset.anchor;
     const p = stage.anchor(/^\d+$/.test(id) ? Number(id) : id, 0.15);
@@ -1081,7 +1099,13 @@ function follow(once) {
     el.style.left = `${p.x}px`;
     // Base labels share one line (the highest building's), so timers never knock them out of line
     if (el.classList.contains('bldg')) { bldgs.push(el); bldgTop = Math.min(bldgTop, p.y); return; }
-    el.style.top = `${Math.max(el.classList.contains('hpbox') ? 92 : 70, p.y)}px`;
+    let min = 70;
+    if (el.classList.contains('hpbox')) {
+      min = 92;
+      const w = el.offsetWidth;
+      if (tr && p.x + w / 2 > tr.left && p.x - w / 2 < tr.right) min = Math.max(min, tr.bottom + 4 + el.offsetHeight);
+    }
+    el.style.top = `${Math.max(min, p.y)}px`;
   });
   for (const el of bldgs) el.style.top = `${Math.max(64, bldgTop - 40)}px`;
   if (once !== true) requestAnimationFrame(follow);
@@ -1224,6 +1248,7 @@ function endBattle() {
   const result = b.over;
   const r = T.finishTrial(s, b.trial, result, b);
   r.flawless = result === 'win' && b.hero.damageTaken === 0;
+  r.notes = [];
   if (result !== 'win') {
     r.line = b.trial === 15 && (s.trials.losses[15] || 0) >= 3 ? 'Mammoth Problems loading...' : pick(PROCTOR.lose);
     if (b.trial === 6 && !s.wallShown) { s.wallShown = true; r.line = PROCTOR.wall[0]; }
