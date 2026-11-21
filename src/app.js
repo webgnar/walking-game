@@ -3,9 +3,10 @@ import { Stage, STRIKE_MS } from './scene/stage.js';
 import { env, load, save, wipeSave, newState, toast, pick, SAVE_KEY, dayKey } from './logic/state.js';
 import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
-  INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS, FINISHERS, FINISHER_ORDER, FURY, TRAITS, ACTS, LOADOUT_MAX, STAR_REWARDS } from './data/era1.js';
+  INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS, FINISHERS, FINISHER_ORDER, FURY, TRAITS, ACTS, LOADOUT_MAX, STAR_REWARDS, PARTS, AFFIXES, QUALITY, REINFORCE_MAX, SETS } from './data/era1.js';
 import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP, LOSS_TIPS } from './data/story.js';
 import * as ST from './logic/story.js';
+import * as GR from './logic/gear.js';
 import { IC, WREATH } from './ui/icons.js';
 import { loadUiAssets } from './ui/assets.js';
 import * as H from './logic/hero.js';
@@ -19,12 +20,12 @@ let s;
 let stage;
 const app = {
   screen: 'home', heroTab: 'stats', modal: null, proctor: null, battle: null, target: null, busy: false,
-  craft: [null, null, null], selectedTrial: null, lastReward: null, boonChoices: null,
+  recipe: 'r_flint_club', part: null, selectedTrial: null, lastReward: null, boonChoices: null,
 };
 const $ = (sel) => document.querySelector(sel);
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (n) => Math.floor(n).toLocaleString('en-US');
-const ICON = { weapon: '🏏', armor: '🦺', helm: '⛑️', offhand: '🛡️', trinket: '📿', flint: '🪨', bone: '🦴', stride_brew: '🧪', lucky_knot: '🪢', warpaint: '🎨' };
+const ICON = { weapon: '🏏', armor: '🦺', helm: '⛑️', offhand: '🛡️', trinket: '📿', flint: '🪨', bone: '🦴', wood: '🪵', stride_brew: '🧪', lucky_knot: '🪢', warpaint: '🎨', fang: '🦷', claw: '🐾', tine: '🦌', hide: '🟫', ember: '🔥' };
 const TIER_ICON = { bronze: '📦', silver: '🎁', gold: '💰', platinum: '💎', legendary: '🔥', celestial: '🌌' };
 const gearIcon = (key) => ICON[GEAR[key].slot];
 const statText = (st) => Object.entries(st).map(([k, v]) => (k === 'dmg' ? `+${v} damage` : k === 'hp' ? `+${v} health` : `+${v} ${ATTRS[k].short}`)).join(', ');
@@ -126,7 +127,7 @@ function curPlate() {
   const mats = MAT_SCREENS.includes(app.screen);
   return `<div class="cur">
       <span class="c soles" title="Soles">${IC.sole}<span class="sv">${fmt(s.soles)}<small class="rate">1 Sole = ${E.stepsPerSole(s)} steps</small></span></span>
-      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span>` : ''}
+      ${mats ? `<i>/</i><span class="c" title="Flint">${IC.flint}${s.mats.flint}</span><i>/</i><span class="c" title="Bone">${IC.bone}${s.mats.bone}</span><i>/</i><span class="c" title="Wood">🪵${s.mats.wood || 0}</span>` : ''}
     </div>`;
 }
 
@@ -353,11 +354,11 @@ const SCREENS = {
     }
     if (r.xp) cards.push(card('⭐', `${r.xp} XP`, r.first ? 'First win' : ''));
     if (r.box) cards.push(card(TIER_ICON[r.box], `${E.TIER_NAMES[r.box]} loot box`, 'Added to your boxes'));
-    if (r.mats.flint) cards.push(card('🪨', `${r.mats.flint} Flint`));
-    if (r.mats.bone) cards.push(card('🦴', `${r.mats.bone} Bone`));
+    cards.push(matCards(r.mats));
+    cards.push(matCards(r.parts, 'Beast part'));
     for (const g of r.gear) cards.push(card(gearIcon(g), GEAR[g].name, statText(GEAR[g].stats), GEAR[g].tier === 'boss' ? 'boss' : ''));
     if (r.respec) cards.push(card('🔄', 'Respec token', 'Reset your points once'));
-    if (r.blueprint) cards.push(card('📐', 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === r.blueprint)), 'rare'));
+    for (const id of r.blueprints || []) cards.push(card('📐', 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === id)), 'rare'));
     if (r.fragment) cards.push(card('📄', 'Story fragment', 'Pinned to the Truth Board', 'frag'));
     if (r.eraKey) cards.push(card('🗝️', 'ERA KEY', 'Primal → Brick', 'boss'));
     if (r.finisher) cards.push(card(FINISHERS[r.finisher].icon, `Finisher: ${FINISHERS[r.finisher].name}`, FINISHERS[r.finisher].desc, 'boss'));
@@ -377,43 +378,44 @@ const SCREENS = {
   },
 
   craft() {
-    const slots = B.craftSlots(s);
-    const keys = app.craft.slice(0, slots);
-    const rec = B.findRecipe(keys);
     const studio = s.base.studio.tier;
-    const items = B.craftables(s);
-    const known = RECIPES.filter((r) => s.recipes.includes(r.id));
-    let preview = '❔';
-    let note = studio < 1 ? '<span class="bad">Build the Workshop first.</span>' : 'Put items in the slots. Matching a recipe you don\'t know teaches it.';
-    if (rec && keys.filter(Boolean).length >= 2) {
-      const knownR = s.recipes.includes(rec.id);
-      preview = rec.out.gear ? gearIcon(rec.out.gear) : ICON[rec.out.booster];
-      if (rec.blueprint && !knownR) note = '<span class="warn">Something is here, but you need its blueprint.</span>';
-      else if (rec.studio > studio) note = `<span class="warn">Needs Workshop tier ${rec.studio}.</span>`;
-      else note = `${knownR ? '' : '<b class="ok">New recipe! </b>'}${esc(B.recipeName(rec))}: needs ${Object.entries(rec.inputs).map(([k, n]) => `${n} ${itemName(k)}`).join(' + ')}${B.hasInputs(s, rec) ? '' : ' <span class="bad">(not enough)</span>'}`;
-    }
-    return `${topbar('Workshop', `Tier ${studio} · ${slots}-item crafts`, 'base')}
+    const r = RECIPES.find((x) => x.id === app.recipe) || RECIPES[0];
+    const known = s.recipes.includes(r.id);
+    const part = app.part && (s.mats[app.part] || 0) > 0 ? app.part : null;
+    const check = B.canForge(s, r, part);
+    const g = r.out.gear && GEAR[r.out.gear];
+    const set = g && g.set && SETS[g.set];
+    const why = { studio: 'Build the Workshop first.', blueprint: 'You need this blueprint.', tier: `Needs Workshop tier ${check.need}.`, amount: 'Not enough materials.', full: 'Your inventory is full.', slot: '' }[check.why] || '';
+    const parts = Object.keys(PARTS).filter((k) => (s.mats[k] || 0) > 0);
+    const list = RECIPES.map((x) => {
+      const k = s.recipes.includes(x.id);
+      const xg = x.out.gear && GEAR[x.out.gear];
+      const src = Object.entries({ 5: 'the Alpha', 10: 'the Sabretooth' }).find(([n]) => (['r_wolf_pelt', 'r_fang_charm'].includes(x.id) && n === '5') || (['r_lion_mask', 'r_claw_buckler'].includes(x.id) && n === '10'));
+      return `<div class="recipe ${x.id === r.id ? 'on' : ''} ${k ? '' : 'locked'}" data-a="pickRecipe" data-v="${x.id}">
+        <span class="ri">${xg ? gearIcon(x.out.gear) : ICON[x.out.booster]}</span>
+        <span class="grow"><span class="rn">${k ? esc(B.recipeName(x)) : 'Unknown blueprint'}</span>
+        <span class="small muted">${k ? (xg && xg.set ? `${esc(SETS[xg.set].name)} set` : xg ? SLOT_NAMES[xg.slot] : 'Booster') : src ? `Dropped by ${src[1]}` : 'Found in Gold+ loot boxes'}</span></span>
+        ${k && B.canForge(s, x).ok ? '<span class="ok small">✔</span>' : ''}</div>`;
+    }).join('');
+    return `${topbar('Workshop', `Tier ${studio} · ${B.partSlot(s) ? 'part slot open' : 'part slot at tier 2'}`, 'base')}
     <div class="screen">
-      <div class="col grow panel halftone pad">
-        <div class="row" style="justify-content:center;gap:10px;margin:4px 0 8px">
-          ${keys.map((k, i) => `${i ? '<span class="comic" style="font-size:28px">+</span>' : ''}<div class="cell" style="width:76px" data-a="craftClear" data-v="${i}">${k ? `<span class="gi">${itemIcon(k)}</span>${esc(itemName(k))}` : '<span class="muted">empty</span>'}</div>`).join('')}
-          <span class="comic" style="font-size:28px">=</span>
-          <div class="cell" style="width:76px;background:#13321f"><span class="gi">${preview}</span></div>
-          <button class="btn yellow" data-a="craftGo">Craft</button>
-        </div>
-        <div class="small" style="min-height:2.4em">${note}</div>
-        <div class="sep"></div>
-        <h3 class="h">Your items</h3>
-        <div class="scroll grow"><div class="grid">${items.map((c) => `<div class="cell" data-a="craftAdd" data-v="${c.key}"><span class="gi">${itemIcon(c.key)}</span>${esc(itemName(c.key))}<span class="n">${c.n}</span></div>`).join('') || '<span class="muted small">Nothing to craft with. Walk for materials.</span>'}</div></div>
-      </div>
       <div class="col panel pad" style="width:min(300px,36vw)">
-        <h3 class="h">Known recipes</h3>
-        <div class="scroll grow">${known.map((r) => `<div class="skill" data-a="craftFill" data-v="${r.id}" style="cursor:pointer">
-          <div class="si">${r.out.gear ? gearIcon(r.out.gear) : ICON[r.out.booster]}</div>
-          <div class="grow"><div class="sname">${esc(B.recipeName(r))}${r.studio > studio ? ` <span class="small warn">tier ${r.studio}</span>` : ''}</div>
-          <div class="small muted">${Object.entries(r.inputs).map(([k, n]) => `${n} ${itemName(k)}`).join(' + ')}</div>
-          <div class="small">${r.out.gear ? statText(GEAR[r.out.gear].stats) : BOOSTERS[r.out.booster].desc}</div></div></div>`).join('')}
-          <div class="small muted">Recipes are learned from blueprints, or by trying combinations.</div></div>
+        <h3 class="h">Recipes</h3>
+        <div class="scroll grow">${list}</div>
+      </div>
+      <div class="col grow panel halftone pad forgepanel">
+        ${known ? `<div class="row"><span style="font-size:40px">${g ? gearIcon(r.out.gear) : ICON[r.out.booster]}</span><div class="grow">
+          <h2 class="h" style="margin:0">${esc(B.recipeName(r))}</h2>
+          <div class="small">${g ? `${SLOT_NAMES[g.slot]} · ${statText(g.stats)}` : esc(BOOSTERS[r.out.booster].desc)}</div>
+          ${set ? `<div class="small setline">${esc(set.name)} set · ${Object.entries(set.bonus).map(([n, b]) => `${n}: ${esc(b.text)}`).join(' · ')}</div>` : ''}</div>
+          <button class="btn yellow ${check.ok ? 'pulse' : 'off'}" data-a="forgeStart">⚒ Forge</button></div>
+        <div class="sep"></div>
+        <div class="small"><b>Needs</b> ${matList(r.mats, part ? { [part]: 1 } : {})}${check.ok ? '' : ` <span class="warn">· ${esc(why)}</span>`}</div>
+        ${g ? `<h3 class="h" style="margin-top:8px">Part slot <span class="small muted">· special effect</span></h3>
+        ${B.partSlot(s) ? `<div class="partrow"><button class="chip ${part ? '' : 'on'}" data-a="pickPart" data-v="">None</button>${parts.map((k) => `<button class="chip ${part === k ? 'on' : ''}" data-a="pickPart" data-v="${k}">${ICON[k]} ${esc(PARTS[k].name)} <b>${s.mats[k]}</b></button>`).join('') || '<span class="small muted">No parts yet. Beasts drop them, and so do Silver+ loot boxes.</span>'}</div>
+          ${part ? `<div class="small ok">${esc(AFFIXES[PARTS[part].affix].name)}: ${esc(AFFIXES[PARTS[part].affix].desc)}</div>` : ''}` : '<div class="small muted">Upgrade the Workshop to tier 2 to add a beast part for a special effect.</div>'}` : ''}
+        <div class="small muted" style="margin-top:6px">Forging: strike the anvil three times in rhythm. Better timing, better quality.</div>`
+        : `<div class="muted" style="margin:auto;text-align:center">This blueprint hasn't been found yet.</div>`}
       </div>
     </div>`;
   },
@@ -490,11 +492,45 @@ function cutShot(sh, i, n, tapA = 'introTap', skipA = 'introSkip') {
     </div>${dots}${skip}</div>`;
 }
 
+// ---------- Forge: hammer timing ----------
+// The marker sweeps back and forth; strike when it crosses the gold zone in the middle.
+function hammerPos(m) {
+  const t = (performance.now() - m.t0) / m.period;
+  return (Math.sin(t * Math.PI * 2 - Math.PI / 2) + 1) / 2;
+}
+function hammerLoop() {
+  const m = app.modal;
+  if (!m || m.type !== 'forge' || m.result) return;
+  const el = $('#hmark');
+  if (el) el.style.left = `${hammerPos(m) * 100}%`;
+  requestAnimationFrame(hammerLoop);
+}
+function finishForge(quality) {
+  const m = app.modal;
+  if (!m || m.type !== 'forge' || m.result) return;
+  const r = B.forge(s, m.recipe.id, m.part, quality);
+  if (!r.ok) { closeModal(); say('The forge sputtered. Check your materials.'); return; }
+  m.result = r;
+  if (s.mats[app.part] <= 0) app.part = null;
+  renderModal();
+  say(quality === 'masterwork' ? 'A Masterwork. I am almost impressed. Almost.' : quality === 'crude' ? 'Crude. It will still hurt something. Probably you.' : pick(PROCTOR.craft));
+  commit();
+}
+
 function card(icon, title, sub = '', cls = '') {
   return `<div class="lootcard ${cls}"><div class="li">${icon}</div>${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
 }
 function itemName(k) {
-  return MATERIALS[k] ? MATERIALS[k].name : GEAR[k] ? GEAR[k].name : BOOSTERS[k] ? BOOSTERS[k].name : k;
+  return MATERIALS[k] ? MATERIALS[k].name : PARTS[k] ? PARTS[k].name : GEAR[k] ? GEAR[k].name : BOOSTERS[k] ? BOOSTERS[k].name : k;
+}
+// "3 Flint + 2 Wood", red where you don't have enough
+function matList(mats, extra = {}) {
+  const need = { ...mats };
+  for (const [k, n] of Object.entries(extra)) need[k] = (need[k] || 0) + n;
+  return Object.entries(need).map(([k, n]) => `<span class="${(s.mats[k] || 0) >= n ? '' : 'bad'}">${ICON[k] || ''}${n} ${esc(itemName(k))}</span>`).join(' · ');
+}
+function matCards(mats, sub = '') {
+  return Object.entries(mats || {}).filter(([, n]) => n > 0).map(([k, n]) => card(ICON[k] || '?', `${n} ${itemName(k)}`, PARTS[k] ? PARTS[k].name === itemName(k) ? 'Beast part' : sub : sub, PARTS[k] ? 'part' : '')).join('');
 }
 function itemIcon(k) {
   return ICON[k] || (GEAR[k] ? gearIcon(k) : '?');
@@ -526,7 +562,8 @@ function trialCard(n) {
   const traits = [...new Set(t.enemies.flatMap((e) => ENEMIES[e.replace('!', '')].traits || []))];
   const under = s.hero.level < t.level;
   const stars = s.trials.stars[n] || 0;
-  const rewards = done ? 'Replay: crafting materials, sometimes worn gear' : `${t.xp} XP, ${t.boss === 'era' ? 'Platinum' : t.boss === 'mini' ? 'Gold' : 'a'} loot box, materials${t.boss === 'mini' ? ', boss gear, a finisher, respec token' : ''}${t.boss === 'era' ? ', boss gear, blueprint, ERA KEY' : ''}`;
+  const partNames = [...new Set(t.enemies.flatMap((e) => Object.keys(PARTS).filter((p) => PARTS[p].drops.includes(e.replace('!', '')))))].map((p) => PARTS[p].name);
+  const rewards = done ? `Replay: materials${partNames.length ? `, often a ${partNames.join(' or ')}` : ''}` : `${t.xp} XP, materials${partNames.length ? `, ${partNames.join(' / ')}` : ''}${t.boss ? `, ${t.boss === 'era' ? 'Platinum' : 'Gold'} loot box, boss gear, set blueprints` : ''}${t.boss === 'mini' ? ', a finisher, respec token' : ''}${t.boss === 'era' ? ', ERA KEY' : ''}`;
   const act = ACTS.find((x) => x.n === t.act);
   return `<div class="trialcard panel halftone pad">
     <button class="x" data-a="trial" data-v="">✕</button>
@@ -602,8 +639,9 @@ function heroGearTab() {
   const junk = E.junkGear(s);
   const slots = `<div class="slots">${SLOTS.map((sl) => {
     const g = H.gearOf(s, s.hero.equip[sl]);
-    return `<div class="slot ${g ? 'full' : ''}" ${g ? `data-a="item" data-v="${g.uid}"` : ''}><span class="sn">${SLOT_NAMES[sl]}</span>${g ? `<span style="font-size:20px">${gearIcon(g.key)}</span>${esc(g.name)}` : `<span style="font-size:20px;opacity:.3">${ICON[sl]}</span>`}</div>`;
-  }).join('')}</div>`;
+    return `<div class="slot ${g ? 'full' : ''} ${g && g.q ? `q-${g.q}` : ''}" ${g ? `data-a="item" data-v="${g.uid}"` : ''}><span class="sn">${SLOT_NAMES[sl]}</span>${g ? `<span style="font-size:20px">${gearIcon(g.key)}</span>${esc(GR.itemName(g))}` : `<span style="font-size:20px;opacity:.3">${ICON[sl]}</span>`}</div>`;
+  }).join('')}</div>
+  ${GR.setStatus(s).filter((x) => x.n > 0).map((x) => `<div class="small setline">${esc(x.set.name)} ${x.n}/3 · ${Object.entries(x.set.bonus).map(([n, b]) => `<span class="${x.n >= Number(n) ? 'ok' : 'muted'}">${n}: ${esc(b.text)}</span>`).join(' · ')}</div>`).join('')}`;
   const tabs = `<div class="invtabs">
     <button class="tab ${tab === 'gear' ? 'on' : ''}" data-a="invTab" data-v="gear">Gear ${used}/${cap}</button>
     <button class="tab ${tab === 'use' ? 'on' : ''}" data-a="invTab" data-v="use">Consumables${boosters.length ? ` (${boosters.reduce((a, [, n]) => a + n, 0)})` : ''}</button>
@@ -612,13 +650,14 @@ function heroGearTab() {
   </div>`;
   if (tab === 'use') {
     return `${slots}${tabs}
-    <div class="small muted" style="margin:2px 0 6px">No storage limit. Consumables never take inventory slots.</div>
+    <div class="small muted" style="margin:2px 0 6px">No storage limit. Consumables, materials and parts never take inventory slots.</div>
+    <div class="small" style="margin-bottom:6px">${[...Object.keys(MATERIALS), ...Object.keys(PARTS)].filter((k) => s.mats[k]).map((k) => `${ICON[k]} ${s.mats[k]} ${esc(itemName(k))}`).join(' · ') || 'No materials yet.'}</div>
     <div class="grid">${boosters.map(([k, n]) => `<div class="cell" data-a="booster" data-v="${k}"><span class="gi">${ICON[k]}</span>${esc(BOOSTERS[k].name)}<span class="n">${n}</span></div>`).join('') || '<span class="muted small">No consumables yet. They turn up in loot boxes and the Workshop.</span>'}</div>`;
   }
   const junkIds = new Set(junk.map((it) => it.uid));
   const cells = s.inv.map((it) => {
     const g = GEAR[it.key];
-    return `<div class="cell t-${g.tier} ${H.isEquipped(s, it.uid) ? 'eq' : ''} ${junkIds.has(it.uid) ? 'junk' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(g.name)}</div>`;
+    return `<div class="cell t-${g.tier} ${it.q ? `q-${it.q}` : ''} ${H.isEquipped(s, it.uid) ? 'eq' : ''} ${junkIds.has(it.uid) ? 'junk' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(GR.itemName(it))}</div>`;
   });
   while (cells.length < cap) cells.push('<div class="cell empty"></div>');
   return `${slots}${tabs}<div class="grid">${cells.join('')}</div>`;
@@ -658,8 +697,7 @@ const MODALS = {
         ${card('🚶', `${fmt(r.steps)} steps`)}
         ${card('👣', `${fmt(r.soles)} Soles`, `${E.stepsPerSole(s)} steps per Sole`)}
         ${r.boxes.map((t) => card(TIER_ICON[t], `${E.TIER_NAMES[t]} box`)).join('')}
-        ${r.mats.flint ? card('🪨', `${r.mats.flint} Flint`, 'found on the way') : ''}
-        ${r.mats.bone ? card('🦴', `${r.mats.bone} Bone`, 'found on the way') : ''}
+        ${matCards(r.mats, 'found on the way')}
       </div>
       ${r.lost ? `<div class="small warn">${r.lost} loot box${r.lost > 1 ? 'es' : ''} lost: you can hold ${E.BOX_LIMIT} unopened. Open them more often.</div>` : ''}
       </div>
@@ -750,7 +788,7 @@ const MODALS = {
       action = `<div class="row"><span class="grow">⏳ Upgrading to tier ${st.job.to}: <b data-timer="${b}">${timeLeft(st.job)}</b> left</span><button class="btn small ${s.soles >= c ? 'yellow' : 'off'}" data-a="speed" data-v="${b}">Finish now · 👣${c}</button></div>`;
     } else if (cost) {
       const ok = free || B.canAfford(s, cost);
-      action = `<div class="row wrap"><span class="grow small">${free ? '<b class="ok">Your first building is free and instant.</b>' : `Tier ${cost.to}: 👣${cost.soles} · 🪨${cost.mats.flint} · 🦴${cost.mats.bone} · ⏳${cost.minutes >= 60 ? `${cost.minutes / 60}h` : `${cost.minutes}m`}`}</span>
+      action = `<div class="row wrap"><span class="grow small">${free ? '<b class="ok">Your first building is free and instant.</b>' : `Tier ${cost.to}: 👣${cost.soles} · ${matList(cost.mats)} · ⏳${cost.minutes >= 60 ? `${cost.minutes / 60}h` : `${cost.minutes}m`}`}</span>
         <button class="btn small ${ok ? 'yellow' : 'off'} ${free ? 'pulse' : ''}" data-a="upgrade" data-v="${b}">${st.tier ? 'Upgrade' : 'Build'}</button></div>`;
     } else action = '<div class="ok">Max tier for this era.</div>';
     const use = { studio: ['craft', '⚒ Craft'], altar: ['heroStats', '🗿 Train hero'], inventory: ['heroGear', '🎒 Open inventory'], shrine: ['modalBoxes', '📦 Loot box odds'], truth: ['truth', '📌 Open board'] }[b];
@@ -774,13 +812,20 @@ const MODALS = {
     const eq = H.isEquipped(s, it.uid);
     const cur = H.gearOf(s, s.hero.equip[g.slot]);
     const sv = E.salvageValue(it.key);
-    return `<div class="dialog panel halftone" style="width:min(420px,92vw)">
+    const set = g.set && SETS[g.set];
+    const owned = set ? set.pieces.map((k) => ({ k, eq: GR.equippedItems(s).some((x) => x.key === k) })) : [];
+    const rc = B.reinforceCost(it);
+    return `<div class="dialog panel halftone" style="width:min(460px,92vw)">
       <button class="x" data-a="closeModal">✕</button>
-      <div class="row"><span style="font-size:44px">${gearIcon(it.key)}</span><div><h2 class="h">${esc(g.name)}</h2><div class="small muted">${SLOT_NAMES[g.slot]} · ${g.tier}</div></div></div>
-      <div style="margin:8px 0">${statText(g.stats)}</div>
-      ${cur && !eq ? `<div class="small muted">Equipped now: ${esc(cur.name)} (${statText(cur.stats)})</div>` : ''}
+      <div class="row"><span style="font-size:44px">${gearIcon(it.key)}</span><div><h2 class="h">${esc(GR.itemName(it))}</h2><div class="small muted">${SLOT_NAMES[g.slot]} · ${esc(QUALITY[it.q || 'fine'].name)} · ${g.tier}</div></div></div>
+      <div style="margin:8px 0">${statText(GR.itemStats(it))}</div>
+      ${it.affix ? `<div class="small ok">${esc(AFFIXES[it.affix].name)}: ${esc(AFFIXES[it.affix].desc)}</div>` : ''}
+      ${set ? `<div class="small setline">${esc(set.name)} set: ${owned.map((o) => `${o.eq ? '✔' : '·'} ${esc(GEAR[o.k].name)}`).join(', ')}<br>${Object.entries(set.bonus).map(([n, b]) => `${n} pieces: ${esc(b.text)}`).join(' · ')}</div>` : ''}
+      ${cur && !eq ? `<div class="small muted">Equipped now: ${esc(GR.itemName(cur))} (${statText(cur.stats)})</div>` : ''}
+      ${rc ? `<div class="small" style="margin-top:6px">Reinforce to +${rc.plus}: ${matList(rc.mats)}</div>` : '<div class="small muted" style="margin-top:6px">Fully reinforced (+5).</div>'}
       <div class="actions">
         ${eq ? '' : `<button class="btn small ghost" data-a="salvage" data-v="${it.uid}">Salvage → 🪨${sv.flint} 🦴${sv.bone}</button>`}
+        ${rc ? `<button class="btn small ${B.hasMats(s, rc.mats) ? 'green' : 'off'}" data-a="reinforce" data-v="${it.uid}">Reinforce +${rc.plus}</button>` : ''}
         <button class="btn small ${eq ? 'ghost' : 'yellow'}" data-a="equip" data-v="${it.uid}">${eq ? 'Unequip' : 'Equip'}</button>
       </div></div>`;
   },
@@ -792,6 +837,26 @@ const MODALS = {
       <div class="row"><span style="font-size:44px">${ICON[m.key]}</span><div><h2 class="h">${esc(b.name)}</h2><div class="small muted">Booster · you have ${s.boosters[m.key] || 0}</div></div></div>
       <div style="margin:8px 0">${esc(b.desc)}</div>
       <div class="actions"><button class="btn small yellow" data-a="useBooster" data-v="${m.key}">Use</button></div></div>`;
+  },
+
+  forge(m) {
+    if (m.result) {
+      const it = m.result.item;
+      return `<div class="dialog panel halftone reveal" style="align-items:center;text-align:center;width:min(460px,92vw)">
+        <div class="tierlabel" style="color:${it && it.q === 'masterwork' ? 'var(--gold2)' : it && it.q === 'crude' ? '#b9a58a' : '#f1e3c2'}">${it ? esc(QUALITY[it.q].name.toUpperCase()) : 'FORGED'}</div>
+        ${it ? `<div class="loot">${lootCard({ type: 'gear', key: it.key, inst: it }, 0)}</div>${it.affix ? `<div class="small ok">${esc(AFFIXES[it.affix].desc)}</div>` : ''}` : `<div class="loot">${lootCard({ type: 'booster', key: m.recipe.out.booster }, 0)}</div>`}
+        <div class="actions" style="justify-content:center">${it ? `<button class="btn" data-a="equipNew" data-v="${it.uid}">Equip</button>` : ''}<button class="btn cyan" data-a="closeModal">Done</button></div>
+      </div>`;
+    }
+    const n = m.strikes.length;
+    return `<div class="dialog panel halftone forge" data-a="hammer" style="width:min(520px,94vw);text-align:center">
+      <div class="small muted">${esc(B.recipeName(m.recipe))}${m.part ? ` · ${esc(AFFIXES[PARTS[m.part].affix].name)}` : ''}</div>
+      <h2 class="h" style="margin:4px 0">Strike ${Math.min(3, n + 1)} of 3</h2>
+      <div class="anvil"><div class="zone good"></div><div class="zone perfect"></div><div class="marker" id="hmark"></div></div>
+      <div class="strikes">${[0, 1, 2].map((i) => `<span class="${m.strikes[i] || ''}">${m.strikes[i] ? m.strikes[i].toUpperCase() : '·'}</span>`).join('')}</div>
+      <div class="small muted">Tap anywhere when the marker crosses the gold. Three perfect strikes make a Masterwork.</div>
+      <div class="actions" style="justify-content:center"><button class="btn tiny ghost" data-a="forgeSkip">Skip (Fine quality)</button></div>
+    </div>`;
   },
 
   salvageJunk() {
@@ -895,7 +960,8 @@ function lootCard(it, i) {
   const d = `style="animation-delay:${i * 0.12}s"`;
   switch (it.type) {
     case 'mat': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${MATERIALS[it.key].name}</div>`;
-    case 'gear': { const g = GEAR[it.key]; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(g.name)}<small>${statText(g.stats)}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
+    case 'part': return `<div class="lootcard part" ${d}><div class="li">${ICON[it.key]}</div>${it.n} ${PARTS[it.key].name}<small>Beast part</small></div>`;
+    case 'gear': { const g = GEAR[it.key]; const inst = it.inst || { key: it.key }; return `<div class="lootcard ${g.tier === 'rare' ? 'rare' : g.tier === 'boss' ? 'boss' : ''}" ${d}><div class="li">${gearIcon(it.key)}</div>${esc(GR.itemName(inst))}<small>${statText(GR.itemStats(inst))}${inst.affix ? ` · ${esc(AFFIXES[inst.affix].name)}` : ''}${it.salvaged ? ' (bag full: salvaged)' : ''}</small></div>`; }
     case 'frag': return `<div class="lootcard frag" ${d}><div class="li">📄</div>Story fragment<small>Pinned to the Truth Board</small></div>`;
     case 'booster': return `<div class="lootcard" ${d}><div class="li">${ICON[it.key]}</div>${it.n > 1 ? `${it.n} × ` : ''}${esc(BOOSTERS[it.key].name)}<small>${esc(BOOSTERS[it.key].desc)}</small></div>`;
     case 'blueprint': return `<div class="lootcard rare" ${d}><div class="li">📐</div>Blueprint<small>${esc(B.recipeName(RECIPES.find((r) => r.id === it.id)))}</small></div>`;
@@ -1140,7 +1206,7 @@ const ACTIONS = {
   settings() { openModal('settings'); },
   modal(v) { openModal(v); },
   closeModal() { closeModal(); render(); },
-  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback', 'cut'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
+  overlay(_, el, ev) { if (ev.target === el && app.modal && !['report', 'evolve', 'flashback', 'cut', 'forge'].includes(app.modal.type) && !(app.modal.type === 'boxes' && app.modal.opened && !app.modal.revealed)) { closeModal(); render(); } },
   dismissProctor() { const then = app.proctor && app.proctor.then; app.proctor = null; renderProctor(); if (then) then(); },
   dismissToast(v) { app.toastQ = (app.toastQ || []).filter((t) => t.id !== v); renderToasts(); },
 
@@ -1282,29 +1348,35 @@ const ACTIONS = {
   speed(v) { B.speedUp(s, v); stage.setBase(tiers()); commit(); },
 
   // crafting
-  craftAdd(v) {
-    const n = B.craftSlots(s);
-    if (app.craft.slice(0, n).includes(v)) return;
-    const i = app.craft.slice(0, n).findIndex((x) => !x);
-    if (i >= 0) app.craft[i] = v; else app.craft[n - 1] = v;
-    render();
+  pickRecipe(v) { app.recipe = v; render(); },
+  pickPart(v) { app.part = v || null; render(); },
+  forgeStart() {
+    const r = RECIPES.find((x) => x.id === app.recipe);
+    const part = app.part && (s.mats[app.part] || 0) > 0 ? app.part : null;
+    const c = B.canForge(s, r, part);
+    if (!c.ok) { say({ studio: 'Build the Workshop first.', blueprint: 'You need the blueprint. Bosses and Gold+ loot boxes drop them.', tier: `This needs Workshop tier ${c.need}.`, amount: 'Not enough materials. Walk, or replay a Trial for parts.', full: 'Your inventory is full.' }[c.why] || 'Not yet.'); return; }
+    app.modal = { type: 'forge', recipe: r, part, strikes: [], t0: performance.now(), period: 1100 };
+    renderModal();
+    hammerLoop();
   },
-  craftClear(v) { app.craft[Number(v)] = null; render(); },
-  craftFill(v) {
-    const r = RECIPES.find((x) => x.id === v);
-    const keys = Object.keys(r.inputs);
-    app.craft = [keys[0] || null, keys[1] || null, keys[2] || null];
-    render();
+  hammer() {
+    const m = app.modal;
+    if (!m || m.type !== 'forge' || m.result || m.strikes.length >= 3) return;
+    const d = Math.abs(hammerPos(m) - 0.5);
+    m.strikes.push(d <= 0.06 ? 'perfect' : d <= 0.16 ? 'good' : 'miss');
+    $('#ui').classList.remove('shake'); void $('#ui').offsetWidth; $('#ui').classList.add('shake');
+    m.period *= 0.85;
+    m.t0 = performance.now() - Math.random() * m.period;
+    if (m.strikes.length >= 3) return setTimeout(() => finishForge(B.qualityFromStrikes(m.strikes, s.base.studio.tier)), 350);
+    renderModal();
   },
-  craftGo() {
-    const r = B.craft(s, app.craft.slice(0, B.craftSlots(s)));
-    if (r.ok) {
-      say(`${r.learned ? 'New recipe learned! ' : ''}${pick(PROCTOR.craft)}`);
-      app.craft = [null, null, null];
-    } else {
-      const msg = { studio: 'Build the Workshop first.', empty: 'Put at least two items in.', nothing: 'That makes nothing. Well, it makes a mess.', blueprint: 'There is a recipe here, but you need its blueprint. Bosses and rare boxes drop them.', tier: `This needs Workshop tier ${r.need}.`, amount: 'Not enough of something. Check the recipe amounts.' }[r.why];
-      say(msg);
-    }
+  forgeSkip() { finishForge('fine'); },
+  equipNew(v) { H.equip(s, v); closeModal(); commit(); },
+  reinforce(v) {
+    const r = B.reinforce(s, v);
+    if (!r.ok) say(r.why === 'max' ? 'It is as strong as it gets.' : 'Not enough materials to reinforce it.');
+    else say(`Reinforced to +${r.plus}. Stronger. Shinier. Same smell.`);
+    renderModal();
     commit();
   },
 

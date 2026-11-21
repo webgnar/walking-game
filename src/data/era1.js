@@ -11,9 +11,45 @@ export const ERA1 = {
   levelThreshold: 10,
 };
 
+// Basic materials. Wood builds the base; flint and bone make gear.
 export const MATERIALS = {
   flint: { name: 'Flint', icon: '◆', color: '#9aa7b8' },
   bone: { name: 'Bone', icon: '🦴', color: '#efe6cf' },
+  wood: { name: 'Wood', icon: '🪵', color: '#a0703c' },
+};
+
+// Crafting parts: trophies from the beasts you hunt (and loot boxes). Put one in the Workshop's
+// third slot to give the item a special effect. drops = enemies that drop it.
+export const PARTS = {
+  fang: { name: 'Wolf Fang', icon: '🦷', affix: 'serrated', drops: ['mangy', 'wolf', 'beta', 'alpha', 'hyena'] },
+  claw: { name: 'Lion Claw', icon: '🐾', affix: 'keen', drops: ['lion', 'sabre'] },
+  tine: { name: 'Antler Tine', icon: '🦌', affix: 'piercing', drops: ['elk'] },
+  hide: { name: 'Thick Hide', icon: '🟫', affix: 'hardened', drops: ['rhino', 'mammoth'] },
+  ember: { name: 'Ember Coal', icon: '🔥', affix: 'smoldering', drops: [] },
+};
+export const AFFIXES = {
+  serrated: { name: 'Serrated', desc: 'Weapon hits make the target bleed 3 a turn for 2 turns', bleed: 3 },
+  keen: { name: 'Keen', desc: '+6% critical chance', crit: 0.06 },
+  piercing: { name: 'Piercing', desc: 'Weapon hits ignore 4 armor', pierce: 4 },
+  hardened: { name: 'Hardened', desc: '+15 max health', hp: 15 },
+  smoldering: { name: 'Smoldering', desc: 'Weapon hits set the target burning, 3 a turn for 2 turns', burn: 3 },
+};
+// Forging quality, from the hammer timing. Skipping it gives Fine.
+export const QUALITY = {
+  crude: { name: 'Crude', mult: 0.85 },
+  fine: { name: 'Fine', mult: 1 },
+  masterwork: { name: 'Masterwork', mult: 1.25 },
+};
+// Reinforcing: +1 to +5. Cost for the next level n: (2 + 2n) of the slot's material and n wood.
+export const REINFORCE_MAX = 5;
+export const SLOT_MAT = { weapon: 'flint', offhand: 'wood', armor: 'bone', helm: 'bone', trinket: 'bone' };
+
+// Sets: trophies from each act's hunt. Bonuses echo the beast they came from.
+export const SETS = {
+  pack: { id: 'pack', name: 'Pack Hunter', pieces: ['alpha_fang', 'wolf_pelt', 'fang_charm'],
+    bonus: { 2: { crit: 0.05, text: '+5% critical chance' }, 3: { furyMult: 1.5, text: 'Fury fills 50% faster' } } },
+  predator: { id: 'predator', name: 'Predator', pieces: ['sabre_hide', 'lion_mask', 'claw_buckler'],
+    bonus: { 2: { bleed: 3, text: 'Weapon hits make the target bleed' }, 3: { firstAp: 1, text: '+1 AP on your first turn' } } },
 };
 
 // ---------- Skills ----------
@@ -214,15 +250,18 @@ export const GEAR = {
   bone_mail: { name: 'Bone Mail', slot: 'armor', stats: { hp: 20 }, tier: 'crafted', look: 'armor2' },
   bone_helm: { name: 'Bone Helm', slot: 'helm', stats: { vit: 2 }, tier: 'crafted', look: 'helm2' },
   flint_buckler: { name: 'Flint Buckler', slot: 'offhand', stats: { str: 2 }, tier: 'crafted', look: 'shield2' },
-  fang_charm: { name: 'Fang Charm', slot: 'trinket', stats: { agi: 2 }, tier: 'crafted', look: 'charm2' },
+  fang_charm: { name: 'Fang Charm', slot: 'trinket', stats: { agi: 2 }, tier: 'crafted', look: 'charm2', set: 'pack' },
+  wolf_pelt: { name: 'Wolf Pelt', slot: 'armor', stats: { hp: 18, str: 1 }, tier: 'crafted', look: 'armor2', set: 'pack' },
+  lion_mask: { name: 'Lion Mask', slot: 'helm', stats: { vit: 2, agi: 1 }, tier: 'crafted', look: 'helm2', set: 'predator' },
+  claw_buckler: { name: 'Claw Buckler', slot: 'offhand', stats: { str: 2, agi: 1 }, tier: 'crafted', look: 'shield2', set: 'predator' },
   ember_totem: { name: 'Ember Totem', slot: 'trinket', stats: { int: 2 }, tier: 'crafted', look: 'charm2' },
   // Rare loot-box gear (MVP guess: +3 to one attribute)
   storm_crown: { name: 'Storm-Eye Crown', slot: 'helm', stats: { vit: 3 }, tier: 'rare', look: 'helm2' },
   obsidian_ward: { name: 'Obsidian Ward', slot: 'offhand', stats: { str: 3 }, tier: 'rare', look: 'shield2' },
   ghost_amber: { name: 'Ghost Amber', slot: 'trinket', stats: { agi: 3 }, tier: 'rare', look: 'charm3' },
   // Boss drops
-  alpha_fang: { name: 'Alpha Fang', slot: 'weapon', stats: { dmg: 5 }, tier: 'boss', look: 'fang' },
-  sabre_hide: { name: 'Sabretooth Hide', slot: 'armor', stats: { hp: 30 }, tier: 'boss', look: 'armor3' },
+  alpha_fang: { name: 'Alpha Fang', slot: 'weapon', stats: { dmg: 5 }, tier: 'boss', look: 'fang', set: 'pack' },
+  sabre_hide: { name: 'Sabretooth Hide', slot: 'armor', stats: { hp: 30 }, tier: 'boss', look: 'armor3', set: 'predator' },
   tusk_club: { name: 'Mammoth Tusk Club', slot: 'weapon', stats: { dmg: 8 }, tier: 'boss', look: 'tusk' },
 };
 export const SLOTS = ['weapon', 'armor', 'helm', 'offhand', 'trinket'];
@@ -235,24 +274,31 @@ export const BOOSTERS = {
   warpaint: { name: 'Warpaint', desc: 'Next Trial: +3 damage on every hit', fights: 1, dmg: 3 },
 };
 
-// ---------- Crafting (MVP guess: recipes) ----------
-// Put one item type in each slot. A recipe matches the exact set of item types;
-// the amounts are what one craft consumes. Materials: 'flint','bone'; anything else is a gear key.
-// studio: minimum Workshop tier. Unknown recipes can still be found by experimenting.
+// ---------- Crafting ----------
+// A recipe makes one item from materials (and, for set pieces, beast parts). At Workshop tier 2
+// a third slot takes any part, which gives the item a special effect. Hammer timing sets quality.
+// known: available from the start. Others need a blueprint (bosses, Gold+ loot boxes).
 export const RECIPES = [
-  { id: 'r_flint_club', out: { gear: 'flint_club' }, inputs: { flint: 5, bone: 2 }, studio: 1, known: true },
-  { id: 'r_bone_mail', out: { gear: 'bone_mail' }, inputs: { hide_wrap: 1, bone: 6 }, studio: 1, known: true },
-  { id: 'r_bone_helm', out: { gear: 'bone_helm' }, inputs: { skull_cap: 1, bone: 4 }, studio: 1 },
-  { id: 'r_flint_buckler', out: { gear: 'flint_buckler' }, inputs: { bark_shield: 1, flint: 4 }, studio: 1 },
-  { id: 'r_fang_charm', out: { gear: 'fang_charm' }, inputs: { tooth_charm: 1, bone: 3, flint: 2 }, studio: 2 },
-  { id: 'r_ember_totem', out: { gear: 'ember_totem' }, inputs: { ember_stone: 1, flint: 3, bone: 2 }, studio: 2 },
-  { id: 'r_stride_brew', out: { booster: 'stride_brew' }, inputs: { pebble_string: 1, flint: 8, bone: 8 }, studio: 3, blueprint: true },
-  { id: 'r_sabre_hide', out: { gear: 'sabre_hide' }, inputs: { bone_mail: 1, bone: 10, flint: 6 }, studio: 3, blueprint: true },
+  { id: 'r_flint_club', out: { gear: 'flint_club' }, mats: { flint: 5, wood: 2 }, studio: 1, known: true },
+  { id: 'r_bone_mail', out: { gear: 'bone_mail' }, mats: { bone: 6, wood: 2 }, studio: 1, known: true },
+  { id: 'r_bone_helm', out: { gear: 'bone_helm' }, mats: { bone: 5 }, studio: 1, known: true },
+  { id: 'r_flint_buckler', out: { gear: 'flint_buckler' }, mats: { wood: 4, flint: 3 }, studio: 1, known: true },
+  // Pack Hunter set: blueprints from the Alpha
+  { id: 'r_wolf_pelt', out: { gear: 'wolf_pelt' }, mats: { bone: 6, wood: 2, fang: 3 }, studio: 1, blueprint: true },
+  { id: 'r_fang_charm', out: { gear: 'fang_charm' }, mats: { bone: 3, fang: 3 }, studio: 1, blueprint: true },
+  // Predator set: blueprints from the Sabretooth
+  { id: 'r_lion_mask', out: { gear: 'lion_mask' }, mats: { bone: 5, claw: 3 }, studio: 2, blueprint: true },
+  { id: 'r_claw_buckler', out: { gear: 'claw_buckler' }, mats: { wood: 4, flint: 3, claw: 3 }, studio: 2, blueprint: true },
+  // From loot boxes
+  { id: 'r_ember_totem', out: { gear: 'ember_totem' }, mats: { bone: 3, flint: 2, ember: 1 }, studio: 2, blueprint: true },
+  { id: 'r_stride_brew', out: { booster: 'stride_brew' }, mats: { wood: 6, flint: 6, ember: 1 }, studio: 3, blueprint: true },
 ];
+// Blueprints each boss drops on its first win.
+export const BOSS_BLUEPRINTS = { 5: ['r_wolf_pelt', 'r_fang_charm'], 10: ['r_lion_mask', 'r_claw_buckler'], 15: ['r_ember_totem'] };
 
 // ---------- Base ----------
 export const BUILDINGS = {
-  studio: { name: 'Workshop', short: 'Workshop', icon: '⚒', unlocks: ['Two-item crafts', 'Three-item crafts', 'Master recipes'] },
+  studio: { name: 'Workshop', short: 'Workshop', icon: '⚒', unlocks: ['Forge gear from recipes', 'A third slot for beast parts (special effects)', 'Master recipes, and better odds of Masterwork'] },
   altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Skill rank 2 · Terror finisher for sale', 'Skill rank 3', 'Training 25% cheaper'] },
   inventory: { name: 'Inventory', short: 'Inventory', icon: '🧺', unlocks: ['30 slots', '40 slots', '50 slots'] },
   shrine: { name: 'Shrine', short: 'Shrine', icon: '⛩', unlocks: ['Better loot box odds', 'Even better odds', 'Best odds'] },
@@ -262,13 +308,12 @@ export const BUILDING_ORDER = ['studio', 'altar', 'inventory', 'shrine', 'truth'
 // tier index = target tier (1..3)
 // Lowered after playtest: players cleared all 15 Trials and then sat waiting on the base.
 // Was 100/300/800 Soles and 10/120/480 minutes.
+// Buildings cost Soles and wood.
 export const BUILD_COST = {
-  1: { soles: 50, mats: 3, minutes: 5 },
-  2: { soles: 150, mats: 8, minutes: 45 },
-  3: { soles: 400, mats: 20, minutes: 180 },
+  1: { soles: 50, wood: 2, minutes: 5 },
+  2: { soles: 150, wood: 5, minutes: 45 },
+  3: { soles: 400, wood: 12, minutes: 180 },
 };
-// how a building's material cost splits between flint and bone (MVP guess)
-export const BUILD_MAT_SPLIT = { studio: 'flint', altar: 'bone', inventory: 'bone', shrine: 'mixed', truth: 'flint' };
 export const INVENTORY_SLOTS = [20, 30, 40, 50];
 
 // ---------- Boons (on evolving, MVP guess) ----------

@@ -16,17 +16,17 @@ test('salvage junk keeps equipped, better, boss and one recipe copy', () => {
   addGear(s, 'flint_club');          // worse than the boss weapon below: junk
   addGear(s, 'cracked_club');        // worse weapon: junk
   addGear(s, 'cracked_club');        // junk
-  addGear(s, 'hide_wrap');           // recipe input (Bone Mail): kept
   addGear(s, 'hide_wrap');           // equipped as armor
+  addGear(s, 'hide_wrap');           // a spare copy: junk
   addGear(s, 'torn_hide');           // worse armor: junk
-  addGear(s, 'alpha_fang');          // boss gear: never junk (and better, so equipped)
+  addGear(s, 'alpha_fang');          // boss and set gear: never junk (and better, so equipped)
   autoEquipBest(s);
   const junk = junkGear(s).map((it) => it.key).sort();
-  assert.deepEqual(junk, ['cracked_club', 'cracked_club', 'flint_club', 'torn_hide']);
+  assert.deepEqual(junk, ['cracked_club', 'cracked_club', 'flint_club', 'hide_wrap', 'torn_hide']);
   const before = s.soles;
   const r = salvageJunk(s);
-  assert.equal(r.count, 4);
-  assert.equal(s.soles - before, 2 + 2 + 8 + 2);
+  assert.equal(r.count, 5);
+  assert.equal(s.soles - before, 2 + 2 + 8 + 5 + 2);
   assert.ok(s.inv.some((it) => it.key === 'alpha_fang'));
-  assert.equal(s.inv.filter((it) => it.key === 'hide_wrap').length, 2);
+  assert.equal(s.inv.filter((it) => it.key === 'hide_wrap').length, 1);
 });

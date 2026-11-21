@@ -1,5 +1,6 @@
 // Steps -> Soles, loot boxes, materials, the expedition report, daily goals and the weekly bonus.
-import { GEAR, BOOSTERS, RECIPES, INVENTORY_SLOTS } from '../data/era1.js';
+import { GEAR, BOOSTERS, RECIPES, INVENTORY_SLOTS, MATERIALS, PARTS, AFFIXES } from '../data/era1.js';
+import { itemScore } from './gear.js';
 import { FRAGMENTS, GLITCHES } from '../data/story.js';
 import { env, dayKey, weekKey, pick, randInt, chance, uid, toast } from './state.js';
 import { feedTransmission } from './story.js';
@@ -31,6 +32,9 @@ export function boxOdds(shrineTier = 0) {
   return o;
 }
 
+// Pity: a bad luck streak never runs long. At most this many boxes without the tier (or better).
+export const PITY = { gold: 15, platinum: 50, legendary: 220 };
+
 export function rollTier(s) {
   const o = boxOdds(s.base.shrine.tier);
   let r = env.rand();
@@ -43,6 +47,13 @@ export function rollTier(s) {
     s.active.luckyLeft--;
     tier = TIERS[Math.min(TIERS.length - 1, TIERS.indexOf(tier) + 1)];
   }
+  // pity counters: boxes since the last box of that tier or better
+  const pity = s.pity || (s.pity = { gold: 0, platinum: 0, legendary: 0 });
+  for (const k of Object.keys(PITY)) pity[k]++;
+  for (const k of ['legendary', 'platinum', 'gold']) {
+    if (pity[k] >= PITY[k] && TIERS.indexOf(tier) < TIERS.indexOf(k)) { tier = k; break; }
+  }
+  for (const k of Object.keys(PITY)) if (TIERS.indexOf(tier) >= TIERS.indexOf(k)) pity[k] = 0;
   return tier;
 }
 
@@ -62,7 +73,8 @@ export function ingestSteps(s, n, source = 'debug') {
   const full = Math.max(0, Math.min(after, DAILY_SOFT_CAP) - before);
   const effective = full + (n - full) * 0.5;
 
-  const r = s.report || (s.report = { steps: 0, soles: 0, boxes: [], mats: { flint: 0, bone: 0 }, lost: 0, since: env.now(), source });
+  const r = s.report || (s.report = { steps: 0, soles: 0, boxes: [], mats: { flint: 0, bone: 0, wood: 0 }, lost: 0, since: env.now(), source });
+  if (r.mats.wood === undefined) r.mats.wood = 0;
   r.steps += n;
 
   const sps = stepsPerSole(s);
@@ -82,7 +94,8 @@ export function ingestSteps(s, n, source = 'debug') {
   s.steps.towardMat += n;
   while (s.steps.towardMat >= STEPS_PER_MAT) {
     s.steps.towardMat -= STEPS_PER_MAT;
-    r.mats[chance(0.5) ? 'flint' : 'bone']++;
+    const x = env.rand();
+    r.mats[x < 0.45 ? 'wood' : x < 0.75 ? 'flint' : 'bone']++;
   }
   const cleared = feedTransmission(s, n);
   if (cleared.length) r.transmissions = [...(r.transmissions || []), ...cleared];
@@ -96,8 +109,7 @@ export function collectReport(s) {
   s.soles += r.soles;
   s.solesEarned += r.soles;
   for (const t of r.boxes) addBox(s, t);
-  s.mats.flint += r.mats.flint;
-  s.mats.bone += r.mats.bone;
+  for (const [k, n] of Object.entries(r.mats)) s.mats[k] = (s.mats[k] || 0) + n;
   s.report = null;
   return r;
 }
@@ -116,7 +128,7 @@ export function invUsed(s) {
 }
 
 // Returns the new instance, or null if salvaged because the bag is full.
-export function addGear(s, key) {
+export function addGear(s, key, opts = {}) {
   if (invUsed(s) >= invCapacity(s)) {
     const m = salvageValue(key);
     s.mats.flint += m.flint;
@@ -124,9 +136,24 @@ export function addGear(s, key) {
     toast(s, { kind: 'warn', title: 'Inventory full', text: `${GEAR[key].name} was salvaged into ${m.flint} flint and ${m.bone} bone. Upgrade the Inventory for more room.` });
     return null;
   }
-  const it = { uid: uid(), key };
+  const it = { uid: uid(), key, ...opts };
   s.inv.push(it);
   return it;
+}
+
+// ---------- Parts and materials ----------
+// A random basic material: flint, bone or wood.
+export function randomMat() {
+  const x = env.rand();
+  return x < 0.36 ? 'wood' : x < 0.68 ? 'flint' : 'bone';
+}
+export function addMats(s, mats) {
+  for (const [k, n] of Object.entries(mats)) s.mats[k] = (s.mats[k] || 0) + n;
+}
+// Random parts, all kinds (loot boxes are the only source of Ember Coal).
+export function randomPart() {
+  const keys = Object.keys(PARTS);
+  return keys[Math.floor(env.rand() * keys.length)];
 }
 
 export function salvageValue(key) {
@@ -165,16 +192,16 @@ export function junkGear(s) {
   const wornScore = {};
   for (const id of equipped) {
     const it = s.inv.find((x) => x.uid === id);
-    if (it) wornScore[GEAR[it.key].slot] = gearScore(it.key);
+    if (it) wornScore[GEAR[it.key].slot] = itemScore(it);
   }
-  const ingredient = new Set(RECIPES.flatMap((r) => Object.keys(r.inputs)).filter((k) => GEAR[k]));
+  const ingredient = new Set(RECIPES.flatMap((r) => Object.keys(r.mats)).filter((k) => GEAR[k]));
   const keptForRecipe = new Set();
   const junk = [];
   for (const it of s.inv) {
     const g = GEAR[it.key];
-    if (equipped.includes(it.uid) || g.tier === 'boss' || g.tier === 'rare') continue;
+    if (equipped.includes(it.uid) || g.tier === 'boss' || g.tier === 'rare' || g.set || it.affix || it.q === 'masterwork' || it.plus) continue;
     if (ingredient.has(it.key) && !keptForRecipe.has(it.key)) { keptForRecipe.add(it.key); continue; }
-    if (gearScore(it.key) > (wornScore[g.slot] ?? -1)) continue;
+    if (itemScore(it) > (wornScore[g.slot] ?? -1)) continue;
     junk.push(it);
   }
   return junk;
@@ -222,13 +249,14 @@ const SHOP_GEAR = ['stone_club', 'hide_wrap', 'skull_cap', 'bark_shield', 'tooth
 const WORN_GEAR = ['cracked_club', 'torn_hide', 'pebble_string'];
 const CRAFTED_GEAR = ['flint_club', 'bone_mail', 'bone_helm', 'flint_buckler', 'fang_charm', 'ember_totem'];
 const RARE_GEAR = ['storm_crown', 'obsidian_ward', 'ghost_amber'];
+// Boxes feed crafting: materials and parts. Finished gear only from Legendary and Celestial.
 const BOX_TABLE = {
-  bronze: { mats: [2, 3], gear: [0.25, WORN_GEAR], frag: 0.08, boost: 0.03 },
-  silver: { mats: [4, 5], gear: [0.5, SHOP_GEAR], frag: 0.2, boost: 0.15 },
-  gold: { mats: [6, 8], gear: [0.6, CRAFTED_GEAR], frag: 0.35, boost: 0.3 },
-  platinum: { mats: [9, 11], gear: [1, RARE_GEAR], frag: 0.5, boost: 0.6 },
-  legendary: { mats: [12, 14], gear: [1, ['alpha_fang', 'sabre_hide', ...RARE_GEAR]], frag: 1, boost: 1, blueprint: true },
-  celestial: { mats: [15, 18], gear: [1, RARE_GEAR], frag: 1, boost: 1, blueprint: true, respec: true, extraBoost: true },
+  bronze: { mats: [2, 3], parts: 0, frag: 0.08, boost: 0.08 },
+  silver: { mats: [4, 5], parts: 1, frag: 0.2, boost: 0.15 },
+  gold: { mats: [6, 8], parts: 2, frag: 0.35, boost: 0.3, blueprint: 0.35 },
+  platinum: { mats: [9, 11], parts: 3, frag: 0.5, boost: 0.6, blueprint: 1 },
+  legendary: { mats: [12, 14], parts: 3, frag: 1, boost: 1, blueprint: 1, gear: 1 },
+  celestial: { mats: [15, 18], parts: 4, frag: 1, boost: 1, blueprint: 1, gear: 2, respec: true, extraBoost: true },
 };
 
 // Opens a box and applies its contents. Returns a list of reveal cards.
@@ -250,14 +278,14 @@ export function openAll(s) {
     const o = openBox(s, s.boxes[0].id);
     tiers[o.tier] = (tiers[o.tier] || 0) + 1;
     for (const it of o.items) {
-      if (it.type === 'mat' || it.type === 'booster') {
+      if (it.type === 'mat' || it.type === 'part' || it.type === 'booster') {
         const k = `${it.type}:${it.key}`;
         if (!sums[k]) { sums[k] = { ...it, n: 0 }; merged.push(sums[k]); }
         sums[k].n += it.n || 1;
       } else merged.push(it);
     }
   }
-  const order = { mat: 0, booster: 1, gear: 2, blueprint: 3, frag: 4, respec: 5 };
+  const order = { mat: 0, part: 1, booster: 2, gear: 3, blueprint: 4, frag: 5, respec: 6 };
   merged.sort((a, b) => order[a.type] - order[b.type]);
   return { tiers, items: merged, count: Object.values(tiers).reduce((a, b) => a + b, 0) };
 }
@@ -265,16 +293,18 @@ export function openAll(s) {
 export function rollContents(s, tier) {
   const T = BOX_TABLE[tier];
   const items = [];
+  const got = {};
   const nm = randInt(T.mats[0], T.mats[1]);
-  const flint = randInt(0, nm);
-  s.mats.flint += flint;
-  s.mats.bone += nm - flint;
-  if (flint) items.push({ type: 'mat', key: 'flint', n: flint });
-  if (nm - flint) items.push({ type: 'mat', key: 'bone', n: nm - flint });
-  if (chance(T.gear[0])) {
-    const key = pick(T.gear[1]);
-    const it = addGear(s, key);
-    items.push({ type: 'gear', key, salvaged: !it });
+  for (let i = 0; i < nm; i++) { const k = randomMat(); got[k] = (got[k] || 0) + 1; }
+  for (let i = 0; i < T.parts; i++) { const k = randomPart(); got[k] = (got[k] || 0) + 1; }
+  addMats(s, got);
+  for (const [k, n] of Object.entries(got)) items.push({ type: PARTS[k] ? 'part' : 'mat', key: k, n });
+  for (let i = 0; i < (T.gear || 0); i++) {
+    // finished gear: a rare or boss piece, Masterwork, with a random special effect
+    const key = pick(RARE_GEAR.concat(['alpha_fang', 'sabre_hide']));
+    const affix = pick(Object.keys(AFFIXES));
+    const it = addGear(s, key, { q: 'masterwork', affix });
+    items.push({ type: 'gear', key, inst: it, salvaged: !it });
   }
   if (s.trials.cleared[5] && chance(T.frag)) {
     const f = giveFragment(s);
@@ -286,8 +316,8 @@ export function rollContents(s, tier) {
     items.push({ type: 'booster', key });
   }
   if (T.extraBoost) { addBooster(s, 'stride_brew'); items.push({ type: 'booster', key: 'stride_brew' }); }
-  if (T.blueprint) {
-    const bp = RECIPES.find((r) => r.blueprint && !s.recipes.includes(r.id));
+  if (T.blueprint && chance(T.blueprint)) {
+    const bp = RECIPES.find((r) => r.blueprint && !s.recipes.includes(r.id) && !['r_wolf_pelt', 'r_fang_charm', 'r_lion_mask', 'r_claw_buckler'].includes(r.id));
     if (bp) { s.recipes.push(bp.id); s.blueprints.push(bp.id); items.push({ type: 'blueprint', id: bp.id }); }
   }
   if (T.respec) { s.hero.respecTokens++; items.push({ type: 'respec' }); }
@@ -297,13 +327,13 @@ export function rollContents(s, tier) {
 
 // ---------- Daily goals and weekly bonus ----------
 export const GOAL_POOL = {
-  walk3k: { text: 'Walk 3,000 steps', target: 3000, kind: 'steps', reward: { soles: 30 } },
-  walk6k: { text: 'Walk 6,000 steps', target: 6000, kind: 'steps', reward: { box: 'bronze' } },
-  win2: { text: 'Win 2 Trials (replays count)', target: 2, kind: 'win', reward: { soles: 30 } },
-  open2: { text: 'Open 2 loot boxes', target: 2, kind: 'open', reward: { soles: 20 } },
-  craft1: { text: 'Craft an item', target: 1, kind: 'craft', reward: { soles: 25 } },
-  train1: { text: 'Train at the altar', target: 1, kind: 'train', reward: { soles: 20 } },
-  build1: { text: 'Start a building upgrade', target: 1, kind: 'build', reward: { soles: 25 } },
+  walk3k: { text: 'Walk 3,000 steps', target: 3000, kind: 'steps', reward: { mats: { wood: 3 } } },
+  walk6k: { text: 'Walk 6,000 steps', target: 6000, kind: 'steps', reward: { mats: { wood: 2 }, parts: 1 } },
+  win2: { text: 'Win 2 Trials (replays count)', target: 2, kind: 'win', reward: { mats: { flint: 3, bone: 2 } } },
+  open2: { text: 'Open 2 loot boxes', target: 2, kind: 'open', reward: { booster: 'warpaint' } },
+  craft1: { text: 'Forge an item', target: 1, kind: 'craft', reward: { parts: 1 } },
+  train1: { text: 'Train at the altar', target: 1, kind: 'train', reward: { mats: { bone: 3 } } },
+  build1: { text: 'Start a building upgrade', target: 1, kind: 'build', reward: { mats: { wood: 3 } } },
 };
 export const ALL_GOALS_BONUS = { box: 'silver' };
 export const WEEKLY = { daysNeeded: 4, stepsPerDay: 4000, reward: { box: 'gold' } };
@@ -345,6 +375,9 @@ export function grantReward(s, reward) {
   if (!reward) return;
   if (reward.soles) { s.soles += reward.soles; s.solesEarned += reward.soles; }
   if (reward.box) addBox(s, reward.box);
+  if (reward.mats) addMats(s, reward.mats);
+  if (reward.parts) for (let i = 0; i < reward.parts; i++) addMats(s, { [randomPart()]: 1 });
+  if (reward.booster) addBooster(s, reward.booster);
 }
 
 export function claimGoal(s, idx) {
@@ -395,6 +428,7 @@ export const SHOP_ITEMS = [
   ...SHOP_GEAR.map((k) => ({ kind: 'gear', key: k, price: GEAR[k].price })),
   { kind: 'mat', key: 'flint', n: 5, price: 50 },
   { kind: 'mat', key: 'bone', n: 5, price: 50 },
+  { kind: 'mat', key: 'wood', n: 5, price: 50 },
 ];
 
 export function buy(s, idx) {
@@ -406,7 +440,7 @@ export function buy(s, idx) {
     addGear(s, item.key);
   } else {
     s.soles -= item.price;
-    s.mats[item.key] += item.n;
+    s.mats[item.key] = (s.mats[item.key] || 0) + item.n;
   }
   return { ok: true };
 }

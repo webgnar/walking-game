@@ -1,11 +1,12 @@
 // Hero stats, XP, levels, gear and training.
 import { SKILLS, GEAR, SOLES_PER_XP, xpToNext, ERA1, HERO_START, SLOTS, LOADOUT_MAX, FINISHERS } from '../data/era1.js';
 import { toast } from './state.js';
+import { itemStats, itemScore, gearBonuses } from './gear.js';
 
 export function gearOf(s, uidv) {
   if (!uidv) return null;
   const it = s.inv.find((i) => i.uid === uidv);
-  return it ? { ...it, ...GEAR[it.key] } : null;
+  return it ? { ...GEAR[it.key], ...it, stats: itemStats(it) } : null;
 }
 
 export function equippedGear(s) {
@@ -22,12 +23,16 @@ export function heroStats(s) {
     for (const k of ['str', 'vit', 'int', 'agi']) a[k] += g.stats[k] || 0;
   }
   if (h.boons.includes('b_thick_skin')) hpBonus += 15;
+  const gb = gearBonuses(s);
+  hpBonus += gb.hp;
   const maxHp = 50 + 5 * a.vit + hpBonus;
   return {
     ...a,
     weapon: dmg,
     maxHp,
-    crit: 0.05 + 0.01 * a.agi + (h.boons.includes('b_keen_eye') ? 0.05 : 0),
+    // special effects and set bonuses
+    bleedOnHit: gb.bleed, burnOnHit: gb.burn, pierce: gb.pierce, furyMult: gb.furyMult, firstAp: gb.firstAp,
+    crit: 0.05 + 0.01 * a.agi + (h.boons.includes('b_keen_eye') ? 0.05 : 0) + gb.crit,
     dodge: 0.01 * a.agi,
     apCarry: 1 + Math.floor(a.int / 10),
   };
@@ -201,12 +206,10 @@ export function gearScore(g) {
 
 export function autoEquipBest(s) {
   for (const slot of SLOTS) {
-    const cur = gearOf(s, s.hero.equip[slot]);
-    let best = cur;
+    let best = s.inv.find((i) => i.uid === s.hero.equip[slot]) || null;
     for (const it of s.inv) {
-      const g = GEAR[it.key];
-      if (g.slot !== slot) continue;
-      if (!best || gearScore(g) > gearScore(best)) best = { ...it, ...g };
+      if (GEAR[it.key].slot !== slot) continue;
+      if (!best || itemScore(it) > itemScore(best)) best = it;
     }
     if (best) s.hero.equip[slot] = best.uid;
   }

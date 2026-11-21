@@ -261,6 +261,58 @@ Three finishers per era.
 
 **Art:** the new beasts (mangy and beta wolves, hyena, mountain lion, elk, woolly rhino) are stand-ins built from simple shapes until real models arrive. Until gear is modeled in the hero's style, the hero always holds zack's club model (weapon stats still apply) and the blocky armor, helm, shield and trinket shapes are hidden.
 
+## Loot boxes and crafting, v2 (built)
+
+**Where loot boxes come from:** walking (1 per 1,000 steps), mini-bosses (Gold) and the Mammoth (Platinum) on first wins, the daily all-three bonus (Silver), the weekly bonus (Gold), a few big achievements, and star totals. Regular Trials no longer give boxes. Roughly 7 a day at 6,000 steps, down from 10 to 12.
+
+**What's inside:** materials and parts feed crafting. Finished gear only comes from Legendary and Celestial boxes (Masterwork, with a random special effect).
+
+| Tier | Contents |
+| --- | --- |
+| Bronze | 2 to 3 materials (flint, bone, wood), small chance of a booster |
+| Silver | 4 to 5 materials, 1 beast part |
+| Gold | 6 to 8 materials, 2 parts, 35% blueprint |
+| Platinum | 9 to 11 materials, 3 parts, a blueprint |
+| Legendary | 12 to 14 materials, 3 parts, a finished Masterwork gear piece, a blueprint |
+| Celestial | 15 to 18 materials, 4 parts, 2 finished pieces, a blueprint, a respec token |
+
+**Pity timer:** at most 15 boxes without Gold or better, 50 without Platinum, 220 without Legendary.
+
+**Daily goals:** each one gives materials, a part or a booster; finishing all three gives a Silver loot box.
+
+**Materials:** flint and bone make gear; wood builds the base (buildings cost Soles + wood: 2, 5 and 12 per tier). Walking finds lean toward wood.
+
+**Beast parts:** trophies from the hunt. Wolves and hyenas drop Wolf Fangs, lions and the Sabretooth drop Lion Claws, elk drop Antler Tines, rhinos and the Mammoth drop Thick Hide. Ember Coal comes only from loot boxes. First wins drop 2 parts; replays usually drop 1, so you replay a Trial to farm the part you need.
+
+**Forging (Workshop):**
+
+- Pick a recipe. Four are known from the start; set pieces and the rest need blueprints (the Alpha, the Sabretooth, the Mammoth and Gold+ boxes).
+- Workshop tier 2 opens a part slot. The part gives the item a special effect:
+
+| Part | Effect |
+| --- | --- |
+| Wolf Fang | Serrated: weapon hits make the target bleed 3 a turn for 2 turns |
+| Lion Claw | Keen: +6% critical chance |
+| Antler Tine | Piercing: weapon hits ignore 4 armor |
+| Thick Hide | Hardened: +15 max health |
+| Ember Coal | Smoldering: weapon hits set the target burning |
+
+- **Hammer timing:** strike the anvil three times as the marker crosses the gold. Perfect strikes make Masterwork (stats ×1.25), fumbles make Crude (×0.85); skipping gives Fine. A tier 3 Workshop is more forgiving.
+- **Reinforce** any piece from +1 to +5 with materials (no failure chance).
+
+**Sets (trophies from each act's hunt):**
+
+| Set | Pieces | 2 pieces | 3 pieces |
+| --- | --- | --- | --- |
+| Pack Hunter | Alpha Fang (drop), Wolf Pelt, Fang Charm (Alpha blueprints) | +5% critical chance | Fury fills 50% faster |
+| Predator | Sabretooth Hide (drop), Lion Mask, Claw Buckler (Sabretooth blueprints) | Weapon hits make the target bleed | +1 AP on your first turn |
+
+Set progress shows as one line on the Gear tab and in the item window.
+
+**Salvage:** worn 2, shop 5, crafted 8 Soles. Set pieces, gear with a special effect, Masterwork and reinforced gear are never treated as junk.
+
+**Pacing:** the end-to-end bot finishes Era 1 in about 8 days at 6,000 steps a day, a bit under the 10 to 14 day target, mostly because base costs were lowered. Tune after playtests.
+
 ## Era 1 combat: v1 numbers (superseded by v2 above for enemies and Trials)
 
 First-guess numbers so the combat prototype can be built. Expect them to change after playtesting.

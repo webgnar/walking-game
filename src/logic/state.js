@@ -40,7 +40,8 @@ export function newState() {
     steps: { total: 0, byDay: {}, towardBox: 0, towardMat: 0, remainder: 0 },
     report: null, // pending expedition report
     boxes: [], // {id, tier, at}
-    mats: { flint: 0, bone: 0 },
+    mats: { flint: 0, bone: 0, wood: 0, fang: 0, claw: 0, tine: 0, hide: 0, ember: 0 }, // materials and beast parts
+    pity: { gold: 0, platinum: 0, legendary: 0 }, // loot boxes since the last of each tier
     inv: [], // gear instances {uid, key}
     boosters: {}, // key -> count
     active: { strideUntil: 0, luckyLeft: 0, warpaint: 0 },
@@ -86,6 +87,7 @@ export function load() {
     for (const k of Object.keys(fresh)) if (s[k] === undefined) s[k] = fresh[k];
     for (const k of Object.keys(fresh.hero)) if (s.hero[k] === undefined) s.hero[k] = fresh.hero[k];
     if (!s.trials.stars) s.trials.stars = {};
+    for (const k of Object.keys(fresh.mats)) if (s.mats[k] === undefined) s.mats[k] = 0;
     // Fang Ripper was removed: saves that had it get Bloodrush instead
     if (s.hero.finishers.includes('fang')) {
       s.hero.finishers = [...new Set(s.hero.finishers.map((f) => (f === 'fang' ? 'bloodrush' : f)))];

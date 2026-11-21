@@ -1,5 +1,5 @@
 // Trial availability and rewards (first win vs replay).
-import { TRIALS, RECIPES, STAR_REWARDS } from '../data/era1.js';
+import { TRIALS, RECIPES, STAR_REWARDS, ENEMIES, PARTS, BOSS_BLUEPRINTS } from '../data/era1.js';
 import { grantFinisher } from './hero.js';
 import { env, randInt, chance, pick } from './state.js';
 import { addXp } from './hero.js';
@@ -63,10 +63,9 @@ export function finishTrial(s, n, result, battle) {
       out.starter = STARTER;
       return out;
     }
-    // loot box tier: regular rolls normally; bosses get better boxes (MVP guess)
-    const tier = t.boss === 'era' ? 'platinum' : t.boss === 'mini' ? 'gold' : rollTier(s);
-    addBox(s, tier);
-    out.box = tier;
+    // Loot boxes come from walking; Trials only give boxes for bosses.
+    if (t.boss) { const tier = t.boss === 'era' ? 'platinum' : 'gold'; addBox(s, tier); out.box = tier; }
+    out.parts = beastParts(t, 2);
     const m = randInt(2, 4);
     const f = randInt(0, m);
     out.mats = { flint: f, bone: m - f };
@@ -74,12 +73,9 @@ export function finishTrial(s, n, result, battle) {
     if (n === 10) { addGear(s, 'sabre_hide'); out.gear.push('sabre_hide'); grantFinisher(s, 'bloodrush'); out.finisher = 'bloodrush'; }
     if (n === 15) { addGear(s, 'tusk_club'); out.gear.push('tusk_club'); }
     if (t.boss === 'mini') { s.hero.respecTokens++; out.respec = true; }
-    if (t.boss === 'era') {
-      s.eraKey = true;
-      out.eraKey = true;
-      const bp = RECIPES.find((r) => r.blueprint && !s.recipes.includes(r.id));
-      if (bp) { s.recipes.push(bp.id); s.blueprints.push(bp.id); out.blueprint = bp.id; }
-    }
+    if (t.boss === 'era') { s.eraKey = true; out.eraKey = true; }
+    out.blueprints = [];
+    for (const id of BOSS_BLUEPRINTS[n] || []) if (!s.recipes.includes(id)) { s.recipes.push(id); s.blueprints.push(id); out.blueprints.push(id); }
     // First-hour story beats (GDD "The first hour")
     const t0 = TRANSMISSIONS.find((x) => x.trial === n);
     if (t0 && startTransmission(s, t0.id)) out.transmission = t0.id;
@@ -92,7 +88,9 @@ export function finishTrial(s, n, result, battle) {
     const m = randInt(1, 3) + (s.hero.boons.includes('b_scavenger') ? 1 : 0);
     const f = randInt(0, m);
     out.mats = { flint: f, bone: m - f };
-    if (chance(0.2)) {
+    // replays are where you farm a beast's parts
+    out.parts = chance(0.6) ? beastParts(t, 1) : {};
+    if (chance(0.1)) {
       const key = pick(REPLAY_GEAR);
       const it = addGear(s, key);
       out.gear.push(key);
@@ -101,7 +99,17 @@ export function finishTrial(s, n, result, battle) {
   }
   s.mats.flint += out.mats.flint;
   s.mats.bone += out.mats.bone;
+  for (const [k, v] of Object.entries(out.parts || {})) s.mats[k] = (s.mats[k] || 0) + v;
   if (first && s.hero.boons.includes('b_scavenger')) s.mats.flint++;
+  return out;
+}
+
+// Parts dropped by the beasts in a Trial: n parts, from the kinds those beasts drop.
+function beastParts(t, n) {
+  const kinds = [...new Set(t.enemies.flatMap((e) => Object.keys(PARTS).filter((p) => PARTS[p].drops.includes(e.replace('!', '')))))];
+  const out = {};
+  if (!kinds.length) return out;
+  for (let i = 0; i < n; i++) { const k = kinds[Math.floor(env.rand() * kinds.length)]; out[k] = (out[k] || 0) + 1; }
   return out;
 }
 

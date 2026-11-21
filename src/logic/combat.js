@@ -43,6 +43,7 @@ export function createBattle(s, trialN) {
   };
   if (b.hero.warpaint) s.active.warpaint--;
   if (b.hero.firstStrike) b.hero.ap += 1;
+  b.hero.ap += st.firstAp || 0; // Predator set
   for (const e of b.enemies) {
     e.step = Math.floor(env.rand() * 2);
     chooseIntent(b, e);
@@ -141,7 +142,7 @@ export function canFinish(b, uid) {
 function addFury(b, n, ev) {
   const h = b.hero;
   if (!h.finisher || h.fury >= FURY.max) return;
-  h.fury = Math.min(FURY.max, h.fury + n);
+  h.fury = Math.min(FURY.max, h.fury + Math.round(n * (h.stats.furyMult || 1)));
   ev.push({ t: 'fury', v: h.fury });
 }
 export function useFinisher(b, targetUid) {
@@ -211,7 +212,7 @@ function damageEnemy(b, e, raw, kind, ev, pierce = false) {
   let crit = false;
   if (kind !== 'burn' && env.rand() < h.stats.crit) { dmg = Math.round(dmg * 1.5); crit = true; }
   // Armor blunts weapon hits; Flint Jab (pierce) and fire go straight through.
-  const armor = ENEMIES[e.id].armor || 0;
+  const armor = Math.max(0, (ENEMIES[e.id].armor || 0) - (kind === 'physical' ? h.stats.pierce || 0 : 0));
   if (armor && kind === 'physical' && !pierce) dmg = Math.max(1, dmg - armor);
   const absorbed = pierce ? 0 : Math.min(e.block, dmg);
   e.block -= absorbed;
@@ -221,6 +222,10 @@ function damageEnemy(b, e, raw, kind, ev, pierce = false) {
   if (e.hp <= 0 && !e.dead) {
     e.dead = true;
     ev.push({ t: 'die', who: e.uid });
+  } else if (kind === 'physical' && dmg > 0) {
+    // weapon special effects: bleeding and burning
+    if (h.stats.bleedOnHit) e.bleed = { dmg: h.stats.bleedOnHit, turns: 2 };
+    if (h.stats.burnOnHit && !e.burn) e.burn = { dmg: h.stats.burnOnHit, turns: 2 };
   }
 }
 
@@ -319,11 +324,17 @@ export function endTurn(b) {
   for (const e of [...b.enemies]) {
     if (e.dead || b.over) continue;
     e.block = 0;
-    // burn ticks at the start of the enemy's turn
+    // burn and bleed tick at the start of the enemy's turn
     if (e.burn) {
       damageEnemy(b, e, e.burn.dmg, 'burn', ev);
       e.burn.turns--;
       if (e.burn.turns <= 0) e.burn = null;
+      if (e.dead) { checkOver(b, ev); continue; }
+    }
+    if (e.bleed) {
+      damageEnemy(b, e, e.bleed.dmg, 'burn', ev);
+      e.bleed.turns--;
+      if (e.bleed.turns <= 0) e.bleed = null;
       if (e.dead) { checkOver(b, ev); continue; }
     }
     const it = e.intent;

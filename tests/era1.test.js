@@ -27,9 +27,9 @@ function playEra1(stepsPerDay, seedN) {
       if (c && !s.base[b].job && B.canAfford(s, c)) B.startUpgrade(s, b);
     }
     // craft weapon/armor upgrades when possible
-    for (const id of ['r_flint_club', 'r_bone_mail']) {
+    for (const id of ['r_flint_club', 'r_bone_mail', 'r_wolf_pelt', 'r_fang_charm', 'r_lion_mask', 'r_claw_buckler']) {
       const r = RECIPES.find((x) => x.id === id);
-      if (s.base.studio.tier >= 1 && B.hasInputs(s, r) && !s.inv.some((i) => i.key === r.out.gear)) B.craft(s, Object.keys(r.inputs));
+      if (!s.inv.some((i) => i.key === r.out.gear) && B.canForge(s, r).ok) B.forge(s, id, null, 'fine');
     }
     for (const k of ['stone_club', 'hide_wrap']) if (!s.inv.some((i) => i.key === k) && s.soles > 400) E.buy(s, E.SHOP_ITEMS.findIndex((x) => x.key === k));
     H.autoEquipBest(s);
@@ -38,8 +38,12 @@ function playEra1(stepsPerDay, seedN) {
     const order = ['str', 'vit', 'str', 'vit', 'agi', 'int'];
     let i = 0;
     while (s.hero.freeAttr > 0) H.spendAttr(s, order[i++ % order.length]);
-    for (const id of ['club', 'guard', 'firebrand', 'hurl']) while (H.rankUp(s, id));
-    s.hero.loadout = ['club', 'guard', 'roar', 'hurl', 'firebrand'].filter((k) => s.hero.ranks[k]).slice(0, H.loadoutSize(s));
+    for (const id of ['club', 'jab', 'firebrand', 'hurl', 'roar', 'secondwind', 'guard']) while (H.rankUp(s, id));
+    // pick 4 skills for the act ahead, like a player reading the Trial card
+    const nt = T.nextTrial(s);
+    const want = !nt || nt.n <= 5 ? ['club', 'guard', 'roar', 'hurl'] : nt.n <= 10 ? ['club', 'hurl', 'firebrand', 'roar'] : ['jab', 'firebrand', 'roar', 'secondwind'];
+    s.hero.loadout = want.filter((k) => s.hero.ranks[k]);
+    for (const k of ['club', 'guard', 'hurl', 'firebrand']) if (s.hero.loadout.length < 4 && s.hero.ranks[k] && !s.hero.loadout.includes(k)) s.hero.loadout.push(k);
   };
   while (log.days < 60 && !(s.eraKey && B.baseComplete(s) && s.hero.level >= 10)) {
     log.days++;

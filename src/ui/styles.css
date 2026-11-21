@@ -972,3 +972,34 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .tc-traits { margin: 4px 0; display: grid; gap: 2px; }
 .tc-traits div { font-size: 11px; line-height: 1.3; color: #e9dcc0; }
 .tc-traits b { color: #ff9a6a; letter-spacing: .1em; text-transform: uppercase; font-size: 10px; margin-right: 4px; }
+
+/* ---------- Workshop ---------- */
+.recipe { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid transparent; cursor: pointer; }
+.recipe + .recipe { border-top-color: rgba(217,176,91,.15); }
+.recipe .ri { font-size: 22px; width: 28px; text-align: center; }
+.recipe .rn { display: block; font-family: var(--display); font-weight: 600; letter-spacing: .06em; font-size: 14px; }
+.recipe.on { background: rgba(217,176,91,.12); border-color: rgba(217,176,91,.6); }
+.recipe.locked { opacity: .5; }
+.forgepanel { display: flex; flex-direction: column; gap: 4px; }
+.partrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.chip { border: 1px solid rgba(217,176,91,.45); background: rgba(20,14,10,.85); color: #f1e3c2; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.chip.on { border-color: #ffd27a; background: rgba(120,60,20,.55); box-shadow: 0 0 8px rgba(255,190,90,.4); }
+.chip b { color: #ffd27a; margin-left: 4px; }
+.setline { color: #e0c78e; margin: 3px 0; }
+.lootcard.part { background: #2a1a10; color: #f1dcb4; }
+.cell.q-masterwork, .slot.q-masterwork { box-shadow: inset 0 0 0 1px #ffd27a, 0 0 8px rgba(255,200,100,.35); }
+.cell.q-crude, .slot.q-crude { filter: saturate(.6); }
+
+/* Hammer timing */
+.forge { cursor: pointer; user-select: none; }
+.anvil { position: relative; height: 34px; margin: 14px 8px 10px; background: linear-gradient(180deg, #2a1d16, #120c09); border: 1px solid rgba(217,176,91,.5); }
+.anvil .zone { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); }
+.anvil .zone.good { width: 32%; background: rgba(217,176,91,.18); }
+.anvil .zone.perfect { width: 12%; background: linear-gradient(180deg, #ffe7a8, #d79a3c); box-shadow: 0 0 12px rgba(255,200,100,.7); }
+.anvil .marker { position: absolute; top: -6px; bottom: -6px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 10px #fff, 0 0 18px #ff9a4a; }
+.strikes { display: flex; justify-content: center; gap: 14px; font-family: var(--display); font-weight: 700; letter-spacing: .14em; font-size: 14px; color: #6b5a4a; margin-bottom: 6px; }
+.strikes .perfect { color: #ffd27a; text-shadow: 0 0 8px rgba(255,200,100,.7); }
+.strikes .good { color: #f1e3c2; }
+.strikes .miss { color: #c0504a; }
+.dialog h2.h { white-space: normal; overflow-wrap: anywhere; padding-right: 36px; }
+.forgepanel { overflow-y: auto; }

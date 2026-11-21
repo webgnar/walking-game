@@ -1,27 +1,28 @@
 // Base buildings, crafting, Truth Board, evolving, achievements.
-import { BUILDINGS, BUILD_COST, BUILD_MAT_SPLIT, RECIPES, GEAR, BOONS, BUILDING_ORDER, MATERIALS } from '../data/era1.js';
+import { BUILDINGS, BUILD_COST, RECIPES, GEAR, BOONS, BUILDING_ORDER, MATERIALS, PARTS, QUALITY, REINFORCE_MAX, SLOT_MAT } from '../data/era1.js';
 import { FRAGMENTS, FLASHBACKS, ACHIEVEMENTS } from '../data/story.js';
 import { env, toast, pick } from './state.js';
-import { addGear, addBooster, goalEvent, grantReward, todaySteps } from './economy.js';
+import { addGear, addBooster, goalEvent, grantReward, todaySteps, invUsed, invCapacity } from './economy.js';
 import { respec } from './hero.js';
 
 // ---------- Buildings ----------
-export function matSplit(b, n) {
-  const m = BUILD_MAT_SPLIT[b];
-  if (m === 'flint') return { flint: Math.ceil(n * 2 / 3), bone: Math.floor(n / 3) };
-  if (m === 'bone') return { flint: Math.floor(n / 3), bone: Math.ceil(n * 2 / 3) };
-  return { flint: Math.ceil(n / 2), bone: Math.floor(n / 2) };
-}
-
+// Buildings cost Soles and wood.
 export function upgradeCost(s, b) {
   const to = s.base[b].tier + 1;
   if (to > 3) return null;
   const c = BUILD_COST[to];
-  return { to, soles: c.soles, mats: matSplit(b, c.mats), minutes: c.minutes };
+  return { to, soles: c.soles, mats: { wood: c.wood }, minutes: c.minutes };
+}
+
+export function hasMats(s, mats) {
+  return Object.entries(mats).every(([k, n]) => (s.mats[k] || 0) >= n);
+}
+function spendMats(s, mats) {
+  for (const [k, n] of Object.entries(mats)) s.mats[k] -= n;
 }
 
 export function canAfford(s, cost) {
-  return s.soles >= cost.soles && s.mats.flint >= cost.mats.flint && s.mats.bone >= cost.mats.bone;
+  return s.soles >= cost.soles && hasMats(s, cost.mats);
 }
 
 export function startUpgrade(s, b) {
@@ -33,8 +34,7 @@ export function startUpgrade(s, b) {
   if (!free && !canAfford(s, cost)) return { ok: false, why: 'cost', cost };
   if (!free) {
     s.soles -= cost.soles;
-    s.mats.flint -= cost.mats.flint;
-    s.mats.bone -= cost.mats.bone;
+    spendMats(s, cost.mats);
   }
   goalEvent(s, 'build', 1);
   if (free) {
@@ -87,62 +87,75 @@ export function baseComplete(s) {
 }
 
 // ---------- Crafting ----------
-export function craftSlots(s) {
-  const t = s.base.studio.tier;
-  return t >= 2 ? 3 : 2;
+// Workshop tier 2 adds the part slot (special effects). Tier 3 makes Masterwork easier to hit.
+export function partSlot(s) {
+  return s.base.studio.tier >= 2;
 }
 
-// item keys available for crafting: materials with counts, unequipped gear by key
-export function craftables(s) {
-  const out = [];
-  for (const k of Object.keys(MATERIALS)) if (s.mats[k] > 0) out.push({ key: k, n: s.mats[k], mat: true });
-  const equipped = Object.values(s.hero.equip);
-  const counts = {};
-  for (const it of s.inv) if (!equipped.includes(it.uid)) counts[it.key] = (counts[it.key] || 0) + 1;
-  for (const [k, n] of Object.entries(counts)) out.push({ key: k, n, mat: false });
-  return out;
-}
-
-export function findRecipe(keys) {
-  const set = [...new Set(keys.filter(Boolean))].sort().join('+');
-  return RECIPES.find((r) => Object.keys(r.inputs).sort().join('+') === set) || null;
-}
-
-export function hasInputs(s, r) {
-  const av = Object.fromEntries(craftables(s).map((c) => [c.key, c.n]));
-  return Object.entries(r.inputs).every(([k, n]) => (av[k] || 0) >= n);
-}
-
-// keys: the item keys in the slots
-export function craft(s, keys) {
-  const studio = s.base.studio.tier;
-  if (studio < 1) return { ok: false, why: 'studio' };
-  const filled = keys.filter(Boolean);
-  if (filled.length < 2) return { ok: false, why: 'empty' };
-  const r = findRecipe(filled);
-  if (!r) return { ok: false, why: 'nothing' };
-  if (r.blueprint && !s.recipes.includes(r.id)) return { ok: false, why: 'blueprint' };
-  if (r.studio > studio) return { ok: false, why: 'tier', need: r.studio };
-  if (!hasInputs(s, r)) return { ok: false, why: 'amount', recipe: r };
-  const equipped = Object.values(s.hero.equip);
-  for (const [k, n] of Object.entries(r.inputs)) {
-    if (MATERIALS[k]) s.mats[k] -= n;
-    else for (let i = 0; i < n; i++) {
-      const idx = s.inv.findIndex((it) => it.key === k && !equipped.includes(it.uid));
-      s.inv.splice(idx, 1);
-    }
-  }
-  const learned = !s.recipes.includes(r.id);
-  if (learned) s.recipes.push(r.id);
-  if (r.out.gear) addGear(s, r.out.gear);
-  if (r.out.booster) addBooster(s, r.out.booster);
-  s.crafted++;
-  goalEvent(s, 'craft', 1);
-  return { ok: true, recipe: r, learned };
+export function knownRecipes(s) {
+  return RECIPES.filter((r) => s.recipes.includes(r.id));
 }
 
 export function recipeName(r) {
   return r.out.gear ? GEAR[r.out.gear].name : r.out.booster;
+}
+
+// Can this recipe be forged right now? part = optional part key for the special-effect slot.
+export function canForge(s, r, part = null) {
+  if (s.base.studio.tier < 1) return { ok: false, why: 'studio' };
+  if (!s.recipes.includes(r.id)) return { ok: false, why: 'blueprint' };
+  if (r.studio > s.base.studio.tier) return { ok: false, why: 'tier', need: r.studio };
+  const need = { ...r.mats };
+  if (part) {
+    if (!partSlot(s) || !r.out.gear) return { ok: false, why: 'slot' };
+    need[part] = (need[part] || 0) + 1;
+  }
+  if (!hasMats(s, need)) return { ok: false, why: 'amount' };
+  if (r.out.gear && invUsed(s) >= invCapacity(s)) return { ok: false, why: 'full' };
+  return { ok: true, need };
+}
+
+// Hammer timing: 3 strikes, each 'perfect' (2), 'good' (1) or 'miss' (0). Skipping = Fine.
+export function qualityFromStrikes(strikes, studioTier = 1) {
+  if (!strikes) return 'fine';
+  const pts = strikes.reduce((t, x) => t + (x === 'perfect' ? 2 : x === 'good' ? 1 : 0), 0);
+  if (pts >= (studioTier >= 3 ? 4 : 5)) return 'masterwork';
+  if (pts >= 2) return 'fine';
+  return 'crude';
+}
+
+export function forge(s, recipeId, part = null, quality = 'fine') {
+  const r = RECIPES.find((x) => x.id === recipeId);
+  if (!r) return { ok: false, why: 'nothing' };
+  const c = canForge(s, r, part);
+  if (!c.ok) return c;
+  spendMats(s, c.need);
+  let item = null;
+  if (r.out.gear) {
+    item = addGear(s, r.out.gear, { q: QUALITY[quality] ? quality : 'fine', ...(part ? { affix: PARTS[part].affix } : {}) });
+  }
+  if (r.out.booster) addBooster(s, r.out.booster);
+  s.crafted++;
+  goalEvent(s, 'craft', 1);
+  return { ok: true, recipe: r, item };
+}
+
+// ---------- Reinforcing (+1 to +5) ----------
+export function reinforceCost(it) {
+  const next = (it.plus || 0) + 1;
+  if (next > REINFORCE_MAX) return null;
+  const m = SLOT_MAT[GEAR[it.key].slot];
+  return { plus: next, mats: { [m]: 2 + 2 * next, wood: next } };
+}
+export function reinforce(s, uidv) {
+  const it = s.inv.find((x) => x.uid === uidv);
+  if (!it) return { ok: false };
+  const c = reinforceCost(it);
+  if (!c) return { ok: false, why: 'max' };
+  if (!hasMats(s, c.mats)) return { ok: false, why: 'amount' };
+  spendMats(s, c.mats);
+  it.plus = c.plus;
+  return { ok: true, plus: it.plus };
 }
 
 // ---------- Truth Board ----------
@@ -197,10 +210,10 @@ export function boonChoices(s) {
 export function evolve(s, boonId) {
   if (!canEvolve(s)) return null;
   s.hero.boons.push(boonId);
-  const converted = (s.mats.flint + s.mats.bone) * 3;
+  // leftover materials and parts don't carry into the next era: they become Soles
+  let converted = 0;
+  for (const k of Object.keys(s.mats)) { converted += s.mats[k] * (PARTS[k] ? 5 : 3); s.mats[k] = 0; }
   s.soles += converted;
-  s.mats.flint = 0;
-  s.mats.bone = 0;
   respec(s, true);
   s.evolved = true;
   s.era = 2;
