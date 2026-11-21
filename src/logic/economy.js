@@ -153,9 +153,9 @@ export function gearScore(key) {
   return (st.dmg || 0) * 2 + (st.hp || 0) / 5 + (st.str || 0) + (st.vit || 0) + (st.int || 0) + (st.agi || 0);
 }
 // Soles for salvaging a whole item (kept modest so walking stays the main source).
-export const SOLE_VALUE = { worn: 10, shop: 30, crafted: 40, rare: 60, boss: 80 };
+export const SOLE_VALUE = { worn: 2, shop: 5, crafted: 8, rare: 12, boss: 15 };
 export function soleValue(key) {
-  return SOLE_VALUE[GEAR[key].tier] || 10;
+  return SOLE_VALUE[GEAR[key].tier] || 2;
 }
 
 // Junk = gear you can safely lose: not equipped, not a boss or rare item, no better than what

@@ -3,9 +3,8 @@ import { Stage, STRIKE_MS } from './scene/stage.js';
 import { env, load, save, wipeSave, newState, toast, pick, SAVE_KEY, dayKey } from './logic/state.js';
 import {
   SKILLS, SKILL_ORDER, ENEMIES, TRIALS, ATTRS, GEAR, SLOTS, SLOT_NAMES, BOOSTERS, RECIPES, BUILDINGS, BUILDING_ORDER,
-  INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS,
-} from './data/era1.js';
-import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP } from './data/story.js';
+  INVENTORY_SLOTS, MATERIALS, BOONS, xpToNext, setTuning, TUNING_PRESETS, FINISHERS, FINISHER_ORDER, FURY, TRAITS, ACTS, LOADOUT_MAX, STAR_REWARDS } from './data/era1.js';
+import { INTRO_LINES, INTRO_CUTSCENE, PROCTOR, FRAGMENTS, FLASHBACKS, FORMER_TRIBUTE, ACHIEVEMENTS, TRANSMISSIONS, FLICKERS, PROCTOR_SLIP, LOSS_TIPS } from './data/story.js';
 import * as ST from './logic/story.js';
 import { IC, WREATH } from './ui/icons.js';
 import { loadUiAssets } from './ui/assets.js';
@@ -164,6 +163,11 @@ function homeTop() {
     </div>`;
 }
 
+// Something new on the Truth Board: a part ready to decode, or a memory ready to play.
+function truthNews() {
+  return FRAGMENTS.some((f) => B.fragmentState(s, f) === 'decodable' && s.soles >= f.cost) || (B.flashbackReady(s, 1) && !s.flashbacksSeen.includes(1));
+}
+
 function homePlate(cls, icon, label, sub, attrs, badge) {
   return `<button class="ui-plate ${cls}" ${attrs}><span class="uicon ic-${icon}">${IC[icon]}</span><span class="tx"><span class="l">${label}</span><span class="sub">${sub}</span></span>${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
 }
@@ -190,7 +194,7 @@ const SCREENS = {
     <div class="ui-banner"><i class="pole"></i><i class="cloth">${WREATH}</i></div>
     ${s.report ? `<button class="btn small ui-report ${hint('report')}" data-a="modal" data-v="report">Expedition report · ${fmt(s.report.steps)} steps</button>` : ''}
     <div class="ui-left">
-      ${homePlate(`dark big ${hint('base')}`, 'base', 'Base', 'Command · Develop · Survive', 'data-a="go" data-v="base"', jobs)}
+      ${homePlate(`dark big ${hint('base')}`, 'base', 'Base', 'Command · Develop · Survive', 'data-a="go" data-v="base"', truthNews() ? '!' : jobs)}
       ${homePlate('dark', 'shop', 'Shop', 'Supply · Gear · Upgrade', 'data-a="go" data-v="shop"')}
       ${homePlate('dark', 'goals', 'Goals', 'Missions · Progress · Rewards', 'data-a="modal" data-v="goals"', goalsReady)}
     </div>
@@ -267,7 +271,7 @@ const SCREENS = {
     const pts = nodes.map((t) => pos(t.n));
     const nt = T.nextTrial(s);
     return `<div style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,rgba(13,11,20,.55),rgba(13,11,20,.85))"></div>
-    ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', '🏠 Home')}
+    ${topbar('Trials · Primal', `${Object.keys(s.trials.cleared).filter((k) => k > 0).length}/15 cleared · ★ ${T.totalStars(s)}/45${s.eraKey ? ' · Era Key ✔' : ''}`, 'home', '🏠 Home')}
     <div class="map">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${pts.map((p) => `${p.x},${p.y}`).join(' ')}" fill="none" stroke="#c9a24c" stroke-width="0.35" stroke-dasharray="1.2 1.2" opacity=".6"/></svg>
       ${nodes.map((t) => {
@@ -275,8 +279,10 @@ const SCREENS = {
         const done = !!s.trials.cleared[t.n];
         const open = T.trialUnlocked(s, t.n);
         const cls = [t.boss === 'mini' ? 'mini' : t.boss === 'era' ? 'era' : '', done ? 'done' : open ? 'open' : 'lock'].join(' ');
-        return `<div class="node ${cls}" style="left:${p.x}%;top:${p.y}%" data-a="trial" data-v="${t.n}">${t.boss === 'era' ? '🦣' : t.boss === 'mini' ? '💀' : t.n}<span class="lbl">${t.boss ? esc(t.name) : `Lv ${t.level}`}</span></div>`;
+        const st = s.trials.stars[t.n] || 0;
+        return `<div class="node ${cls}" style="left:${p.x}%;top:${p.y}%" data-a="trial" data-v="${t.n}">${t.boss === 'era' ? '🦣' : t.boss === 'mini' ? '💀' : t.n}<span class="lbl">${t.boss ? esc(t.name) : `Lv ${t.level}`}${done ? `<b class="nstars">${'★'.repeat(st)}${'☆'.repeat(3 - st)}</b>` : ''}</span></div>`;
       }).join('')}
+      ${ACTS.map((a, i) => `<div class="actlbl" style="top:${14 + i * 30}%">Act ${roman(a.n)} · ${esc(a.name)}</div>`).join('')}
     </div>
     ${app.selectedTrial != null ? trialCard(app.selectedTrial) : nt ? '' : ''}`;
   },
@@ -295,6 +301,7 @@ const SCREENS = {
     <div class="combat-hero panel pad">
       <div class="row"><span class="comic" style="font-size:18px">You</span><span class="grow"></span><span class="small muted">Lv ${s.hero.level}</span></div>
       <div class="hp hero"><i style="width:${(hp('hero', h.hp) / h.maxHp) * 100}%"></i><span class="tx">${hp('hero', h.hp)}/${h.maxHp}</span>${bl('hero', h.block) ? `<span class="bl">🛡${bl('hero', h.block)}</span>` : ''}</div>
+      ${h.finisher ? `<div class="fury ${h.fury >= FURY.max ? 'full' : ''}" title="Fury: fills as you hit and get hit. Full Fury lets you finish a marked enemy."><i style="width:${(h.fury / FURY.max) * 100}%"></i><span>Fury</span></div>` : ''}
       ${h.bleed ? `<div class="status bad">🩸 Bleeding ${h.bleed.dmg} × ${h.bleed.turns}</div>` : ''}
       ${h.warpaint ? '<div class="status warn">🎨 Warpaint +3 damage</div>' : ''}
     </div>
@@ -302,9 +309,11 @@ const SCREENS = {
     <button class="btn tiny ghost" style="position:absolute;top:calc(var(--st) + 6px);right:calc(var(--sr) + 8px)" data-a="retreat">🏳 Retreat</button>
     ${b.enemies.filter((e) => !e.dead || (sh[e.uid] && sh[e.uid].hp > 0)).map((e) => {
       const il = C.intentLabel(e);
-      return `<div class="hpbox ${e.uid === app.target && alive.length > 1 ? 'target' : ''}" data-anchor="${e.uid}" data-a="target" data-v="${e.uid}">
+      const ex = !e.dead && C.executable(e) && h.finisher;
+      return `<div class="hpbox ${e.uid === app.target && alive.length > 1 ? 'target' : ''} ${ex ? 'exec' : ''}" data-anchor="${e.uid}" data-a="target" data-v="${e.uid}">
         <div class="intent ${il.cls}">${il.icon} ${esc(il.text)}${il.note ? `<span class="note">${esc(il.note)}</span>` : ''}</div>
-        <div class="nm">${esc(e.name)}</div>
+        <div class="nm">${ex ? '<span class="skull">💀</span>' : ''}${esc(e.name)}</div>
+        <div class="traits">${(ENEMIES[e.id].traits || []).filter((k) => k !== 'fireFear').map((k) => `<span>${esc(TRAITS[k].name)}</span>`).join('')}</div>
         <div class="hp"><i style="width:${(hp(e.uid, e.hp) / e.maxHp) * 100}%"></i><span class="tx">${hp(e.uid, e.hp)}/${e.maxHp}</span>${bl(e.uid, e.block) ? `<span class="bl">🛡${bl(e.uid, e.block)}</span>` : ''}</div>
         <div class="status">${e.burn ? `🔥${e.burn.dmg}×${e.burn.turns} ` : ''}${e.feared ? '😨 ' : ''}${e.snarl ? '⬆ ' : ''}${e.stompBonus ? `+${e.stompBonus} stomp` : ''}</div>
       </div>`;
@@ -318,6 +327,7 @@ const SCREENS = {
           <span class="ap">${sk.ap}</span><span class="si">${sk.icon}</span><span class="sn">${sk.name}</span>
           <span class="sp">${skillShort(id, b)}</span>${cd ? `<span class="cd">${cd}</span>` : ''}</div>`;
       }).join('')}
+      ${h.finisher ? (() => { const f = FINISHERS[h.finisher]; const ok = C.canFinish(b) && !app.busy; return `<div class="sk fin ${ok ? 'ready' : 'no'}" data-a="finish" title="${esc(f.desc)}"><span class="ap">${FURY.ap}</span><span class="si">${f.icon}</span><span class="sn">${esc(f.name)}</span><span class="sp">${h.fury >= FURY.max ? (C.canFinish(b) ? 'Finish!' : 'needs 💀') : `Fury ${h.fury}%`}</span></div>`; })() : ''}
     </div>
     <button class="btn small ghost endturn ${app.busy || b.over ? 'off' : ''}" data-a="endTurn" title="End your turn early. Up to ${h.stats.apCarry} unspent AP carries over to next turn.">Save AP ▶<small style="display:block;font-size:10px;font-family:Rajdhani;text-transform:none;letter-spacing:0">end turn early</small></button>`;
   },
@@ -330,6 +340,7 @@ const SCREENS = {
       return `<div class="overlay"><div class="dialog panel halftone" style="text-align:center">
         <div class="tierlabel" style="color:var(--red);font-size:44px">DEFEAT</div>
         <p>${esc(r.line)}</p>
+        ${r.tip ? `<div class="txmsg cleared" style="text-align:left"><div class="txh">${esc(FORMER_TRIBUTE)}</div><p>${esc(r.tip)}</p></div>` : ''}
         <p class="small muted">No penalty. Get stronger: walk for Soles, train at the altar, upgrade gear, or try a different skill order.</p>
         <div class="actions" style="justify-content:center"><button class="btn" data-a="go" data-v="home">Home</button><button class="btn cyan" data-a="go" data-v="map">Back to the map</button>
         <button class="btn pink" data-a="fight" data-v="${r.n}">Try again</button></div>
@@ -349,9 +360,14 @@ const SCREENS = {
     if (r.blueprint) cards.push(card('📐', 'Blueprint', B.recipeName(RECIPES.find((x) => x.id === r.blueprint)), 'rare'));
     if (r.fragment) cards.push(card('📄', 'Story fragment', 'Pinned to the Truth Board', 'frag'));
     if (r.eraKey) cards.push(card('🗝️', 'ERA KEY', 'Primal → Brick', 'boss'));
+    if (r.finisher) cards.push(card(FINISHERS[r.finisher].icon, `Finisher: ${FINISHERS[r.finisher].name}`, FINISHERS[r.finisher].desc, 'boss'));
+    if (r.fang) cards.push(card('🦷', `${r.fang} Bone`, 'Fang Ripper trophies'));
+    for (const sr of r.starRewards || []) cards.push(card(TIER_ICON[sr.box], `${E.TIER_NAMES[sr.box]} loot box`, `${sr.stars} stars reached`, 'rare'));
     return `<div class="overlay"><div class="dialog panel halftone wide" style="text-align:center">
       <div class="tierlabel" style="color:var(--yellow);font-size:44px">${r.first ? 'VICTORY!' : 'REPLAY CLEARED'}</div>
       <div class="muted">${t.n === 0 ? 'First Trial' : `Trial ${t.n}: ${esc(t.name)}`}${r.flawless ? ' · <span class="ok">no damage taken</span>' : ''}</div>
+      ${r.starList ? `<div class="stars">${r.starList.map((on, i) => `<span class="${on ? 'on' : ''}" title="${['Win', 'Finish above half health', `Win in ${t.par} turns or fewer`][i]}">★</span>`).join('')}${r.newBest && r.stars > 1 ? '<em>new best</em>' : ''}</div>
+        <div class="small muted">${['Win', 'Above half health', `Within ${t.par} turns`].map((l, i) => `${r.starList[i] ? '✔' : '✖'} ${l}`).join(' · ')}</div>` : ''}
       <div class="sep"></div>
       <div class="loot">${cards.join('') || '<span class="muted">Nothing this time. Replays drop materials and the odd piece of worn gear.</span>'}</div>
       <div class="actions" style="justify-content:center">
@@ -488,7 +504,9 @@ function skillShort(id, b) {
   const sk = SKILLS[id];
   const p = b.powers[id];
   const st = b.hero.stats;
-  if (sk.kind === 'physical') return `${p + st.str + st.weapon + b.hero.warpaint} dmg`;
+  if (sk.kind === 'physical') return `${p + st.str + st.weapon + b.hero.warpaint} dmg${sk.pierce ? ' pierce' : ''}`;
+  if (sk.kind === 'sweep') return `${p + Math.floor(st.str / 2) + Math.floor(st.weapon / 2) + b.hero.warpaint} all`;
+  if (sk.kind === 'heal') return `heal ${p + st.vit}`;
   if (sk.kind === 'fire') return `${p + st.int} +burn`;
   if (sk.kind === 'block') return `block ${p + Math.floor(st.vit / 2)}`;
   if (sk.kind === 'stun') return 'stun';
@@ -505,14 +523,21 @@ function trialCard(n) {
   const open = T.trialUnlocked(s, n);
   const done = !!s.trials.cleared[n];
   const names = {};
-  for (const e of t.enemies) { const k = (e.endsWith('!') ? 'Veteran ' : '') + ENEMIES[e.replace('!', '')].name; names[k] = (names[k] || 0) + 1; }
+  for (const e of t.enemies) { const k = ENEMIES[e.replace('!', '')].name; names[k] = (names[k] || 0) + 1; }
+  const traits = [...new Set(t.enemies.flatMap((e) => ENEMIES[e.replace('!', '')].traits || []))];
   const under = s.hero.level < t.level;
-  const rewards = done ? 'Replay: crafting materials, sometimes worn gear' : `${t.xp} XP, ${t.boss === 'era' ? 'Platinum' : t.boss === 'mini' ? 'Gold' : 'a'} loot box, materials${t.boss === 'mini' ? ', boss gear, respec token' : ''}${t.boss === 'era' ? ', boss gear, blueprint, ERA KEY' : ''}`;
+  const stars = s.trials.stars[n] || 0;
+  const rewards = done ? 'Replay: crafting materials, sometimes worn gear' : `${t.xp} XP, ${t.boss === 'era' ? 'Platinum' : t.boss === 'mini' ? 'Gold' : 'a'} loot box, materials${t.boss === 'mini' ? ', boss gear, a finisher, respec token' : ''}${t.boss === 'era' ? ', boss gear, blueprint, ERA KEY' : ''}`;
+  const act = ACTS.find((x) => x.n === t.act);
   return `<div class="trialcard panel halftone pad">
     <button class="x" data-a="trial" data-v="">✕</button>
+    ${act ? `<div class="small actname">Act ${roman(act.n)} · ${esc(act.name)}</div>` : ''}
     <div class="comic" style="font-size:22px;color:var(--yellow)">Trial ${n}: ${esc(t.name)}</div>
-    <div class="small">${Object.entries(names).map(([k, v]) => `${v > 1 ? `${v}× ` : ''}${k}`).join(', ')}</div>
-    <div class="small">Suggested level <b class="${under ? 'warn' : 'ok'}">${t.level}</b> · you are ${s.hero.level}</div>
+    ${t.line ? `<div class="small"><i>${esc(t.line)}</i></div>` : ''}
+    <div class="small" style="margin-top:4px">${Object.entries(names).map(([k, v]) => `${v > 1 ? `${v}× ` : ''}${k}`).join(', ')}</div>
+    ${traits.length ? `<div class="tc-traits">${traits.map((k) => `<div><b>${esc(TRAITS[k].name)}</b> ${esc(TRAITS[k].desc)}</div>`).join('')}</div>` : ''}
+    <div class="small">Suggested level <b class="${under ? 'warn' : 'ok'}">${t.level}</b> · you are ${s.hero.level} · <span class="stars sm">${[1, 2, 3].map((i) => `<span class="${i <= stars ? 'on' : ''}">★</span>`).join('')}</span> <span class="muted">3rd star: ${t.par} turns</span></div>
+    <div class="small">Your skills: ${s.hero.loadout.map((id) => esc(SKILLS[id].name)).join(', ')}${s.hero.finisher ? ` · ${esc(FINISHERS[s.hero.finisher].name)}` : ''} <a href="#" data-a="hero" data-v="skills">Change</a></div>
     <div class="small muted" style="margin:4px 0">${rewards}</div>
     ${open ? `<button class="btn pink" style="width:100%" data-a="fight" data-v="${n}">${done ? 'Replay' : 'Fight'} ⚔</button>` : `<div class="small bad">Beat Trial ${n - 1} first.</div>`}
   </div>`;
@@ -549,7 +574,16 @@ function heroSkillsTab() {
   const h = s.hero;
   const max = H.maxRank(s);
   const size = H.loadoutSize(s);
-  return `<div class="small muted">Loadout ${h.loadout.length}/${size} · max rank ${max} (upgrade the Hero Training Altar for more) · ${h.freeSkill} skill point${h.freeSkill === 1 ? '' : 's'}</div>
+  const fin = `<h3 class="h" style="margin-top:10px">Finisher <span class="small muted">· one equipped · fill Fury, then finish an enemy marked 💀</span></h3>
+  ${FINISHER_ORDER.map((id) => {
+    const f = FINISHERS[id];
+    const own = h.finishers.includes(id);
+    const eq = h.finisher === id;
+    const buy = !own && f.price ? H.canBuyFinisher(s, id) : null;
+    return `<div class="skill ${own ? '' : 'locked'}"><div class="si">${f.icon}</div><div class="grow"><div class="sname">${esc(f.name)}</div><div class="small">${esc(f.desc)}</div>${own ? '' : `<div class="small muted">${esc(f.how)}${f.price ? ` · 👣${f.price}` : ''}</div>`}</div>
+      ${own ? `<button class="btn tiny ${eq ? 'cyan' : 'ghost'}" data-a="equipFinisher" data-v="${id}">${eq ? 'Equipped' : 'Equip'}</button>` : f.price ? `<button class="btn tiny ${buy.ok ? 'yellow' : 'off'}" data-a="buyFinisher" data-v="${id}">Buy</button>` : ''}</div>`;
+  }).join('')}`;
+  return `<div class="small muted">Bring ${size} into a fight: choose for the Trial ahead · max rank ${max} (upgrade the Hero Training Altar for more) · ${h.freeSkill} skill point${h.freeSkill === 1 ? '' : 's'}</div>
   ${SKILL_ORDER.map((id) => {
     const sk = SKILLS[id];
     const rank = h.ranks[id];
@@ -559,7 +593,7 @@ function heroSkillsTab() {
       <div class="small">${sk.desc(H.skillPower(s, id))}</div></div>
       ${h.freeSkill && rank < max && sk.power ? `<button class="btn tiny green" data-a="rank" data-v="${id}">+2</button>` : ''}
       <button class="btn tiny ${inL ? 'cyan' : 'ghost'}" data-a="loadout" data-v="${id}">${inL ? 'In loadout' : 'Add'}</button></div>`;
-  }).join('')}`;
+  }).join('')}${fin}`;
 }
 
 function heroGearTab() {
@@ -910,7 +944,7 @@ function floatText(who, text, cls = '') {
   const p = stage.anchor(who, -0.5);
   if (!p) return;
   const d = document.createElement('div');
-  d.className = cls.includes('pow') ? 'pow' : `dmg ${cls}`;
+  d.className = cls.includes('pow') ? 'pow' : cls.includes('tag') ? 'ftag' : cls.includes('fin') ? 'ffin' : `dmg ${cls}`;
   d.textContent = text;
   d.style.left = `${p.x + (Math.random() * 30 - 15)}px`;
   d.style.top = `${p.y}px`;
@@ -941,28 +975,52 @@ async function playEvents(ev) {
         if (sk.kind === 'physical') stage.anim('hero', 'attack', { dist: e.skill === 'hurl' ? 0.4 : 1.5, skill: e.skill });
         else if (sk.kind === 'block') stage.anim('hero', 'block');
         else stage.anim('hero', 'cast', { skill: e.skill });
-        if (sk.kind === 'stun') floatText('hero', 'ROAR!', 'pow');
+        if (sk.kind === 'stun') floatText('hero', 'ROAR', 'tag');
         // strikes land on the swing's contact frame, at the peak of the lunge
         await wait(sk.kind === 'block' || sk.kind === 'stun' ? 200 : STRIKE_MS);
         break;
       }
+      case 'finish': {
+        const f = FINISHERS[e.kind];
+        app.proctor = null;
+        const contact = stage.finisher(e.kind, e.who);
+        await wait(contact);
+        floatText(e.who, f.name.toUpperCase(), 'fin');
+        $('#ui').classList.remove('bloodflash'); void $('#ui').offsetWidth; $('#ui').classList.add('bloodflash');
+        await wait(820);
+        break;
+      }
+      case 'heal':
+        if (app.shown) app.shown.hero = { hp: e.hpAfter, block: (app.shown.hero || {}).block || 0 };
+        floatText('hero', `+${e.amt}`, 'heal');
+        render();
+        await wait(250);
+        break;
+      case 'fury': render(); break;
+      case 'ap': floatText('hero', `+${e.amt} AP`, 'info'); render(); await wait(200); break;
+      case 'trophy': floatText('hero', `+${e.amt} bone`, 'info'); await wait(150); break;
+      case 'resist': floatText(e.who, 'RESISTS', 'info'); await wait(250); break;
       case 'hit':
         if (app.shown && e.hpAfter !== undefined) app.shown[e.who] = { hp: e.hpAfter, block: e.blockAfter };
+        if (e.finish) { render(); break; }
         if (e.who === 'hero') {
+          stage.impact('hero', { dmg: e.dmg });
           stage.anim('hero', 'hit');
           floatText('hero', e.dmg ? `-${e.dmg}` : 'BLOCKED', `hero ${e.dmg ? '' : 'info'}`);
           if (e.dmg >= 12) { $('#ui').classList.remove('shake'); void $('#ui').offsetWidth; $('#ui').classList.add('shake'); }
         } else {
+          stage.impact(e.who, { dmg: e.dmg, crit: e.crit, armored: e.armored, kind: e.kind });
           stage.anim(e.who, 'hit');
-          floatText(e.who, e.dmg ? `${e.dmg}${e.crit ? '!' : ''}` : 'BLOCKED', `${e.crit ? 'crit' : ''} ${e.kind === 'burn' ? 'info' : ''} ${e.dmg ? '' : 'info'}`);
-          if (e.crit) floatText(e.who, 'CRIT!', 'pow');
+          floatText(e.who, e.dmg ? `${e.dmg}` : 'BLOCKED', `${e.crit ? 'crit' : ''} ${e.kind === 'burn' ? 'info' : ''} ${e.dmg ? '' : 'info'}`);
+          if (e.crit) floatText(e.who, 'CRITICAL', 'tag');
+          if (e.armored) floatText(e.who, 'ARMOR', 'tag');
         }
         render();
         await wait(e.kind === 'burn' ? 350 : e.who === 'hero' ? 450 : 250);
         break;
       case 'die':
+        if (e.finish) break; // the finishing move already played the kill
         stage.anim(e.who, 'die');
-        floatText(e.who, 'KO!', 'pow');
         await wait(350);
         break;
       case 'act': {
@@ -981,10 +1039,10 @@ async function playEvents(ev) {
         break;
       case 'stun': stage.anim(e.who, 'stun'); floatText(e.who, 'STUNNED', 'info'); await wait(200); break;
       case 'fear': floatText(e.who, 'SCARED!', 'info'); await wait(200); break;
-      case 'interrupt': floatText(e.who, 'INTERRUPTED!', 'pow'); await wait(250); break;
+      case 'interrupt': floatText(e.who, 'INTERRUPTED', 'tag'); await wait(250); break;
       case 'dodge': floatText('hero', 'DODGE', 'info'); await wait(250); break;
       case 'block': if (e.who === 'hero') floatText('hero', `+${e.amt} BLOCK`, 'info'); await wait(150); break;
-      case 'summon': stage.setEnemies(C.living(app.battle)); render(); floatText(e.who, 'AWOOO!', 'pow'); await wait(500); break;
+      case 'summon': stage.setEnemies(C.living(app.battle)); render(); floatText(e.who, 'CALLS THE PACK', 'tag'); await wait(500); break;
       case 'turn': break;
       case 'win': stage.anim('hero', 'win'); await wait(700); break;
       case 'lose': stage.anim('hero', 'die'); await wait(900); break;
@@ -1007,7 +1065,7 @@ async function runAction(fn) {
   if (app.battle.over) return endBattle();
   // nothing left to do this turn: end it automatically
   const b = app.battle;
-  if (!b.loadout.some((id) => C.canUse(b, id))) {
+  if (!b.loadout.some((id) => C.canUse(b, id)) && !C.canFinish(b)) {
     render();
     await wait(350);
     return runAction(() => C.endTurn(b));
@@ -1023,6 +1081,7 @@ function endBattle() {
   if (result !== 'win') {
     r.line = b.trial === 15 && (s.trials.losses[15] || 0) >= 3 ? 'Mammoth Problems loading...' : pick(PROCTOR.lose);
     if (b.trial === 6 && !s.wallShown) { s.wallShown = true; r.line = PROCTOR.wall[0]; }
+    if (LOSS_TIPS[b.trial] && r.lossCount === 1) r.tip = LOSS_TIPS[b.trial];
   }
   app.lastReward = r;
   app.battle = null;
@@ -1333,6 +1392,20 @@ const ACTIONS = {
     runAction(() => C.useSkill(b, v, app.target));
   },
   endTurn() { runAction(() => C.endTurn(app.battle)); },
+  finish() {
+    const b = app.battle;
+    if (!b) return;
+    const t = C.canFinish(b, app.target) ? app.target : (C.living(b).find((e) => C.canFinish(b, e.uid)) || {}).uid;
+    if (t == null) { say(b.hero.fury < FURY.max ? 'Not angry enough yet. Hit things. Get hit. It builds.' : 'Nothing is weak enough to finish. Bring one down to the skull.'); return; }
+    runAction(() => C.useFinisher(b, t));
+  },
+  buyFinisher(v) {
+    const r = H.buyFinisher(s, v);
+    if (!r.ok) say(r.why === 'soles' ? pick(PROCTOR.noSoles) : r.why === 'altar' ? `Upgrade the Hero Training Altar to tier ${FINISHERS[v].altar} first.` : 'You already own it.');
+    else say(`${FINISHERS[v].name} learned. Equip it, then make it count.`);
+    commit();
+  },
+  equipFinisher(v) { H.equipFinisher(s, v); commit(); },
   retreat() {
     const b = app.battle;
     if (!b || app.busy) return;

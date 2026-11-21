@@ -928,3 +928,47 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .invtabs .grow { flex: 1; }
 .cell.junk { opacity: .55; }
 .cell.junk::after { content: 'junk'; position: absolute; top: 2px; left: 3px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--g-dim, #a89a7e); }
+
+/* ---------- Combat: gold and crimson, no comic sound words ---------- */
+.dmg { font-family: var(--display); font-weight: 700; color: var(--gold2, #f0c062); text-shadow: 0 2px 0 #2a0a06, 0 0 10px rgba(255,170,60,.45); letter-spacing: .02em; }
+.dmg.crit { font-size: 50px; color: #ffe3a0; text-shadow: 0 2px 0 #4a0a06, 0 0 16px rgba(255,80,40,.8); }
+.dmg.hero { color: #ff5a46; }
+.dmg.heal { color: #8ff0a8; font-size: 28px; }
+.dmg.info { font-size: 18px; letter-spacing: .14em; color: #e9d8b6; }
+.ftag, .ffin { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none; font-family: var(--display); font-weight: 700; text-transform: uppercase; animation: dmgUp 1s ease-out forwards; }
+.ftag { font-size: 14px; letter-spacing: .3em; color: #f2dcae; text-shadow: 0 1px 3px #000; margin-top: -26px; }
+.ffin { font-size: 34px; letter-spacing: .18em; color: #ffd27a; text-shadow: 0 3px 0 #3a0705, 0 0 22px rgba(200,20,10,.9); animation-duration: 1.3s; }
+#ui.bloodflash::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 45%, rgba(120,0,0,.55) 100%); animation: bloodFlash .7s ease-out forwards; z-index: 20; }
+@keyframes bloodFlash { from { opacity: 1; } to { opacity: 0; } }
+
+/* Fury: a gold bar under your health; glows when full */
+.fury { position: relative; height: 12px; margin-top: 5px; background: #1b0f0b; border: 1px solid rgba(217,176,91,.5); overflow: hidden; }
+.fury i { display: block; height: 100%; background: linear-gradient(90deg, #7a1a10, #d79a3c); transition: width .25s; }
+.fury span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; letter-spacing: .3em; text-transform: uppercase; color: #f4e3c0; text-shadow: 0 1px 2px #000; }
+.fury.full { border-color: #ffd27a; box-shadow: 0 0 10px rgba(255,190,90,.7); }
+.fury.full i { background: linear-gradient(90deg, #c0291a, #ffd27a); animation: furyPulse .9s ease-in-out infinite; }
+@keyframes furyPulse { 50% { filter: brightness(1.35); } }
+
+/* Finisher button sits at the end of the skill bar */
+.sk.fin { border-color: #8a1a12; background: linear-gradient(180deg, #3a0f0b, #170706); }
+.sk.fin .sn { color: #ffcf8a; }
+.sk.fin.ready { border-color: #ffd27a; box-shadow: 0 0 14px rgba(255,120,60,.8); animation: furyPulse .9s ease-in-out infinite; }
+
+/* Enemies: trait tags, and a skull when low enough to finish */
+.hpbox .traits { display: flex; gap: 3px; justify-content: center; margin-top: 2px; }
+.hpbox .traits span { font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: #f2dcae; background: rgba(60,12,8,.8); border: 1px solid rgba(217,176,91,.45); padding: 0 4px; }
+.hpbox .skull { margin-right: 4px; }
+.hpbox.exec .hp { box-shadow: 0 0 10px rgba(255,60,40,.9); }
+.hpbox.exec .nm { color: #ff8a6a; }
+
+/* Stars and acts */
+.stars { display: flex; gap: 6px; justify-content: center; align-items: center; font-size: 30px; color: #3a2c22; margin: 4px 0 2px; }
+.stars span.on { color: #ffd27a; text-shadow: 0 0 10px rgba(255,200,100,.7); }
+.stars em { font-size: 12px; font-style: normal; letter-spacing: .2em; text-transform: uppercase; color: #8ff0a8; margin-left: 6px; }
+.stars.sm { display: inline-flex; font-size: 13px; gap: 1px; margin: 0; vertical-align: middle; }
+.node .nstars { display: block; font-size: 9px; letter-spacing: .05em; color: #ffd27a; font-weight: 600; }
+.actlbl { position: absolute; left: -2px; transform: translateY(-190%); font-family: var(--display); font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: #e0a94e; text-shadow: 0 1px 3px #000; pointer-events: none; }
+.trialcard .actname { letter-spacing: .24em; text-transform: uppercase; color: #e0a94e; font-size: 10px; }
+.tc-traits { margin: 4px 0; display: grid; gap: 2px; }
+.tc-traits div { font-size: 11px; line-height: 1.3; color: #e9dcc0; }
+.tc-traits b { color: #ff9a6a; letter-spacing: .1em; text-transform: uppercase; font-size: 10px; margin-right: 4px; }

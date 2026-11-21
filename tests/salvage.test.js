@@ -26,7 +26,7 @@ test('salvage junk keeps equipped, better, boss and one recipe copy', () => {
   const before = s.soles;
   const r = salvageJunk(s);
   assert.equal(r.count, 4);
-  assert.equal(s.soles - before, 10 + 10 + 40 + 10);
+  assert.equal(s.soles - before, 2 + 2 + 8 + 2);
   assert.ok(s.inv.some((it) => it.key === 'alpha_fang'));
   assert.equal(s.inv.filter((it) => it.key === 'hide_wrap').length, 2);
 });

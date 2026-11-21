@@ -213,7 +213,7 @@ Turn-based strategy. Unlocks at hero level 5 (the first-session tutorial fights 
 | Era boss (Trial 15) | XP, loot box, boss gear, blueprint, Era Key | Crafting materials and low-level gear only |
 
 - **Enemies show their next move** with an intent icon (attack for 12, block, charging, calling backup).
-- **3 Action Points per turn**; a **loadout of 4 to 6 skills**. The turn ends on its own when no skill is affordable; a small "Save AP" button ends it early so unspent AP can carry over (for example, saving up for Roar or Firebrand).
+- **3 Action Points per turn**; a **loadout of 4 skills** (you own more than you can bring, so the loadout is a build decision). The turn ends on its own when no skill is affordable; a small "Save AP" button ends it early so unspent AP can carry over (for example, saving up for Roar or Firebrand).
 - **Skill vs. power:** smart play beats enemies up to about 20% stronger. Never a hard barrier: enough walking, XP and gear wins on strength.
 - **Each era adds a new skill branch.** Earlier skills stay available.
 
@@ -224,7 +224,43 @@ Turn-based strategy. Unlocks at hero level 5 (the first-session tutorial fights 
 | Bronze | Sun Rites: Solar Flare, Blessing, Curse | Resources, buffs and debuffs | Armored chariots resist physical damage |
 | Later | Formations, combos, gunpowder, gadgets, hacking | | |
 
-## Era 1 combat: v1 numbers (proposed starting values)
+## Era 1 Trials, v2 (built)
+
+Era 1 climbs the food chain in three acts. No human enemies. Each act teaches one kind of fight.
+
+| Act | Trials | Story | Teaches |
+| --- | --- | --- | --- |
+| I. The Pack | 1 Mangy Wolf · 2 Scavengers (2 wolves) · 3 The Beta · 4 Hunting Party (Beta + 2 mangy wolves) · **5 The Alpha** | "The Alpha's scouts have found your scent." | Pack: a leader makes the others hit harder, so kill order matters |
+| II. The Predators | 6 Carrion (3 hyenas, the wall) · 7 The Mountain Lion · 8 Two Shadows (2 lions) · 9 The Pride (3 lions) · **10 Sabretooth** | "The Alpha's carcass drew bigger hunters." | Stalkers: wind-up pounces that Hurl Stone or Roar stops; bleeding |
+| III. The Giants | 11 Enraged Elk · 12 The Rut (2 elk) · 13 Iron Hide (woolly rhino) · 14 Twin Horns (2 rhinos) · **15 The Great Woolly Mammoth** | "With the apex predator dead, the valley opens. The herd is coming." | Enraged (hits harder below half health) and Armored (Flint Jab and fire ignore armor) |
+
+Every Trial has a one-line setup card, and the Trial card lists the enemies' traits so the 4-skill loadout can be chosen for the fight ahead.
+
+**Skills (8 in Era 1, bring 4):** Club Strike, Guard, Roar (stun, 4-turn cooldown), Hurl Stone (stops a call for backup or a pounce; 2-turn cooldown), Flint Jab (ignores block and armor), Firebrand (burn; scares beasts once, then they resist for 2 turns), Sweep (hits every enemy), Second Wind (heal and stop bleeding). Stunned enemies shrug off the next stun.
+
+**Fury and finishers (in combat, no cutscene):**
+
+- Fury fills by 20 per hit landed and 10 per hit taken. When it's full and an enemy is at 30% health or lower (20% for bosses), the enemy gets a skull mark and the Finisher button lights up. A finisher costs 1 AP and kills outright.
+- One finisher is equipped at a time. Each plays an in-engine move of about a second (freeze on impact, slow motion, camera push-in, blood), and the body dissolves into gold dust.
+
+| Finisher | The move | Effect | How you get it |
+| --- | --- | --- | --- |
+| Skull Crusher | Two-handed overhead slam; the head caves in | Heal 15% of max health | The Alpha (Trial 5) |
+| Terror | Run it through, lift it, roar | Every other enemy loses its next action | Altar tier 1, 300 Soles |
+| Bloodrush | A three-hit flurry | Refund 2 AP | Altar tier 2, 500 Soles |
+| Fang Ripper | A blow to the jaw; a fang torn loose | +3 crafting materials | The Sabretooth (Trial 10) |
+
+**Gore and age rating:** blood bursts, a skull that visibly caves in, stains on the ground, but no dismemberment, no exposed insides, and bodies dissolve instead of lingering. Aimed at Apple's 13+ tier.
+
+**Stars:** 1 for winning, 1 for finishing above half health, 1 for winning within the Trial's par turns. 15, 30 and 45 total stars give a Gold, Platinum and Legendary loot box.
+
+**Losing still moves the story:** the first loss at key Trials brings a hint from 7,301,223 (former tribute), for example "when the lion goes still, it is about to jump. hit it with a stone."
+
+**Difficulty:** each Trial has a difficulty dial on enemy health and damage, set with a balance bot so a hero at the suggested level with sensible gear and loadout ends regular Trials with about 40% health, mini-bosses about 25% and the Mammoth about 20%, and two levels under loses most of the later Trials. The bot plays well, so real players will find these harder: tune after playtests.
+
+**Art:** the new beasts (mangy and beta wolves, hyena, mountain lion, elk, woolly rhino) are stand-ins built from simple shapes until real models arrive. Until gear is modeled in the hero's style, the hero only shows his weapon. The blocky armor, helm, shield and trinket shapes are hidden.
+
+## Era 1 combat: v1 numbers (superseded by v2 above for enemies and Trials)
 
 First-guess numbers so the combat prototype can be built. Expect them to change after playtesting.
 

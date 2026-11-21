@@ -56,13 +56,13 @@ export class Stage {
     this.looks = {};
     // swap the placeholder body for the rigged caveman once it has loaded
     this.hero.userData.body.visible = false;
-    loadProps().then(() => setHeroLook(this.hero, this.looks)).catch((e) => console.warn('[stage] props failed', e));
+    loadProps().then(() => setHeroLook(this.hero, this.shownLooks())).catch((e) => console.warn('[stage] props failed', e));
     loadCaveman().then((rig) => {
       const h = this.hero;
       h.add(rig.model);
       rig.attachSlots(h.userData.slots);
-      setHeroLook(h, this.looks);
       this.rig = rig;
+      setHeroLook(h, this.shownLooks());
     }).catch((e) => {
       console.warn('[stage] caveman failed to load, using placeholder', e);
       this.hero.userData.body.visible = true;
@@ -72,6 +72,18 @@ export class Stage {
     this.buildingTiers = {};
     this.enemies = new Map();
     this.tweens = [];
+    // Effects: a game clock that can freeze (hit-stop) and slow down, camera shake, particles.
+    this.clock = 0;
+    this.timeScale = 1;
+    this.slowUntil = 0;
+    this.freezeUntil = 0;
+    this.shakeAmp = 0;
+    this.shakeUntil = 0;
+    this.shakeOff = new THREE.Vector3();
+    this.particles = [];
+    this.stains = [];
+    this.fx = new THREE.Group();
+    this.scene.add(this.fx);
     this.mode = 'home';
     this.t0 = performance.now();
     this.last = this.t0;
@@ -140,6 +152,8 @@ export class Stage {
       h.rotation.y = 0;
       this.clearEnemies();
     }
+    this.clearFx();
+    this.timeScale = 1;
     this.fire.visible = mode !== 'combat';
     for (const b of Object.values(this.buildings)) b.visible = mode === 'base';
   }
@@ -149,9 +163,12 @@ export class Stage {
     this.lookNow.copy(this.camLook);
   }
 
+  // Until gear is modelled in the hero's style, the rigged hero only shows his weapon:
+  // the old placeholder armor, helm, shield and trinket shapes clash with the sculpted model.
+  shownLooks() { return this.rig ? { weapon: this.looks.weapon } : this.looks; }
   setHeroLook(looks) {
     this.looks = looks;
-    setHeroLook(this.hero, looks);
+    setHeroLook(this.hero, this.shownLooks());
   }
 
   setBase(tiers) {
@@ -192,7 +209,8 @@ export class Stage {
         this.tween(400, (p) => obj.scale.setScalar(Math.max(0.01, p) * (obj.userData.baseScale || 1)), 'back');
       }
       const big = e.id === 'mammoth';
-      const spacing = n >= 4 ? 1.7 : 2.15;
+      const wide = e.id === 'rhino' || e.id === 'elk';
+      const spacing = wide ? 2.8 : n >= 4 ? 1.7 : 2.15;
       const x = big ? 3.0 : 0.6 + i * spacing;
       const z = big ? -0.6 : i % 2 ? -0.9 : 0.4;
       a.home.set(x, 0, z);
@@ -209,7 +227,7 @@ export class Stage {
     const xs = list.map((e) => this.enemies.get(e.uid).home.x);
     const big = list.some((e) => e.id === 'mammoth');
     const enemyMid = (Math.min(...xs) + Math.max(...xs)) / 2;
-    const right = Math.max(...xs) + (big ? 3.8 : 0.8);
+    const right = Math.max(...xs) + (big ? 3.8 : list.some((e) => e.id === 'rhino' || e.id === 'elk') ? 1.6 : 0.8);
     const cx = (heroX + enemyMid) / 2;
     const span = right - (heroX - 0.6);
     const aspect = this.camera.aspect || 2;
@@ -264,6 +282,7 @@ export class Stage {
         break;
       case 'die': {
         if (who === 'hero' && this.rig && this.rig.play('death')) break;
+        if (who !== 'hero') { this.dissolve(who); break; }
         const r0 = o.rotation.z;
         this.tween(600, (p) => {
           o.rotation.z = r0 + (who === 'hero' ? 1 : -1) * p * 1.4;
@@ -303,7 +322,174 @@ export class Stage {
   }
 
   tween(ms, fn, ease) {
-    this.tweens.push({ t0: performance.now(), ms, fn, ease });
+    this.tweens.push({ t0: this.clock, ms, fn, ease });
+  }
+  after(ms, fn) { this.tween(ms, (p) => { if (p >= 1) fn(); }); }
+
+  // ---------- Impact effects ----------
+  hitStop(ms) { this.freezeUntil = Math.max(this.freezeUntil, performance.now() + ms); }
+  slowMo(scale, ms) { this.timeScale = scale; this.slowUntil = performance.now() + ms; }
+  shake(amp, ms) { this.shakeAmp = Math.max(this.shakeAmp, amp); this.shakeUntil = performance.now() + ms; }
+
+  // World position of an actor's head (or a height on its body).
+  actorPoint(who, frac = 0.85) {
+    const a = this.actor(who);
+    if (!a) return new THREE.Vector3();
+    // head-height effects come from the beast's actual head
+    const head = who !== 'hero' && frac >= 0.7 && a.obj.userData.head;
+    if (head) return head.getWorldPosition(new THREE.Vector3());
+    const v = a.obj.position.clone();
+    v.y += (who === 'hero' ? 1.75 : enemyHeight(a.id)) * frac;
+    if (who !== 'hero') v.x -= 0.35; // the head faces the hero
+    return v;
+  }
+
+  spawn(kind, pos, n, opts = {}) {
+    const mats = FX_MATS();
+    for (let i = 0; i < n; i++) {
+      const m = new THREE.Mesh(FX_GEO(), mats[kind]);
+      const sz = (opts.size || 1) * (kind === 'gold' ? 0.6 + Math.random() * 0.6 : 0.6 + Math.random() * 1.1);
+      m.scale.setScalar(sz);
+      m.position.copy(pos).add(new THREE.Vector3((Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25, (Math.random() - 0.5) * 0.25));
+      const dir = opts.dir || new THREE.Vector3(0, 1, 0);
+      const sp = (opts.speed || 3) * (0.5 + Math.random());
+      const v = new THREE.Vector3((Math.random() - 0.5) * 2, Math.random() * 1.2, (Math.random() - 0.5) * 2).multiplyScalar(opts.spread ?? 1).add(dir).normalize().multiplyScalar(sp);
+      this.fx.add(m);
+      this.particles.push({ m, v, life: (opts.life || 0.9) * (0.7 + Math.random() * 0.6), kind, sz, g: kind === 'gold' ? -0.6 : kind === 'spark' ? 6 : 9.8, stain: kind === 'blood' && opts.stain !== false });
+    }
+  }
+
+  blood(who, n = 10, opts = {}) {
+    if (who === 'hero' || !this.actor(who)) return;
+    const p = this.actorPoint(who, opts.frac ?? 0.6);
+    const dir = new THREE.Vector3(0.8, 0.45, 0); // sprays away from the hero, mostly sideways
+    this.spawn('blood', p, n, { dir, speed: opts.speed || 2.4, spread: 0.7, size: opts.size || 1.2 });
+    if (opts.dark !== false) this.spawn('bloodDark', p, Math.ceil(n / 2), { dir, speed: (opts.speed || 2.4) * 0.7, spread: 0.9, size: 1.3 });
+  }
+
+  stain(x, z, r = 0.35) {
+    const m = new THREE.Mesh(new THREE.CircleGeometry(r, 14), FX_MATS().stain.clone());
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(x, 0.012 + this.stains.length * 0.0004, z);
+    m.scale.set(1, 0.6 + Math.random() * 0.6, 1);
+    m.rotation.z = Math.random() * Math.PI;
+    this.fx.add(m);
+    this.stains.push({ m, born: this.clock });
+    if (this.stains.length > 24) { const old = this.stains.shift(); this.fx.remove(old.m); }
+  }
+
+  // A regular strike lands: brief freeze, blood, sparks off armor, a bigger moment on crits.
+  impact(who, { dmg = 0, crit = false, armored = false, kind = 'physical' } = {}) {
+    if (who === 'hero') {
+      this.hitStop(dmg >= 15 ? 90 : 50);
+      this.shake(dmg >= 15 ? 0.12 : 0.05, 220);
+      return;
+    }
+    if (kind === 'burn') return;
+    this.hitStop(crit ? 110 : 55);
+    if (crit) { this.slowMo(0.35, 260); this.shake(0.14, 260); } else this.shake(0.05, 160);
+    if (armored) this.spawn('spark', this.actorPoint(who, 0.6), 10, { speed: 4, spread: 1.2, life: 0.5 });
+    if (kind === 'fire') this.spawn('ember', this.actorPoint(who, 0.6), 12, { speed: 2.5, dir: new THREE.Vector3(0, 1.5, 0), life: 0.8 });
+    else if (dmg > 0) this.blood(who, crit ? 16 : 7, { size: crit ? 1.3 : 1 });
+  }
+
+  // Death: the body drops, then dissolves into gold dust that drifts up (the simulation reclaiming it).
+  dissolve(who) {
+    const a = this.actor(who);
+    if (!a) return;
+    const o = a.obj;
+    const r0 = o.rotation.z, base = o.scale.x;
+    this.stain(o.position.x, o.position.z, 0.3 + enemyHeight(a.id) * 0.12);
+    this.tween(420, (p) => { o.rotation.z = r0 - p * 1.35; o.position.y = -p * 0.15; });
+    this.after(520, () => {
+      this.spawn('gold', this.actorPoint(who, 0.4), 26, { dir: new THREE.Vector3(0, 1, 0), speed: 0.9, spread: 1.1, life: 1.6 });
+      this.tween(650, (p) => { o.scale.setScalar(base * (1 - p * 0.92)); if (p >= 1) o.visible = false; });
+    });
+  }
+
+  // ---------- Finishing moves (in-engine, about a second) ----------
+  // Returns the real-time ms until the kill lands, so the UI can wait for it.
+  finisher(kind, who) {
+    const a = this.actor(who);
+    if (!a) return 0;
+    const h = this.hero, home = this.actor('hero').home.clone();
+    const target = a.obj.position.clone();
+    const reach = Math.max(0, target.x - home.x - 1.25 - (enemyHeight(a.id) > 3 ? 1.4 : 0));
+    // close in on the target and push the camera toward it
+    this.tween(260, (p) => { h.position.x = home.x + reach * easeOut(p); });
+    const look0 = this.camLook.clone(), pos0 = this.camPos.clone();
+    const focus = this.actorPoint(who, 0.6);
+    this.camLook.lerpVectors(look0, focus, 0.45);
+    this.camPos.lerpVectors(pos0, focus, 0.22);
+    const back = () => {
+      this.camLook.copy(look0); this.camPos.copy(pos0);
+      this.tween(320, (p) => { h.position.x = home.x + reach * (1 - easeOut(p)); });
+    };
+    const head = a.obj.userData.head;
+    switch (kind) {
+      case 'skull': {
+        // two-handed overhead slam: the skull caves in
+        this.swing('attack', 300);
+        this.after(300, () => {
+          this.hitStop(150); this.slowMo(0.25, 420); this.shake(0.22, 380);
+          if (head) { const s0 = head.scale.clone(); this.tween(140, (p) => head.scale.set(s0.x * (1 + 0.35 * p), s0.y * (1 - 0.65 * p), s0.z * (1 + 0.35 * p))); }
+          const hp = this.actorPoint(who, 0.85);
+          this.spawn('blood', hp, 30, { dir: new THREE.Vector3(0.5, 0.8, 0), speed: 2.6, spread: 1.1, size: 1.5 });
+          this.spawn('bloodDark', hp, 18, { dir: new THREE.Vector3(0.7, 0.3, 0), speed: 1.8, spread: 1, size: 1.5 });
+          this.spawn('bone', hp, 7, { dir: new THREE.Vector3(0.4, 0.8, 0), speed: 2.2, spread: 1, life: 0.7 });
+          this.after(380, () => { back(); this.dissolve(who); });
+        });
+        return 320;
+      }
+      case 'terror': {
+        // run it through, lift it, and roar: the pack flinches
+        this.swing('attack', 260);
+        this.after(260, () => {
+          this.hitStop(110); this.slowMo(0.3, 600); this.shake(0.16, 300);
+          this.blood(who, 20, { frac: 0.45, speed: 2.5 });
+          const o = a.obj, y0 = o.position.y, rz = o.rotation.z;
+          this.tween(380, (p) => { o.position.y = y0 + Math.sin(Math.min(1, p * 1.4) * Math.PI / 2) * 1.0; o.rotation.z = rz + 0.6 * p; });
+          for (let i = 0; i < 4; i++) this.after(90 * i, () => this.spawn('bloodDark', this.actorPoint(who, 0.35), 4, { dir: new THREE.Vector3(0, -1, 0), speed: 1.2, spread: 0.3 }));
+          this.after(380, () => {
+            if (this.rig) this.rig.play('roar');
+            for (const [uid, e] of this.enemies) if (uid !== who && e.obj.visible) { const x0 = e.home.x; this.tween(420, (p) => { e.obj.position.x = x0 + Math.sin(p * Math.PI) * 0.7; }); }
+            this.shake(0.12, 400);
+            this.tween(260, (p) => { o.position.y = y0 + 1.0 * (1 - p); });
+            this.after(300, () => { back(); this.dissolve(who); });
+          });
+        });
+        return 300;
+      }
+      case 'bloodrush': {
+        // a three-hit flurry, blood on every strike
+        for (let i = 0; i < 3; i++) {
+          this.after(i * 190, () => {
+            this.swing('attack', 150);
+            this.after(150, () => { this.hitStop(60); this.shake(0.1, 140); this.blood(who, 12, { speed: 2.6 }); });
+          });
+        }
+        this.after(560, () => { this.slowMo(0.35, 300); this.after(260, () => { back(); this.dissolve(who); }); });
+        return 520;
+      }
+      case 'fang': {
+        // a blow to the jaw, then a fang torn loose as a trophy
+        this.swing('attack', 260);
+        this.after(260, () => {
+          this.hitStop(120); this.slowMo(0.3, 380); this.shake(0.15, 300);
+          if (head) { const r0 = head.rotation.z; this.tween(200, (p) => { head.rotation.z = r0 + 0.9 * p; }); }
+          const hp = this.actorPoint(who, 0.8);
+          this.spawn('blood', hp, 22, { dir: new THREE.Vector3(0.5, 0.7, 0), speed: 2.4, spread: 1, size: 1.4 });
+          const fang = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.28, 6), FX_MATS().bone);
+          fang.position.copy(hp);
+          this.fx.add(fang);
+          const to = this.actorPoint('hero', 0.6);
+          this.tween(520, (p) => { fang.position.lerpVectors(hp, to, p); fang.position.y += Math.sin(p * Math.PI) * 0.9; fang.rotation.z = p * 8; if (p >= 1) this.fx.remove(fang); });
+          this.after(360, () => { back(); this.dissolve(who); });
+        });
+        return 300;
+      }
+    }
+    return 0;
   }
 
   // Screen position (CSS px) of an actor's head or a building top.
@@ -332,14 +518,26 @@ export class Stage {
     this.last = nowMs;
     const t = (nowMs - this.t0) / 1000;
     // camera ease
+    // game time: frozen during hit-stop, slowed during slow motion
+    const real = performance.now();
+    if (this.timeScale !== 1 && real > this.slowUntil) this.timeScale = 1;
+    const gdt = real < this.freezeUntil ? 0 : dt * this.timeScale;
+    this.clock += gdt * 1000;
+    this.camera.position.sub(this.shakeOff);
     this.camera.position.lerp(this.camPos, 1 - Math.pow(0.0004, dt));
     this.lookNow.lerp(this.camLook, 1 - Math.pow(0.0004, dt));
     this.camera.lookAt(this.lookNow);
+    if (real < this.shakeUntil) {
+      const k = this.shakeAmp * ((this.shakeUntil - real) / 300);
+      this.shakeOff.set((Math.random() - 0.5) * k, (Math.random() - 0.5) * k, 0);
+    } else { this.shakeOff.set(0, 0, 0); this.shakeAmp = 0; }
+    this.camera.position.add(this.shakeOff);
+    this.updateParticles(gdt);
     // idle
     const hb = this.hero.userData.body;
     hb.position.y = Math.sin(t * 2) * 0.02;
     this.hero.userData.hairBack.rotation.x = 0.12 + Math.sin(t * 1.7) * 0.04;
-    if (this.rig) this.rig.update(dt, t);
+    if (this.rig) this.rig.update(gdt, t);
     for (const a of this.enemies.values()) {
       const b = a.obj.userData.body;
       if (b) b.position.y = Math.sin(t * 2.4 + a.uid) * 0.03;
@@ -347,16 +545,66 @@ export class Stage {
     if (this.fire.visible) this.fire.userData.flames.userData.update(t, this.camera);
     this.fire.userData.light.intensity = 11 + Math.sin(t * 15) * 1.5 + Math.sin(t * 6.3) * 1.5;
     for (const b of Object.values(this.buildings)) b.children.forEach((c) => { if (c.material && c.material.wireframe) c.rotation.y = t * 0.3; });
-    // tweens
-    const now = performance.now();
-    this.tweens = this.tweens.filter((tw) => {
+    // tweens run on the game clock
+    const now = this.clock;
+    const list = this.tweens;
+    this.tweens = [];
+    const keep = list.filter((tw) => {
       let p = Math.min(1, (now - tw.t0) / tw.ms);
       if (tw.ease === 'back') p = backOut(p);
       tw.fn(p);
       return (now - tw.t0) < tw.ms;
     });
+    this.tweens = keep.concat(this.tweens);
     this.renderer.render(this.scene, this.camera);
   }
+
+  updateParticles(dt) {
+    if (!this.particles.length && !this.stains.length) return;
+    this.particles = this.particles.filter((q) => {
+      q.life -= dt;
+      q.v.y -= q.g * dt;
+      q.m.position.addScaledVector(q.v, dt);
+      if (q.m.position.y < 0.02 && q.kind !== 'gold') {
+        if (q.stain && Math.random() < 0.18) this.stain(q.m.position.x, q.m.position.z, 0.06 + Math.random() * 0.1);
+        q.life = 0;
+      }
+      const k = Math.max(0, Math.min(1, q.life / 0.3));
+      q.m.scale.setScalar(q.sz * (q.kind === 'gold' ? k : 0.4 + 0.6 * k));
+      if (q.life <= 0) { this.fx.remove(q.m); return false; }
+      return true;
+    });
+    // stains fade after a few seconds
+    for (const st of this.stains) {
+      const age = (this.clock - st.born) / 1000;
+      st.m.material.opacity = age < 6 ? 0.85 : Math.max(0, 0.85 - (age - 6) * 0.4);
+    }
+  }
+
+  clearFx() {
+    for (const q of this.particles) this.fx.remove(q.m);
+    for (const st of this.stains) this.fx.remove(st.m);
+    this.particles = [];
+    this.stains = [];
+  }
+}
+
+// Shared effect geometry and materials, made on first use.
+let fxGeo = null, fxMats = null;
+function FX_GEO() { return fxGeo || (fxGeo = new THREE.IcosahedronGeometry(0.045, 0)); }
+function FX_MATS() {
+  if (fxMats) return fxMats;
+  const basic = (color, extra = {}) => new THREE.MeshBasicMaterial({ color, ...extra });
+  fxMats = {
+    blood: basic(0x8a0b0b),
+    bloodDark: basic(0x4a0505),
+    bone: basic(0xeee2c4),
+    spark: basic(0xffd27a, { blending: THREE.AdditiveBlending, transparent: true }),
+    ember: basic(0xff7a2a, { blending: THREE.AdditiveBlending, transparent: true }),
+    gold: basic(0xffcc66, { blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }),
+    stain: basic(0x3e0606, { transparent: true, opacity: 0.85, depthWrite: false }),
+  };
+  return fxMats;
 }
 
 const easeOut = (k) => 1 - (1 - k) * (1 - k);

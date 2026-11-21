@@ -49,13 +49,15 @@ export function newState() {
       ranks: { club: 1, guard: 1 }, loadout: ['club', 'guard'],
       equip: { weapon: null, armor: null, helm: null, offhand: null, trinket: null },
       respecTokens: 0, boons: [], spentXpSoles: 0,
+      finishers: [], finisher: null, // finishing moves owned / equipped
     },
     base,
     firstBuildFree: true,
     recipes: RECIPES.filter((r) => r.known).map((r) => r.id),
     blueprints: [],
     crafted: 0,
-    trials: { cleared: {}, losses: {}, wins: 0, replays: 0 },
+    trials: { cleared: {}, losses: {}, wins: 0, replays: 0, stars: {} },
+    starRewards: [], // star totals already rewarded
     eraKey: false,
     evolved: false,
     fragments: { found: [], decoded: [] },
@@ -83,6 +85,7 @@ export function load() {
     const fresh = newState();
     for (const k of Object.keys(fresh)) if (s[k] === undefined) s[k] = fresh[k];
     for (const k of Object.keys(fresh.hero)) if (s.hero[k] === undefined) s.hero[k] = fresh.hero[k];
+    if (!s.trials.stars) s.trials.stars = {};
     return s;
   } catch (e) {
     console.warn('Save unreadable, starting fresh', e);

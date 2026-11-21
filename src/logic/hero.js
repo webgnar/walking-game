@@ -1,5 +1,5 @@
 // Hero stats, XP, levels, gear and training.
-import { SKILLS, GEAR, SOLES_PER_XP, xpToNext, ERA1, HERO_START, SLOTS } from '../data/era1.js';
+import { SKILLS, GEAR, SOLES_PER_XP, xpToNext, ERA1, HERO_START, SLOTS, LOADOUT_MAX, FINISHERS } from '../data/era1.js';
 import { toast } from './state.js';
 
 export function gearOf(s, uidv) {
@@ -46,14 +46,41 @@ export function levelCap(s) {
 export function maxRank(s) {
   return Math.min(3, 1 + s.base.altar.tier);
 }
-export function loadoutSize(s) {
-  const t = s.base.altar.tier;
-  return t >= 3 ? 6 : t >= 1 ? 5 : 4;
+// Always 4: you own more skills than you can bring, so the loadout is a build decision.
+export function loadoutSize() {
+  return LOADOUT_MAX;
+}
+
+// ---------- Finishers ----------
+export function grantFinisher(s, id) {
+  const h = s.hero;
+  if (!h.finishers.includes(id)) h.finishers.push(id);
+  if (!h.finisher) h.finisher = id;
+}
+export function canBuyFinisher(s, id) {
+  const f = FINISHERS[id];
+  if (!f.price || s.hero.finishers.includes(id)) return { ok: false, why: 'owned' };
+  if (s.base.altar.tier < f.altar) return { ok: false, why: 'altar' };
+  if (s.soles < f.price) return { ok: false, why: 'soles' };
+  return { ok: true };
+}
+export function buyFinisher(s, id) {
+  const r = canBuyFinisher(s, id);
+  if (!r.ok) return r;
+  s.soles -= FINISHERS[id].price;
+  grantFinisher(s, id);
+  return r;
+}
+export function equipFinisher(s, id) {
+  if (!s.hero.finishers.includes(id)) return false;
+  s.hero.finisher = id;
+  return true;
 }
 
 // Unlock skills by level (GDD v1 table). Returns newly unlocked ids.
 export function syncSkills(s) {
   const newly = [];
+  if (s.hero.loadout.length > LOADOUT_MAX) s.hero.loadout = s.hero.loadout.slice(0, LOADOUT_MAX);
   for (const id of Object.keys(SKILLS)) {
     if (s.hero.level >= SKILLS[id].unlock && !s.hero.ranks[id]) {
       s.hero.ranks[id] = 1;

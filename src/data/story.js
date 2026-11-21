@@ -183,6 +183,20 @@ export const FLICKERS = {
   },
 };
 
+// The first loss at these Trials brings a hint from 7,301,223 (former tribute): losing still moves
+// the story along, and the hint teaches the fight.
+export const LOSS_TIPS = {
+  4: 'the beta leads them. it dies first, or you do.',
+  5: 'the alpha howls for help. a thrown stone shuts it up.',
+  6: 'hyenas get braver together. thin them out. fire scares them.',
+  7: 'when the lion goes still, it is about to jump. hit it with a stone.',
+  9: 'three lions. stop the pounces. you cannot take all three.',
+  10: 'the sabretooth makes you bleed. close the wound or it finishes you slowly.',
+  11: 'the elk goes mad when it is hurt. save your strength for the end.',
+  13: 'your club bounces off the rhino. something sharper. or fire.',
+  15: 'she gets angrier the more she bleeds. i lost here twice. build for her.',
+};
+
 // The first time PROCTOR forgets to joke (Trial 12), then covers it up.
 export const PROCTOR_SLIP = [
   'You are progressing faster than projected. The Conclave will be informed.',

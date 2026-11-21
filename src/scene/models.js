@@ -194,9 +194,64 @@ function quadruped({ body, color, belly, head, legs = 0.5, scale = 1, extras }) 
   return g;
 }
 
+// Wolf-shaped body reused for the pack (mangy, wolf, beta, alpha) and the hyenas.
+function canine({ color, belly, dark, scale = 1, mane = null, slope = 0, spots = null }) {
+  const g = quadruped({ body: [0.8, 0.42], color, belly, head: 0.22, legs: 0.42, extras: (s, hd, o) => {
+    hd.add(part(G.box(0.3, 0.13, 0.16), color, [0.24, -0.06, 0]));
+    hd.add(part(G.cone(0.07, 0.18, 4), dark, [0, 0.22, 0.1]));
+    hd.add(part(G.cone(0.07, 0.18, 4), dark, [0, 0.22, -0.1]));
+    s.add(part(G.cone(0.09, 0.55, 6), color, [-0.68, o.legs + 0.3, 0], [0, 0, 2.1]));
+    if (mane) s.add(part(G.sph(0.3, 10, 8), mane, [0.3, o.legs + 0.42, 0], [0, 0, 0], [1, 1.1, 1.2]));
+    if (spots) for (let i = 0; i < 6; i++) s.add(part(G.sph(0.07, 6, 5), spots, [-0.3 + (i % 3) * 0.25, o.legs + 0.5 + (i > 2 ? -0.08 : 0.06), i % 2 ? 0.19 : -0.19], [0, 0, 0], [1, 0.5, 0.3], 0));
+  } });
+  if (slope) g.userData.body.rotation.z = slope; // hyenas: high shoulders, low hips
+  g.scale.setScalar(scale);
+  return g;
+}
+
 export function buildEnemy(id) {
   let g;
   switch (id) {
+    case 'mangy':
+      g = canine({ color: 0x9a8f7e, belly: 0xb9ae9a, dark: 0x6b6152, scale: 0.85 });
+      break;
+    case 'beta':
+      g = canine({ color: 0x5b5e68, belly: 0x8f929c, dark: 0x3a3c44, scale: 1.18, mane: 0x7a7d88 });
+      break;
+    case 'hyena':
+      g = canine({ color: 0xa8865a, belly: 0xc9ad84, dark: 0x4a3622, scale: 0.98, slope: 0.16, spots: 0x3b2a18 });
+      break;
+    case 'lion':
+      g = quadruped({ body: [1.0, 0.5], color: 0xb98a52, belly: 0xe0c49a, head: 0.25, legs: 0.48, scale: 1.2, extras: (s, hd, o) => {
+        hd.add(part(G.box(0.22, 0.14, 0.18), 0xb98a52, [0.2, -0.07, 0]));
+        hd.add(part(G.cone(0.06, 0.12, 4), 0x8a6338, [0, 0.24, 0.11]));
+        hd.add(part(G.cone(0.06, 0.12, 4), 0x8a6338, [0, 0.24, -0.11]));
+        s.add(part(G.cyl(0.05, 0.03, 0.85, 6), 0xb98a52, [-0.8, o.legs + 0.2, 0], [0, 0, 1.2]));
+        s.add(part(G.sph(0.06, 6, 5), 0x3b2a18, [-1.15, o.legs + 0.05, 0]));
+      } });
+      g.scale.setScalar(1.3);
+      break;
+    case 'elk':
+      g = quadruped({ body: [1.1, 0.7], color: 0x6e4a2c, belly: 0xa07a55, head: 0.24, legs: 0.85, scale: 1.4, extras: (s, hd, o) => {
+        hd.add(part(G.box(0.36, 0.16, 0.16), 0x6e4a2c, [0.26, -0.1, 0]));
+        s.add(part(G.cyl(0.12, 0.16, 0.5, 8), 0x6e4a2c, [o.hx - 0.2, o.legs + 0.6, 0], [0, 0, -0.6]));
+        s.add(part(G.sph(0.22, 8, 6), 0xc9b48e, [0.35, o.legs + 0.55, 0], [0, 0, 0], [1, 1.2, 1.1]));
+        for (const z of [0.12, -0.12]) {
+          hd.add(part(G.cyl(0.025, 0.035, 0.6, 5), 0xe3d3b0, [-0.05, 0.38, z * 1.6], [z > 0 ? 0.5 : -0.5, 0, -0.3]));
+          for (let i = 0; i < 3; i++) hd.add(part(G.cyl(0.018, 0.025, 0.28, 5), 0xe3d3b0, [-0.1 - i * 0.1, 0.5 + i * 0.12, z * (2.4 + i * 0.6)], [z > 0 ? 1.0 : -1.0, 0, 0.2]));
+        }
+      } });
+      g.scale.setScalar(1.15);
+      break;
+    case 'rhino':
+      g = quadruped({ body: [1.3, 1.05], color: 0x6d5a46, belly: 0x8a765f, head: 0.36, legs: 0.5, scale: 1.9, extras: (s, hd, o) => {
+        hd.add(part(G.box(0.4, 0.3, 0.32), 0x6d5a46, [0.25, -0.08, 0]));
+        hd.add(part(G.cone(0.1, 0.55, 8), 0xd9cdb4, [0.38, 0.22, 0], [0, 0, -0.35]));
+        hd.add(part(G.cone(0.06, 0.25, 8), 0xd9cdb4, [0.12, 0.25, 0], [0, 0, -0.2]));
+        s.add(part(G.sph(0.42, 10, 8), 0x4f3f30, [0.25, o.legs + 1.0, 0], [0, 0, 0], [1.2, 0.7, 1])); // woolly hump
+      } });
+      g.scale.setScalar(1.25);
+      break;
     case 'wolf':
     case 'alpha': {
       const alpha = id === 'alpha';
@@ -280,7 +335,7 @@ export function buildEnemy(id) {
 }
 
 export function enemyHeight(id) {
-  return { wolf: 1.2, alpha: 1.8, boar: 1.3, hunter: 2.2, bear: 2.3, sabre: 1.9, mammoth: 4.3 }[id] || 1.5;
+  return { mangy: 1.0, wolf: 1.2, beta: 1.45, alpha: 1.8, hyena: 1.25, lion: 1.55, elk: 3.0, rhino: 2.4, boar: 1.3, hunter: 2.2, bear: 2.3, sabre: 1.9, mammoth: 4.3 }[id] || 1.5;
 }
 
 // ---------- Environment ----------

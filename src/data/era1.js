@@ -28,25 +28,84 @@ export const SKILLS = {
     unlock: 1, icon: '🛡', desc: (p) => `Block ${p} + half Vitality this turn`,
   },
   roar: {
-    id: 'roar', name: 'Roar', ap: 2, kind: 'stun', power: 0, target: 'enemy', cooldown: 3,
-    unlock: 2, icon: '📣', desc: () => 'Stun one enemy for 1 turn. 3-turn cooldown',
+    id: 'roar', name: 'Roar', ap: 2, kind: 'stun', power: 0, target: 'enemy', cooldown: 4,
+    unlock: 2, icon: '📣', desc: () => 'Stun one enemy for 1 turn. 4-turn cooldown',
   },
   hurl: {
-    id: 'hurl', name: 'Hurl Stone', ap: 1, kind: 'physical', power: 4, target: 'enemy', interrupts: true, stunChance: 0.15,
-    unlock: 3, icon: '🪨', desc: (p) => `${p} physical damage. Interrupts "calling backup". 15% chance to stun (not bosses)`,
+    id: 'hurl', name: 'Hurl Stone', ap: 1, kind: 'physical', power: 4, target: 'enemy', interrupts: true, stunChance: 0.15, cooldown: 2,
+    unlock: 3, icon: '🪨', desc: (p) => `${p} physical damage. Stops a call for backup or a stalking pounce. 15% chance to stun. 2-turn cooldown`,
   },
   firebrand: {
     id: 'firebrand', name: 'Firebrand', ap: 2, kind: 'fire', power: 8, target: 'enemy', burn: 3, burnTurns: 2,
     unlock: 5, icon: '🔥', desc: (p) => `${p} fire damage, then 3 burn a turn for 2 turns. Scares beasts`,
   },
+  jab: {
+    id: 'jab', name: 'Flint Jab', ap: 1, kind: 'physical', power: 4, target: 'enemy', pierce: true,
+    unlock: 4, icon: '🗡', desc: (p) => `${p} damage that ignores block and armor`,
+  },
+  sweep: {
+    id: 'sweep', name: 'Sweep', ap: 2, kind: 'sweep', power: 3, target: 'all',
+    unlock: 6, icon: '🌀', desc: (p) => `${p} + half Strength to every enemy`,
+  },
+  secondwind: {
+    id: 'secondwind', name: 'Second Wind', ap: 1, kind: 'heal', power: 8, target: 'self', cooldown: 3,
+    unlock: 7, icon: '💨', desc: (p) => `Heal ${p} + Vitality and stop bleeding. 3-turn cooldown`,
+  },
 };
-export const SKILL_ORDER = ['club', 'guard', 'roar', 'hurl', 'firebrand'];
+export const SKILL_ORDER = ['club', 'guard', 'roar', 'hurl', 'jab', 'firebrand', 'sweep', 'secondwind'];
+export const LOADOUT_MAX = 4;
+
+// ---------- Finishers ----------
+// Fury builds as you fight. When an enemy is low (marked with a skull) and Fury is full,
+// the equipped finisher kills it outright for 1 AP and adds its effect.
+export const FURY = { perHit: 20, perHurt: 10, max: 100, ap: 1, threshold: 0.3, bossThreshold: 0.2 };
+export const FINISHERS = {
+  skull: { id: 'skull', name: 'Skull Crusher', icon: '💀', desc: 'Heal 15% of your max health', how: 'Drops from the Alpha (Trial 5)' },
+  terror: { id: 'terror', name: 'Terror', icon: '😱', desc: 'Every other enemy loses its next action', price: 300, altar: 1, how: 'Hero Training Altar tier 1' },
+  bloodrush: { id: 'bloodrush', name: 'Bloodrush', icon: '🩸', desc: 'Refund 2 AP so you can keep going', price: 500, altar: 2, how: 'Hero Training Altar tier 2' },
+  fang: { id: 'fang', name: 'Fang Ripper', icon: '🦷', desc: 'Rip out a trophy: +3 crafting materials', how: 'Drops from the Sabretooth (Trial 10)' },
+};
+export const FINISHER_ORDER = ['skull', 'terror', 'bloodrush', 'fang'];
 
 // ---------- Enemies ----------
 // Intent kinds: attack (dmg), block (amt), buff (snarl), charge (wind-up -> big hit), call (summon), bleed.
+// traits: pack (leaders make the rest hit harder), stalker (winds up a pounce that Hurl Stone or
+// Roar stops), enraged (hits 50% harder below half health), armored (weak hits do less).
+export const TRAITS = {
+  pack: { name: 'Pack', desc: 'While a leader lives, the others hit harder. Kill order matters.' },
+  stalker: { name: 'Stalker', desc: 'Stalks, then pounces. Hurl Stone or Roar stops the pounce.' },
+  enraged: { name: 'Enraged', desc: 'Hits 50% harder below half health. Burst it or stun it.' },
+  armored: { name: 'Armored', desc: 'Takes less from weapon hits. Flint Jab and fire ignore armor.' },
+  fireFear: { name: 'Fears fire', desc: 'Firebrand scares it out of its next attack.' },
+};
+
 export const ENEMIES = {
+  mangy: {
+    id: 'mangy', name: 'Mangy Wolf', hp: 24, fireFear: true, beast: true, model: 'mangy', pattern: 'mangy', traits: ['fireFear'],
+    intents: { bite: { kind: 'attack', dmg: 5, label: 'Bite' } },
+  },
+  beta: {
+    id: 'beta', name: 'Beta Wolf', hp: 52, fireFear: true, beast: true, model: 'beta', pattern: 'wolf', leader: true, traits: ['pack', 'fireFear'],
+    intents: { bite: { kind: 'attack', dmg: 7, label: 'Bite' }, snarl: { kind: 'buff', label: 'Snarl', note: 'next Bite +50%' } },
+  },
+  hyena: {
+    id: 'hyena', name: 'Cave Hyena', hp: 30, fireFear: true, beast: true, model: 'hyena', pattern: 'hyena', traits: ['pack', 'fireFear'],
+    intents: { bite: { kind: 'attack', dmg: 5, label: 'Bite' }, cackle: { kind: 'buff', label: 'Cackle', note: 'next Bite +50%' } },
+  },
+  lion: {
+    id: 'lion', name: 'Mountain Lion', hp: 58, fireFear: true, beast: true, model: 'lion', pattern: 'lion', traits: ['stalker', 'fireFear'],
+    intents: { swipe: { kind: 'attack', dmg: 8, label: 'Swipe' }, stalk: { kind: 'windup', label: 'Stalking', note: 'next turn: Pounce 17. Hurl Stone or Roar stops it', interruptible: true }, pounce: { kind: 'attack', dmg: 17, label: 'Pounce' } },
+  },
+  elk: {
+    id: 'elk', name: 'Enraged Elk', hp: 84, fireFear: false, beast: true, model: 'elk', pattern: 'elk', enrages: true, traits: ['enraged'],
+    intents: { antler: { kind: 'attack', dmg: 9, label: 'Antlers' }, paw: { kind: 'windup', label: 'Pawing the ground', note: 'next turn: Charge 20' }, charge: { kind: 'attack', dmg: 20, label: 'Charge' } },
+  },
+  rhino: {
+    id: 'rhino', name: 'Woolly Rhino', hp: 110, fireFear: false, beast: true, model: 'rhino', pattern: 'rhino', armor: 4, traits: ['armored'],
+    intents: { horn: { kind: 'attack', dmg: 10, label: 'Horn' }, lower: { kind: 'windup', label: 'Lowering its horn', note: 'next turn: Charge 24' }, charge: { kind: 'attack', dmg: 24, label: 'Charge' } },
+  },
   wolf: {
-    id: 'wolf', name: 'Wolf', hp: 35, fireFear: true, beast: true, model: 'wolf',
+    id: 'wolf', name: 'Wolf', hp: 35, fireFear: true, beast: true, model: 'wolf', traits: ['fireFear'],
     pattern: 'wolf',
     intents: { bite: { kind: 'attack', dmg: 6, label: 'Bite' }, snarl: { kind: 'buff', label: 'Snarl', note: 'next Bite +50%' } },
   },
@@ -63,15 +122,15 @@ export const ENEMIES = {
     intents: { swipe: { kind: 'attack', dmg: 11, label: 'Swipe' }, hunker: { kind: 'block', amt: 10, label: 'Hunker' } },
   },
   alpha: {
-    id: 'alpha', name: 'Alpha Wolf', hp: 130, fireFear: true, beast: true, boss: 'mini', model: 'alpha', pattern: 'alpha',
+    id: 'alpha', name: 'Alpha Wolf', hp: 130, fireFear: true, beast: true, boss: 'mini', model: 'alpha', pattern: 'alpha', leader: true, traits: ['pack', 'fireFear'],
     intents: { bite: { kind: 'attack', dmg: 9, label: 'Bite' }, snarl: { kind: 'buff', label: 'Snarl', note: 'next Bite +50%' }, call: { kind: 'call', label: 'Call the pack', note: 'adds a Wolf' } },
   },
   sabre: {
-    id: 'sabre', name: 'Sabretooth', hp: 210, fireFear: true, beast: true, boss: 'mini', model: 'sabre', pattern: 'sabre',
+    id: 'sabre', name: 'Sabretooth', hp: 210, fireFear: true, beast: true, boss: 'mini', model: 'sabre', pattern: 'sabre', traits: ['fireFear'],
     intents: { claw: { kind: 'attack', dmg: 12, label: 'Claw' }, bleed: { kind: 'bleed', dmg: 3, turns: 3, label: 'Bleed', note: '3 a turn for 3 turns' }, crouch: { kind: 'windup', label: 'Crouching', note: 'next turn: Pounce 24' }, pounce: { kind: 'attack', dmg: 24, label: 'Pounce' } },
   },
   mammoth: {
-    id: 'mammoth', name: 'Great Mammoth', hp: 420, fireFear: false, beast: true, boss: 'era', model: 'mammoth', pattern: 'mammoth',
+    id: 'mammoth', name: 'Great Woolly Mammoth', hp: 420, fireFear: false, beast: true, boss: 'era', model: 'mammoth', pattern: 'mammoth', armor: 3, traits: ['armored', 'enraged'],
     intents: { stomp: { kind: 'attack', dmg: 12, label: 'Stomp' }, trumpet: { kind: 'block', amt: 15, label: 'Trumpet', note: 'block 15, Stomps +3 for the fight' }, lower: { kind: 'windup', label: 'Lowering tusks', note: 'next turn: Charge 30' }, charge: { kind: 'attack', dmg: 30, label: 'Charge' } },
   },
 };
@@ -91,23 +150,37 @@ export function setTuning(name) {
 
 // ---------- Trials ----------
 // v = veteran (+25% health and damage)
+// Three acts up the food chain. par = turns for the third star (balance bot's median + 1).
+// power = the Trial's difficulty dial on enemy health and damage, tuned with the balance bot so a
+// hero at the suggested level ends regular Trials with ~40% health, mini-bosses ~25%, the Mammoth ~20%.
+export const ACTS = [
+  { n: 1, name: 'The Pack', line: "The Alpha's scouts have found your scent." },
+  { n: 2, name: 'The Predators', line: "The Alpha's carcass drew bigger hunters." },
+  { n: 3, name: 'The Giants', line: 'With the apex predator dead, the valley opens. The herd is coming.' },
+];
 export const TRIALS = [
-  { n: 0, name: 'Tutorial', enemies: ['wolf'], level: 1, xp: 50, tutorial: true },
-  { n: 1, name: 'Scent of Prey', enemies: ['wolf'], level: 2, xp: 30 },
-  { n: 2, name: 'Two Shadows', enemies: ['wolf', 'wolf'], level: 2, xp: 30 },
-  { n: 3, name: 'Tusks in the Brush', enemies: ['boar'], level: 3, xp: 30 },
-  { n: 4, name: 'Mixed Company', enemies: ['wolf', 'boar'], level: 3, xp: 30 },
-  { n: 5, name: 'The Alpha', enemies: ['alpha', 'wolf'], level: 4, xp: 80, boss: 'mini' },
-  { n: 6, name: 'The Pack', enemies: ['wolf', 'wolf', 'wolf'], level: 5, xp: 50 },
-  { n: 7, name: 'Another Contestant?', enemies: ['hunter'], level: 5, xp: 50 },
-  { n: 8, name: 'Hunting Party', enemies: ['hunter', 'hunter'], level: 6, xp: 50 },
-  { n: 9, name: 'Do Not Wake It', enemies: ['bear'], level: 6, xp: 50 },
-  { n: 10, name: 'Sabretooth', enemies: ['sabre'], level: 7, xp: 150, boss: 'mini' },
-  { n: 11, name: 'Old Scars', enemies: ['bear!', 'wolf'], level: 8, xp: 80 },
-  { n: 12, name: 'Veterans', enemies: ['hunter!', 'hunter!', 'wolf'], level: 8, xp: 80 },
-  { n: 13, name: 'Stampede', enemies: ['boar!', 'boar!', 'hunter'], level: 9, xp: 80 },
-  { n: 14, name: 'Twin Dens', enemies: ['bear!', 'bear!'], level: 9, xp: 80 },
-  { n: 15, name: 'The Great Mammoth', enemies: ['mammoth'], level: 10, xp: 300, boss: 'era' },
+  { n: 0, name: 'Tutorial', enemies: ['wolf'], level: 1, xp: 50, tutorial: true, par: 6 },
+  { n: 1, act: 1, name: 'Scent of Prey', enemies: ['mangy'], level: 2, xp: 30, par: 3, power: 1.6, line: 'A starving wolf, too hungry to be afraid of you.' },
+  { n: 2, act: 1, name: 'Scavengers', enemies: ['wolf', 'wolf'], level: 2, xp: 30, par: 5, power: 1.2, line: 'Two more, drawn by the first one\'s blood.' },
+  { n: 3, act: 1, name: 'The Beta', enemies: ['beta'], level: 3, xp: 30, par: 5, power: 1.8, line: "The Alpha's second. Bigger, and it doesn't hesitate." },
+  { n: 4, act: 1, name: 'Hunting Party', enemies: ['beta', 'mangy', 'mangy'], level: 3, xp: 30, par: 6, power: 1.1, line: 'The Beta brought the pack. Kill it first and the rest lose their nerve.' },
+  { n: 5, act: 1, name: 'The Alpha', enemies: ['alpha', 'wolf'], level: 4, xp: 80, boss: 'mini', par: 9, power: 1.1, line: 'The pack leader. It calls more wolves if you let it.' },
+  { n: 6, act: 2, name: 'Carrion', enemies: ['hyena', 'hyena', 'hyena'], level: 5, xp: 50, par: 9, power: 2.0, line: 'Hyenas, come for what is left of the Alpha. They want you too.' },
+  { n: 7, act: 2, name: 'The Mountain Lion', enemies: ['lion'], level: 5, xp: 50, par: 6, power: 3.0, line: 'Something has been watching you from the rocks.' },
+  { n: 8, act: 2, name: 'Two Shadows', enemies: ['lion', 'lion'], level: 6, xp: 50, par: 9, power: 2.0, line: 'A mated pair. One stalks while the other strikes.' },
+  { n: 9, act: 2, name: 'The Pride', enemies: ['lion', 'lion', 'lion'], level: 6, xp: 60, par: 10, power: 1.3, line: 'Three of them now. They have learned your scent.' },
+  { n: 10, act: 2, name: 'Sabretooth', enemies: ['sabre'], level: 7, xp: 150, boss: 'mini', par: 11, power: 1.8, line: 'The apex predator of the valley. Everything else here fears it.' },
+  { n: 11, act: 3, name: 'Enraged Elk', enemies: ['elk'], level: 8, xp: 80, par: 6, power: 2.0, line: 'The herd is moving. A bull elk stands between you and it.' },
+  { n: 12, act: 3, name: 'The Rut', enemies: ['elk', 'elk'], level: 8, xp: 80, par: 8, power: 1.2, line: 'Two bulls, mad with the season. They will charge anything.' },
+  { n: 13, act: 3, name: 'Iron Hide', enemies: ['rhino'], level: 9, xp: 80, par: 8, power: 2.2, line: 'A woolly rhino. Your club barely dents it.' },
+  { n: 14, act: 3, name: 'Twin Horns', enemies: ['rhino', 'rhino'], level: 9, xp: 90, par: 9, power: 1.1, line: 'Two rhinos guard the herd. Behind them, the ground shakes.' },
+  { n: 15, act: 3, name: 'The Great Woolly Mammoth', enemies: ['mammoth'], level: 10, xp: 300, boss: 'era', par: 15, power: 1.32, line: 'The matriarch. The simulation went quiet when she arrived.' },
+];
+// Stars: 1 for winning, 1 for finishing above half health, 1 for winning within par turns.
+export const STAR_REWARDS = [
+  { stars: 15, box: 'gold' },
+  { stars: 30, box: 'platinum' },
+  { stars: 45, box: 'legendary' },
 ];
 
 // ---------- Hero ----------
@@ -180,7 +253,7 @@ export const RECIPES = [
 // ---------- Base ----------
 export const BUILDINGS = {
   studio: { name: 'Workshop', short: 'Workshop', icon: '⚒', unlocks: ['Two-item crafts', 'Three-item crafts', 'Master recipes'] },
-  altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Loadout 5 skills, skill rank 2', 'Skill rank 3', 'Loadout 6 skills, training 25% cheaper'] },
+  altar: { name: 'Hero Training Altar', short: 'Altar', icon: '🗿', unlocks: ['Skill rank 2 · Terror finisher for sale', 'Skill rank 3 · Bloodrush finisher for sale', 'Training 25% cheaper'] },
   inventory: { name: 'Inventory', short: 'Inventory', icon: '🧺', unlocks: ['30 slots', '40 slots', '50 slots'] },
   shrine: { name: 'Shrine', short: 'Shrine', icon: '⛩', unlocks: ['Better loot box odds', 'Even better odds', 'Best odds'] },
   truth: { name: 'Truth Board', short: 'Truth Board', icon: '📌', unlocks: ['Decode level 1 fragments', 'Decode level 2 fragments', 'Decode everything'] },

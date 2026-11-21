@@ -1,5 +1,6 @@
 // Trial availability and rewards (first win vs replay).
-import { TRIALS, RECIPES } from '../data/era1.js';
+import { TRIALS, RECIPES, STAR_REWARDS } from '../data/era1.js';
+import { grantFinisher } from './hero.js';
 import { env, randInt, chance, pick } from './state.js';
 import { addXp } from './hero.js';
 import { addBox, addGear, rollTier, giveFragment, goalEvent, grantReward, STARTER } from './economy.js';
@@ -24,8 +25,28 @@ export function finishTrial(s, n, result, battle) {
   const out = { n, result, first: false, xp: 0, box: null, mats: { flint: 0, bone: 0 }, gear: [], respec: false, blueprint: null, eraKey: false, fragment: null, glitch: false };
   if (result !== 'win') {
     s.trials.losses[n] = (s.trials.losses[n] || 0) + 1;
+    out.lossCount = s.trials.losses[n];
     return out;
   }
+  // Stars: win; finish above half health; win within par turns
+  if (battle && n > 0) {
+    const h = battle.hero;
+    out.starList = [true, h.hp >= h.maxHp / 2, battle.turn <= t.par];
+    out.stars = out.starList.filter(Boolean).length;
+    const prev = s.trials.stars[n] || 0;
+    if (out.stars > prev) s.trials.stars[n] = out.stars;
+    out.newBest = out.stars > prev;
+    const total = totalStars(s);
+    out.starRewards = [];
+    for (const r of STAR_REWARDS) {
+      if (total >= r.stars && !s.starRewards.includes(r.stars)) {
+        s.starRewards.push(r.stars);
+        addBox(s, r.box);
+        out.starRewards.push(r);
+      }
+    }
+  }
+  if (battle && battle.fangMats) { s.mats.bone += battle.fangMats; out.fang = battle.fangMats; }
   s.trials.wins++;
   goalEvent(s, 'win', 1);
   if (battle && battle.hero.damageTaken === 0) s.flawless = true;
@@ -50,8 +71,8 @@ export function finishTrial(s, n, result, battle) {
     const m = randInt(2, 4);
     const f = randInt(0, m);
     out.mats = { flint: f, bone: m - f };
-    if (n === 5) { addGear(s, 'alpha_fang'); out.gear.push('alpha_fang'); }
-    if (n === 10) { addGear(s, 'sabre_hide'); out.gear.push('sabre_hide'); }
+    if (n === 5) { addGear(s, 'alpha_fang'); out.gear.push('alpha_fang'); grantFinisher(s, 'skull'); out.finisher = 'skull'; }
+    if (n === 10) { addGear(s, 'sabre_hide'); out.gear.push('sabre_hide'); grantFinisher(s, 'fang'); out.finisher = 'fang'; }
     if (n === 15) { addGear(s, 'tusk_club'); out.gear.push('tusk_club'); }
     if (t.boss === 'mini') { s.hero.respecTokens++; out.respec = true; }
     if (t.boss === 'era') {
@@ -83,6 +104,10 @@ export function finishTrial(s, n, result, battle) {
   s.mats.bone += out.mats.bone;
   if (first && s.hero.boons.includes('b_scavenger')) s.mats.flint++;
   return out;
+}
+
+export function totalStars(s) {
+  return Object.values(s.trials.stars || {}).reduce((a, n) => a + n, 0);
 }
 
 export { grantReward };
