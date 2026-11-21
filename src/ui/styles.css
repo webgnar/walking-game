@@ -1105,3 +1105,10 @@ html.has-icon-trophy .ui-trophy::after { background-image: url(/ui/icon-trophy.p
 .lootcard.more { border-style: dashed; }
 .lootcard.more .li { font-family: var(--display); font-weight: 700; color: #ffd27a; }
 .overlay .dialog .loot { min-height: 0; overflow-y: auto; }
+/* hero notice: centered under the hero, like the step tracker above */
+.ui-home .ui-points { left: 50%; transform: translateX(-50%); width: auto; padding: 0 calc(2.6 * var(--fw)); }
+/* messages from 7,301,223 in PROCTOR's spot: red italic, no channel tag */
+.proctor.glitch .who::after { content: none !important; }
+.proctor.glitch .who::before { background: #e2574a !important; box-shadow: 0 0 6px #e2574a; }
+.proctor.glitch .bubble { min-width: min(300px, 70vw); text-transform: none !important; font-size: 16px; animation: none; }
+.proctor.glitch .eye { background: #0d0505 !important; border-color: #7a1a14 !important; box-shadow: 0 0 12px rgba(226,87,74,.6) !important; }

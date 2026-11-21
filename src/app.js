@@ -172,6 +172,23 @@ function homeTop() {
     </div>`;
 }
 
+// The flashing notice over the hero: only when there's something to do there.
+function heroNotice() {
+  const h = s.hero;
+  const sp = h.freeAttr + h.freeSkill;
+  const owned = Object.keys(h.ranks).length;
+  const better = s.inv.some((it) => {
+    if (H.isEquipped(s, it.uid)) return false;
+    const cur = s.inv.find((x) => x.uid === h.equip[GEAR[it.key].slot]);
+    return !cur || GR.itemScore(it) > GR.itemScore(cur);
+  });
+  const [tab, text] = sp ? ['stats', `${sp} point${sp > 1 ? 's' : ''} to spend`]
+    : better ? ['gear', 'New gear to equip']
+      : h.loadout.length < Math.min(LOADOUT_MAX, owned) ? ['skills', 'Choose your skills'] : [null, null];
+  if (!tab) return '';
+  return `<button class="ui-points pulse" data-a="hero" data-v="${tab}"><span>${gi('act-points')}</span>${text}</button>`;
+}
+
 // Something new on the Truth Board: a part ready to decode, or a memory ready to play.
 function truthNews() {
   return FRAGMENTS.some((f) => B.fragmentState(s, f) === 'decodable' && s.soles >= f.cost) || (B.flashbackReady(s, 1) && !s.flashbacksSeen.includes(1));
@@ -216,7 +233,7 @@ const SCREENS = {
       ${s.boxes.length > 1 ? '<button class="btn small openall" data-a="openAll">Open all</button>' : ''}
     </div>
     <div class="herotap" data-a="hero" data-v="${sp ? 'stats' : 'gear'}" aria-label="Open hero"></div>
-    ${sp || hint('hero') ? `<button class="ui-points ${hint('hero') || ''}" data-a="hero" data-v="${sp ? 'stats' : 'gear'}"><span>${gi('act-points')}</span>${sp ? `${sp} point${sp > 1 ? 's' : ''} to spend` : 'Tap your hero'}</button>` : ''}
+    ${heroNotice()}
     <button class="ui-stepbtn" data-hold="steps"><span class="medal"><span class="uicon ic-steps">${IC.sole}</span></span><span class="tx"><span class="l">+100 Steps</span><span class="sub">Hold to keep walking</span></span><span class="test">Test</span></button>
     <button class="ui-trophy sq" data-a="modal" data-v="achievements" title="Achievements">${IC.trophy}</button>
     ${isIOS() && !isStandalone() && !s.installTipSeen ? `<div class="installtip panel pad" data-a="installTip"><b>Play fullscreen:</b> tap the Share button (square with an arrow), then <b>Add to Home Screen</b>, and open The Ascent from its icon. <span class="muted">(tap to hide)</span></div>` : ''}
@@ -1213,10 +1230,8 @@ function playCut(shots, done) {
 function glitch() {
   const text = E.nextGlitch(s);
   s.glitches++;
-  s.signal = { kind: 'glitch', text };
   save(s);
-  nudge(`A signal from ${FORMER_TRIBUTE}. Check it on Home.`, true);
-  render();
+  say(text, { glitch: true, sticky: true, who: FORMER_TRIBUTE, then: () => say(pick(PROCTOR.glitchDismiss)) });
 }
 
 // A small note that fades on its own. eerie: styled as a signal from 7,301,223.
@@ -1328,7 +1343,7 @@ const ACTIONS = {
   },
   closeSignal() { s.signal = null; closeModal(); commit(); setTimeout(() => say(pick(PROCTOR.glitchDismiss)), 300); },
   signalTruth() { s.signal = null; closeModal(); go('truth'); commit(); },
-  walkHint() { nudge(`Walk to earn Soles and loot boxes: every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. Soles train your hero, forge gear and grow your Base.`); },
+  walkHint() { say(`Walk to earn Soles and loot boxes: every ${E.stepsPerSole(s)} steps is a Sole, every 1,000 steps a loot box. Soles train your hero, forge gear and grow your Base. Tap to close.`, { sticky: true }); },
   claimGoal(v) { E.claimGoal(s, Number(v)); commit(); },
   claimBonus() { E.claimAllGoalsBonus(s); commit(); },
   claimWeekly() { E.claimWeekly(s); commit(); },
@@ -1640,4 +1655,4 @@ function bindHold() {
 }
 
 // exposed for debugging in the console
-window.ascent = { get state() { return s; }, get stage() { return stage; }, app, E, B, H, C, T };
+window.ascent = { get state() { return s; }, get stage() { return stage; }, app, E, B, H, C, T, glitch };
