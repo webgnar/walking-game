@@ -3,6 +3,7 @@
 // bones are posed by hand (relaxed arms, breathing, club swing) so he never stands in a T-pose.
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+import { Wardrobe } from './wear.js';
 
 const URL = '/models/caveman.fbx';
 // Animation clips, one file each: public/models/anims/<name>.fbx (missing files are skipped).
@@ -66,7 +67,7 @@ export async function loadCaveman() {
   old.dispose();
   skinned.frustumCulled = false;
 
-  const rig = new Rig(model, fbx, bone);
+  const rig = new Rig(model, fbx, bone, skinned);
   rig.loadClips(); // fire and forget
   return rig;
 }
@@ -103,7 +104,7 @@ const STRIKE = {
 };
 
 class Rig {
-  constructor(model, fbx, bone) {
+  constructor(model, fbx, bone, skinned) {
     this.model = model;
     this.fbx = fbx;
     this.bone = bone;
@@ -116,6 +117,8 @@ class Rig {
     this.bind = new Map();
     fbx.traverse((o) => { if (o.isBone) this.bind.set(o, o.quaternion.clone()); });
     this.pose = this.buildPose();
+    // wearable gear is fitted against the bind pose, so set it up while the bones are still in it
+    this.wardrobe = new Wardrobe(model, skinned);
   }
 
   async loadClips() {

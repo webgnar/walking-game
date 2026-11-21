@@ -71,9 +71,9 @@ function tiers() {
   return Object.fromEntries(BUILDING_ORDER.map((b) => [b, s.base[b].tier]));
 }
 function syncLook() {
-  const looks = {};
-  for (const g of H.equippedGear(s)) looks[g.slot] = g.look;
-  stage.setHeroLook(looks);
+  const looks = {}, ids = {};
+  for (const g of H.equippedGear(s)) { looks[g.slot] = g.look; ids[g.slot] = g.key; }
+  stage.setHeroLook(looks, ids);
 }
 
 // Save, check achievements, re-render.
