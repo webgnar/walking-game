@@ -564,19 +564,31 @@ function heroSkillsTab() {
 
 function heroGearTab() {
   const used = E.invUsed(s), cap = E.invCapacity(s);
-  const cells = [];
-  for (const it of s.inv) {
-    const g = GEAR[it.key];
-    cells.push(`<div class="cell t-${g.tier} ${H.isEquipped(s, it.uid) ? 'eq' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(g.name)}</div>`);
-  }
-  for (const [k, n] of Object.entries(s.boosters)) if (n > 0) cells.push(`<div class="cell" data-a="booster" data-v="${k}"><span class="gi">${ICON[k]}</span>${esc(BOOSTERS[k].name)}<span class="n">${n}</span></div>`);
-  while (cells.length < cap) cells.push('<div class="cell empty"></div>');
-  return `<div class="slots">${SLOTS.map((sl) => {
+  const tab = app.invTab || 'gear';
+  const boosters = Object.entries(s.boosters).filter(([, n]) => n > 0);
+  const junk = E.junkGear(s);
+  const slots = `<div class="slots">${SLOTS.map((sl) => {
     const g = H.gearOf(s, s.hero.equip[sl]);
     return `<div class="slot ${g ? 'full' : ''}" ${g ? `data-a="item" data-v="${g.uid}"` : ''}><span class="sn">${SLOT_NAMES[sl]}</span>${g ? `<span style="font-size:20px">${gearIcon(g.key)}</span>${esc(g.name)}` : `<span style="font-size:20px;opacity:.3">${ICON[sl]}</span>`}</div>`;
-  }).join('')}</div>
-  <div class="row" style="margin:8px 0 4px"><h3 class="h grow">Inventory ${used}/${cap}</h3><span class="small">🪨 ${s.mats.flint} · 🦴 ${s.mats.bone}</span><button class="btn tiny ghost" data-a="autoEquip">Equip best</button></div>
-  <div class="grid">${cells.join('')}</div>`;
+  }).join('')}</div>`;
+  const tabs = `<div class="invtabs">
+    <button class="tab ${tab === 'gear' ? 'on' : ''}" data-a="invTab" data-v="gear">Gear ${used}/${cap}</button>
+    <button class="tab ${tab === 'use' ? 'on' : ''}" data-a="invTab" data-v="use">Consumables${boosters.length ? ` (${boosters.reduce((a, [, n]) => a + n, 0)})` : ''}</button>
+    <span class="grow"></span>
+    ${tab === 'gear' ? `<button class="btn tiny ${junk.length ? '' : 'off'}" data-a="modal" data-v="salvageJunk">Salvage junk${junk.length ? ` (${junk.length})` : ''}</button><button class="btn tiny ghost" data-a="autoEquip">Equip best</button>` : ''}
+  </div>`;
+  if (tab === 'use') {
+    return `${slots}${tabs}
+    <div class="small muted" style="margin:2px 0 6px">No storage limit. Consumables never take inventory slots.</div>
+    <div class="grid">${boosters.map(([k, n]) => `<div class="cell" data-a="booster" data-v="${k}"><span class="gi">${ICON[k]}</span>${esc(BOOSTERS[k].name)}<span class="n">${n}</span></div>`).join('') || '<span class="muted small">No consumables yet. They turn up in loot boxes and the Workshop.</span>'}</div>`;
+  }
+  const junkIds = new Set(junk.map((it) => it.uid));
+  const cells = s.inv.map((it) => {
+    const g = GEAR[it.key];
+    return `<div class="cell t-${g.tier} ${H.isEquipped(s, it.uid) ? 'eq' : ''} ${junkIds.has(it.uid) ? 'junk' : ''}" data-a="item" data-v="${it.uid}"><span class="gi">${gearIcon(it.key)}</span>${esc(g.name)}</div>`;
+  });
+  while (cells.length < cap) cells.push('<div class="cell empty"></div>');
+  return `${slots}${tabs}<div class="grid">${cells.join('')}</div>`;
 }
 
 // ---------- Modals ----------
@@ -747,6 +759,18 @@ const MODALS = {
       <div class="row"><span style="font-size:44px">${ICON[m.key]}</span><div><h2 class="h">${esc(b.name)}</h2><div class="small muted">Booster · you have ${s.boosters[m.key] || 0}</div></div></div>
       <div style="margin:8px 0">${esc(b.desc)}</div>
       <div class="actions"><button class="btn small yellow" data-a="useBooster" data-v="${m.key}">Use</button></div></div>`;
+  },
+
+  salvageJunk() {
+    const junk = E.junkGear(s);
+    const soles = junk.reduce((a, it) => a + E.soleValue(it.key), 0);
+    return `<div class="dialog panel halftone" style="width:min(520px,92vw)">
+      <button class="x" data-a="closeModal">✕</button>
+      <h2 class="h">Salvage junk</h2>
+      <div class="small muted">Gear you can safely lose: not equipped, no better than what you're wearing in that slot, and not the one copy a recipe needs. Boss and rare gear is never included.</div>
+      <div class="body" style="margin:8px 0">${junk.length ? `<div class="grid">${junk.map((it) => `<div class="cell t-${GEAR[it.key].tier}"><span class="gi">${gearIcon(it.key)}</span>${esc(GEAR[it.key].name)}<span class="n">👣${E.soleValue(it.key)}</span></div>`).join('')}</div>` : '<span class="muted">Nothing to salvage.</span>'}</div>
+      ${junk.length ? `<div class="actions"><button class="btn ghost" data-a="closeModal">Cancel</button><button class="btn yellow" data-a="salvageJunkGo">Salvage ${junk.length} for 👣${fmt(soles)}</button></div>` : ''}
+    </div>`;
   },
 
   frag(m) {
@@ -1169,6 +1193,13 @@ const ACTIONS = {
   equip(v) { H.equip(s, v); syncLook(); closeModal(); commit(); },
   autoEquip() { H.autoEquipBest(s); syncLook(); commit(); },
   salvage(v) { E.salvage(s, v); closeModal(); commit(); },
+  salvageJunkGo() {
+    const r = E.salvageJunk(s);
+    closeModal();
+    if (r.count) say(`${r.count} piece${r.count > 1 ? 's' : ''} of junk melted down into ${fmt(r.soles)} Soles. Very sustainable. Very Stone Age.`);
+    commit();
+  },
+  invTab(v) { app.invTab = v; render(); },
   useBooster(v) { if (E.useBooster(s, v)) say(`${BOOSTERS[v].name} active. ${BOOSTERS[v].desc}.`); closeModal(); commit(); },
 
   // shop

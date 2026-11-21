@@ -913,3 +913,9 @@ h3.h { font-family: var(--serif); font-weight: 600; letter-spacing: .14em; color
 .truthboard .entry.tx.live { box-shadow: 0 0 12px rgba(77,255,154,.3), 3px 3px 0 var(--ink); }
 .truthboard .entry.tx .mbar { height: 6px; background: #12301f; border: 1px solid var(--green); margin: 4px 0; }
 .truthboard .entry.tx .mbar i { display: block; height: 100%; background: var(--green); }
+
+/* Inventory: Gear / Consumables tabs; junk marked for salvage */
+.invtabs { display: flex; align-items: center; gap: 6px; margin: 8px 0 6px; flex-wrap: wrap; }
+.invtabs .grow { flex: 1; }
+.cell.junk { opacity: .55; }
+.cell.junk::after { content: 'junk'; position: absolute; top: 2px; left: 3px; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--g-dim, #a89a7e); }

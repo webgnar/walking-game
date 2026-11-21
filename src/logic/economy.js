@@ -110,8 +110,9 @@ export function addBox(s, tier) {
 export function invCapacity(s) {
   return INVENTORY_SLOTS[s.base.inventory.tier];
 }
+// Only gear takes inventory slots. Consumables (boosters) have unlimited storage.
 export function invUsed(s) {
-  return s.inv.length + Object.values(s.boosters).filter((n) => n > 0).length;
+  return s.inv.length;
 }
 
 // Returns the new instance, or null if salvaged because the bag is full.
@@ -143,6 +144,49 @@ export function salvage(s, uidv) {
   s.mats.flint += m.flint;
   s.mats.bone += m.bone;
   return m;
+}
+
+// ---------- Salvage junk into Soles ----------
+// Rough strength of a piece of gear, for comparing within a slot.
+export function gearScore(key) {
+  const st = GEAR[key].stats;
+  return (st.dmg || 0) * 2 + (st.hp || 0) / 5 + (st.str || 0) + (st.vit || 0) + (st.int || 0) + (st.agi || 0);
+}
+// Soles for salvaging a whole item (kept modest so walking stays the main source).
+export const SOLE_VALUE = { worn: 10, shop: 30, crafted: 40, rare: 60, boss: 80 };
+export function soleValue(key) {
+  return SOLE_VALUE[GEAR[key].tier] || 10;
+}
+
+// Junk = gear you can safely lose: not equipped, not a boss or rare item, no better than what
+// you're wearing in that slot, and not the one copy you'd need as a crafting ingredient.
+export function junkGear(s) {
+  const equipped = Object.values(s.hero.equip).filter(Boolean);
+  const wornScore = {};
+  for (const id of equipped) {
+    const it = s.inv.find((x) => x.uid === id);
+    if (it) wornScore[GEAR[it.key].slot] = gearScore(it.key);
+  }
+  const ingredient = new Set(RECIPES.flatMap((r) => Object.keys(r.inputs)).filter((k) => GEAR[k]));
+  const keptForRecipe = new Set();
+  const junk = [];
+  for (const it of s.inv) {
+    const g = GEAR[it.key];
+    if (equipped.includes(it.uid) || g.tier === 'boss' || g.tier === 'rare') continue;
+    if (ingredient.has(it.key) && !keptForRecipe.has(it.key)) { keptForRecipe.add(it.key); continue; }
+    if (gearScore(it.key) > (wornScore[g.slot] ?? -1)) continue;
+    junk.push(it);
+  }
+  return junk;
+}
+
+export function salvageJunk(s) {
+  const junk = junkGear(s);
+  const soles = junk.reduce((a, it) => a + soleValue(it.key), 0);
+  const ids = new Set(junk.map((it) => it.uid));
+  s.inv = s.inv.filter((it) => !ids.has(it.uid));
+  s.soles += soles;
+  return { count: junk.length, soles };
 }
 
 export function addBooster(s, key, n = 1) {
