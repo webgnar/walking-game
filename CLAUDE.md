@@ -29,6 +29,7 @@ Before your first commit in a session:
    | Person | GitHub login | Commit email |
    | --- | --- | --- |
    | zack | `webgnar` | `124617425+webgnar@users.noreply.github.com` |
+| Ben | `gouletbenjamin` | `277499472+gouletbenjamin@users.noreply.github.com` |
 
    (Teammates: add your own row here once so every Claude picks it up.)
 
